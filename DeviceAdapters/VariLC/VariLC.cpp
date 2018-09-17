@@ -234,6 +234,14 @@ int VariLC::Initialize()
 	ret = CreateProperty(MM::g_Keyword_Name, g_ControllerName, MM::String, true);
 	if (DEVICE_OK != ret)
 		return ret;
+	
+	//Sequence Property
+	CPropertyAction *pAct = new CPropertyAction(this, &CTriggerScopeTTL::OnSequence);
+	int nRet = CreateProperty("Sequence", g_On, MM::String, false, pAct);
+	if (nRet != DEVICE_OK)
+		return nRet;
+	AddAllowedValue("Sequence", g_On);
+	AddAllowedValue("Sequence", g_Off);
 
 	// Version number
 	CPropertyAction* pAct = new CPropertyAction(this, &VariLC::OnSerialNumber);
@@ -501,4 +509,81 @@ int VariLC::sendCmd(std::string cmd) {
 		return 99;
 	}
 	return DEVICE_OK;
+}
+
+int IsPropertySequenceable(const char* name, bool& isSequenceable) const
+{
+	if (strcmp(name, "Wavelength") == 0)
+		isSequenceable = true;
+	else
+		isSequenceable = false;
+	return DEVICE_OK;
+}
+
+int GetPropertySequenceMaxLength(const char* name, long& nrEvents) const
+{
+	if (strcmp(name, "Wavelength") == 0)
+		nrEvents = 128;	//We are using the palette functionality as this is slightly faster than specifying a wavelength jump. the limit of paletted is 128
+	else
+		nrEvents = 0;
+	return DEVICE_OK;
+}
+
+int StartPropertySequence(const char* propertyName) {
+	if (strcmp(propertyName, "Wavelength") == 0)
+	{
+		CTriggerScopeHub* hub = static_cast<CTriggerScopeHub*>(GetParentHub());
+		if (!hub || !hub->IsPortAvailable())
+			return ERR_NO_PORT_SET;
+
+		MMThreadGuard myLock(hub->GetLock());
+
+		//hub->PurgeComPortH();
+		hub->Purge();
+		hub->Send("ARM");
+		CDeviceUtils::SleepMs(10);
+		hub->ReceiveOneLine();
+
+		return DEVICE_OK;
+	}
+	else
+		return DEVICE_UNSUPPORTED_COMMAND;
+}
+
+int StopPropertySequence(const char* propertyName) {
+	if (strcmp(propertyName, "Wavelength") == 0)
+	{
+		return StopDASequence();
+	}
+	else
+		return DEVICE_UNSUPPORTED_COMMAND;
+}
+
+int ClearPropertySequence(const char* propertyName) {
+	if (strcmp(propertyName, "Wavelength") == 0)
+	{
+		return ClearDASequence();
+	}
+	else
+		return DEVICE_UNSUPPORTED_COMMAND;
+}
+
+int AddToPropertySequence(const char* propertyName, const char* value) {
+	if (strcmp(propertyName, "Wavelength") == 0)
+	{
+		double voltage;
+		voltage = atof(value);
+		return AddToDASequence(voltage);
+	}
+	else
+		return DEVICE_UNSUPPORTED_COMMAND;
+}
+
+int SendPropertySequence(const char* propertyName) {
+	if (strcmp(propertyName, "Wavelength") == 0)
+	{
+		return SendDASequence();
+	}
+	else
+		return DEVICE_UNSUPPORTED_COMMAND;
 }

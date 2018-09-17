@@ -70,8 +70,8 @@ class VariLC : public CGenericBase<VariLC>
 	  int StartPropertySequence(const char* propertyName);
 	  int StopPropertySequence(const char* propertyName);
 	  int ClearPropertySequence(const char* propertyName);
-	  int AddToPropertySequence(const char* propertyName, const char* value);
-	  int SendPropertySequence(const char* propertyName); //Send the sequence over serial to the device
+	  int AddToPropertySequence(const char* propertyName, const char* value);	//Add one value to the sequence
+	  int SendPropertySequence(const char* propertyName);	//Signal that we are done sending sequence values so that the adapter can send the whole sequence to the device
 	  
    private:
       // Command exchange with MMCore
@@ -87,6 +87,7 @@ class VariLC : public CGenericBase<VariLC>
       std::string getFromVariLC_;
 	  MM::MMTime changedTime_;
 	  MM::MMTime delay;
+	  std::vector<double> sequence_;
       std::vector<double> getNumbersFromMessage(std::string variLCmessage, bool prefixQ);
 	  std::string DoubleToString(double N);
 	  int sendCmd(std::string cmd, std::string& out);	//Send a command and save the response in `out`.
