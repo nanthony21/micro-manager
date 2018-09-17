@@ -534,7 +534,14 @@ int VariLC::GetPropertySequenceMaxLength(const char* name, long& nrEvents) const
 int VariLC::StartPropertySequence(const char* propertyName) {
 	if (strcmp(propertyName, "Wavelength") == 0)
 	{
-		return sendCmd("P0");	//Go to the first pallete element before sequencing begins
+		int ret;
+		ret = sendCmd("M0"); //Ensure we are in sequence mode 0.
+		if (ret != DEVICE_OK) {return ret;}
+		ret = sendCmd("G1"); //Enable the TTL port. wavength will change every pulse
+		if (ret != DEVICE_OK) { return ret; }
+		ret = sendCmd("P0");	//Go to the first pallete element before sequencing begins
+		if (ret != DEVICE_OK) { return ret; }
+		return DEVICE_OK;
 	}
 	else {
 		return DEVICE_UNSUPPORTED_COMMAND;
@@ -544,7 +551,9 @@ int VariLC::StartPropertySequence(const char* propertyName) {
 int VariLC::StopPropertySequence(const char* propertyName) {
 	if (strcmp(propertyName, "Wavelength") == 0)
 	{
-		return sendCmd("P0");	//Go to the first pallete element after sequencing
+		int ret = sendCmd("G0"); //disable the TTL port
+		ret |= sendCmd("P0");//Go to the first pallete element after sequencing
+		return ret;
 	}
 	else
 		return DEVICE_UNSUPPORTED_COMMAND;
