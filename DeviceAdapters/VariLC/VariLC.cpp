@@ -522,38 +522,29 @@ int VariLC::IsPropertySequenceable(const char* name, bool& isSequenceable) const
 
 int VariLC::GetPropertySequenceMaxLength(const char* name, long& nrEvents) const
 {
-	if (strcmp(name, "Wavelength") == 0)
+	if (strcmp(name, "Wavelength") == 0) {
 		nrEvents = 128;	//We are using the palette functionality as this is slightly faster than specifying a wavelength jump. the limit of paletted is 128
-	else
+	}
+	else {
 		nrEvents = 0;
+	}
 	return DEVICE_OK;
 }
 
 int VariLC::StartPropertySequence(const char* propertyName) {
 	if (strcmp(propertyName, "Wavelength") == 0)
 	{
-		CTriggerScopeHub* hub = static_cast<CTriggerScopeHub*>(GetParentHub());
-		if (!hub || !hub->IsPortAvailable())
-			return ERR_NO_PORT_SET;
-
-		MMThreadGuard myLock(hub->GetLock());
-
-		//hub->PurgeComPortH();
-		hub->Purge();
-		hub->Send("ARM");
-		CDeviceUtils::SleepMs(10);
-		hub->ReceiveOneLine();
-
-		return DEVICE_OK;
+		return sendCmd("P0");	//Go to the first pallete element before sequencing begins
 	}
-	else
+	else {
 		return DEVICE_UNSUPPORTED_COMMAND;
+	}
 }
 
 int VariLC::StopPropertySequence(const char* propertyName) {
 	if (strcmp(propertyName, "Wavelength") == 0)
 	{
-		return StopDASequence();
+		return sendCmd("P0");	//Go to the first pallete element after sequencing
 	}
 	else
 		return DEVICE_UNSUPPORTED_COMMAND;
@@ -562,27 +553,34 @@ int VariLC::StopPropertySequence(const char* propertyName) {
 int VariLC::ClearPropertySequence(const char* propertyName) {
 	if (strcmp(propertyName, "Wavelength") == 0)
 	{
-		return ClearDASequence();
+		int ret = sendCmd("C1");
+		sequence_.clear();
+		return ret;
 	}
 	else
 		return DEVICE_UNSUPPORTED_COMMAND;
 }
 
 int VariLC::AddToPropertySequence(const char* propertyName, const char* value) {
-	if (strcmp(propertyName, "Wavelength") == 0)
-	{
-		double voltage;
+	if (strcmp(propertyName, "Wavelength") == 0) {
 		voltage = atof(value);
-		return AddToDASequence(voltage);
+		sequence_.push_back(voltage);
+		return DEVICE_OK;
 	}
-	else
+	else {
 		return DEVICE_UNSUPPORTED_COMMAND;
+	}
 }
 
 int VariLC::SendPropertySequence(const char* propertyName) {
 	if (strcmp(propertyName, "Wavelength") == 0)
 	{
-		return SendDASequence();
+		for (int i = 0; i < sequence_.size(); i++) {
+			ostringstream cmd;
+			cmd.precision(3);
+			cmd << "D" << sequence_.get(i) << "," << i;
+			return sendCmd(cmd.str());
+		}
 	}
 	else
 		return DEVICE_UNSUPPORTED_COMMAND;
