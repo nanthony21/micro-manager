@@ -60,17 +60,18 @@ class VariLC : public CGenericBase<VariLC>
 	  int OnBaud	(MM::PropertyBase* pProp, MM::ActionType eAct);
       int OnBriefMode (MM::PropertyBase* pProp, MM::ActionType eAct);
       int OnWavelength (MM::PropertyBase* pProp, MM::ActionType eAct);
-	  int OnSerialNumber (MM::PropertyBase* pProp, MM::ActionType eAct);
-      int OnNumTotalLCs (MM::PropertyBase* pProp, MM::ActionType eAct);
-      int OnNumActiveLCs (MM::PropertyBase* pProp, MM::ActionType eAct);	  
-      int OnRetardance (MM::PropertyBase* pProp, MM::ActionType eAct, long index);
-	  int OnAbsRetardance (MM::PropertyBase* pProp, MM::ActionType eAct, long index);
-//      int OnEpilogueL (MM::PropertyBase* pProp, MM::ActionType eAct);
-      int OnNumPalEls (MM::PropertyBase* pProp, MM::ActionType eAct);
-      int OnPalEl (MM::PropertyBase* pProp, MM::ActionType eAct, long index);
+	  int OnSerialNumber (MM::PropertyBase* pProp, MM::ActionType eAct);	  
       int OnSendToVariLC (MM::PropertyBase* pProp, MM::ActionType eAct);
       int OnGetFromVariLC (MM::PropertyBase* pProp, MM::ActionType eAct);
 
+	  //sequence interface
+	  int IsPropertySequenceable(const char* name, bool& isSequenceable) const;
+	  int GetPropertySequenceMaxLength(const char* name, long& nrEvents) const;
+	  int StartPropertySequence(const char* propertyName);
+	  int StopPropertySequence(const char* propertyName);
+	  int ClearPropertySequence(const char* propertyName);
+	  int AddToPropertySequence(const char* propertyName, const char* value);
+	  int SendPropertySequence(const char* propertyName); //Send the sequence over serial to the device
 	  
    private:
       // Command exchange with MMCore

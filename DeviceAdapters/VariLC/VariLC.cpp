@@ -115,29 +115,14 @@ VariLC::VariLC() :
   initialized_(false),
   initializedDelay_(false),
   answerTimeoutMs_(1000),
-  wavelength_(546),
-  numTotalLCs_(2),
-  numActiveLCs_(2),
-  numPalEls_(5)
+  wavelength_(546)
 {
    InitializeDefaultErrorMessages();
-   
    // pre-initialization properties
-
-
    // Port:
    CPropertyAction* pAct = new CPropertyAction(this, &VariLC::OnPort);
    CreateProperty(MM::g_Keyword_Port, "Undefined", MM::String, false, pAct, true);
    SetProperty(MM::g_Keyword_Port, port_.c_str());
-
-   pAct = new CPropertyAction (this, &VariLC::OnNumActiveLCs);
-   CreateProperty("Number of Active LCs", "2", MM::Integer, false, pAct, true); 
-   
-   pAct = new CPropertyAction (this, &VariLC::OnNumTotalLCs);
-   CreateProperty("Total Number of LCs", "2", MM::Integer, false, pAct, true); 
-   
-   pAct = new CPropertyAction (this, &VariLC::OnNumPalEls);
-   CreateProperty("Total Number of Palette Elements", "5", MM::Integer, false, pAct, true); 
    
    pAct = new CPropertyAction(this, &VariLC::OnBaud);
    CreateProperty(g_BaudRate_key, "Undefined", MM::String, false, pAct, true);  
@@ -242,13 +227,6 @@ MM::DeviceDetectionStatus VariLC::DetectDevice(void)
 
 int VariLC::Initialize()
 {
-	for (long i=0;i<numTotalLCs_;++i) {
-		retardance_[i] = 0.5;
-	}
-
-	for (long i=0;i<numPalEls_;i++) {
-		palEl_[i] = "";
-	}
  
 // empty the Rx serial buffer before sending command
    int ret = ClearPort(*this, *GetCoreCallback(), port_);
@@ -263,18 +241,6 @@ int VariLC::Initialize()
     // Version number
    CPropertyAction* pAct = new CPropertyAction (this, &VariLC::OnSerialNumber);
    ret = CreateProperty("Version Number", "Version Number Not Found", MM::String, true, pAct);
-   if (ret != DEVICE_OK)
-      return ret;
-
-   // Active LC number
-   pAct = new CPropertyAction (this, &VariLC::OnNumActiveLCs);
-   ret = CreateProperty("Active LCs", "0", MM::Integer, true, pAct);
-   if (ret != DEVICE_OK)
-      return ret;
-
-   // Total LC number
-   pAct = new CPropertyAction (this, &VariLC::OnNumTotalLCs);
-   ret = CreateProperty("Total LCs", "0", MM::Integer, true, pAct);
    if (ret != DEVICE_OK)
       return ret;
 
@@ -309,49 +275,6 @@ int VariLC::Initialize()
    if (ret != DEVICE_OK)
       return ret;
    SetPropertyLimits("Device Delay (ms.)", 0.0, 200.0);
-   
-   CPropertyActionEx *pActX = 0;
-//	 create an extended (i.e. array) properties 0 through 1
-	
-   for (long i=0;i<numActiveLCs_;++i) {
-	   ostringstream s;
-	   s << "Retardance LC-" << char(65+i);
-	   pActX = new CPropertyActionEx(this, &VariLC::OnRetardance, i);
-	   CreateProperty(s.str().c_str(), "0.5", MM::Float, false, pActX);
-	   SetPropertyLimits(s.str().c_str(), 0.0001, 3);
-   }
-
-   // Absolute Retardance controls -- after Voltage controls
-   for (long i=0;i<numActiveLCs_;++i) {
-	   ostringstream s;
-	   s << "Retardance LC-" << char(65+i) << " [in nm.]";
-	   pActX = new CPropertyActionEx(this, &VariLC::OnAbsRetardance, i);
-	   CreateProperty(s.str().c_str(), "100", MM::Float, true, pActX);
-   }
- 
-//   for (long i=0;i<numPalEls_;++i) {
-//	   ostringstream s;
-//	   s << "Pal. elem. " << char(48+i) << ", enter 0 to define, 1 to activate";
-//	   pActX = new CPropertyActionEx(this, &VariLC::OnPalEl, i);
-//	   CreateProperty(s.str().c_str(), "", MM::String, false, pActX);
-//   }
-
-   for (long i=0;i<numPalEls_;++i) {
-	   ostringstream s;
-	   std::string number;
-
-	   std::stringstream strstream;
-	   strstream << i;
-	   strstream >> number;
-	   if (i < 10) {
-			number = "0"+number;
-		}
-	   
-
-	   s << "Pal. elem. " << number << "; enter 0 to define; 1 to activate";
-	   pActX = new CPropertyActionEx(this, &VariLC::OnPalEl, i);
-	   CreateProperty(s.str().c_str(), "", MM::String, false, pActX);
-   }
 
    pAct = new CPropertyAction (this, &VariLC::OnSendToVariLC);
    ret = CreateProperty("String send to VariLC", "", MM::String, false, pAct); 
@@ -447,45 +370,6 @@ int VariLC::OnBaud(MM::PropertyBase* pProp, MM::ActionType eAct)
    return DEVICE_OK;
 }
 
- int VariLC::OnNumTotalLCs(MM::PropertyBase* pProp, MM::ActionType eAct)
-{
-   if (eAct == MM::BeforeGet)
-   {
-     pProp->Set(numTotalLCs_);
-    }
-   else if (eAct == MM::AfterSet)
-   {
-	  pProp->Get(numTotalLCs_);
-   }
-   return DEVICE_OK;
-}
-
- int VariLC::OnNumActiveLCs(MM::PropertyBase* pProp, MM::ActionType eAct)
-{
-   if (eAct == MM::BeforeGet)
-   {
-     pProp->Set(numActiveLCs_);
-    }
-   else if (eAct == MM::AfterSet)
-   {		
-	  pProp->Get(numActiveLCs_);
-   }
-   return DEVICE_OK;
-}
-
-
- int VariLC::OnNumPalEls(MM::PropertyBase* pProp, MM::ActionType eAct)
-{
-   if (eAct == MM::BeforeGet)
-   {
-     pProp->Set(numPalEls_);
-    }
-   else if (eAct == MM::AfterSet)
-   {
-	  pProp->Get(numPalEls_);
-   }
-   return DEVICE_OK;
-}
 
  int VariLC::OnSerialNumber (MM::PropertyBase* pProp, MM::ActionType eAct)
  {
@@ -534,140 +418,6 @@ int VariLC::OnWavelength (MM::PropertyBase* pProp, MM::ActionType eAct)
    }
    return DEVICE_OK;
  }
-
-int VariLC::OnRetardance(MM::PropertyBase* pProp, MM::ActionType eAct, long index)
-{
-   if (eAct == MM::BeforeGet)
-   {
-     int ret = SendSerialCommand(port_.c_str(), "L?", "\r");
-         if (ret!=DEVICE_OK)return DEVICE_SERIAL_COMMAND_FAILED;
-     std::string ans;
-	 GetSerialAnswer (port_.c_str(), "\r", ans);
-     GetSerialAnswer (port_.c_str(), "\r", ans);
-
-     vector<double> numbers = getNumbersFromMessage(ans,briefModeQ_);
-	 if (index < (int) numbers.size()) {
-	   retardance_[index] = numbers[index];
-	   pProp->Set(retardance_[index]);
-
-	   ostringstream s;
-	   s << "Retardance LC-" << char(65+index) << " [in nm.]";
-	   std::string s2 = DoubleToString(retardance_[index]*wavelength_);
-	   SetProperty(s.str().c_str(), s2.c_str());
-
-	 } else {
-		 return DEVICE_INVALID_PROPERTY_VALUE;
-	 }
-   }
-   else if (eAct == MM::AfterSet)
-   {
-	   double retardance;
-
-      // read value from property
-      pProp->Get(retardance);
-      // write retardance out to device....
-	   ostringstream cmd;
-	   cmd.precision(4);
-      cmd << "L" ;
-      for (int i=0; i<numTotalLCs_; i++) {
-         if (i==index) {
-            cmd << " " << retardance;
-		 } else {
-			cmd << " " << retardance_[i];
-		 }
-      }
-      int ret = SendSerialCommand(port_.c_str(), cmd.str().c_str(), "\r");
-      if (ret!=DEVICE_OK)
-   		return DEVICE_SERIAL_COMMAND_FAILED;
-      
-      std::string ans;
-	  GetSerialAnswer (port_.c_str(), "\r", ans);	  
-
-      retardance_[index] = retardance;
-
-	  changedTime_ = GetCurrentMMTime();
-   }
-   return DEVICE_OK;
-}
-
-int VariLC::OnAbsRetardance(MM::PropertyBase* pProp, MM::ActionType eAct, long index)
-{	       
-   if (eAct == MM::BeforeGet)
-   {	 
-     if (index+1 > 0) {	    
-	   pProp->Set(retardance_[index]*wavelength_);
-	 } else {
-		 return DEVICE_INVALID_PROPERTY_VALUE;
-	 }
-   }
-   else if (eAct == MM::AfterSet)
-   {
-	 
-   }
-   return DEVICE_OK;
-}
-
- int VariLC::OnPalEl(MM::PropertyBase* pProp, MM::ActionType eAct, long index)
-{
-   if (eAct == MM::BeforeGet)
-   {
-	 //PurgeComPort(port_.c_str());
-     int ret = SendSerialCommand(port_.c_str(), "D?", "\r");
-         if (ret!=DEVICE_OK)return DEVICE_SERIAL_COMMAND_FAILED;
-     std::string ans;
-//	 GetSerialAnswer (port_.c_str(), "\r", ans);
-	 while (ans!="D?") GetSerialAnswer (port_.c_str(), "\r", ans);
-//the while statement was needed to overcome an empty string that appears in ans while reading the 5th pallette element 
-//however, we should avoid infinite loop; bow out with report of comm error?
-    GetSerialAnswer (port_.c_str(), "\r", ans);
-     vector<double> numbers = getNumbersFromMessage(ans,briefModeQ_);
-     int elemNr = (int) numbers[0];
-    if (elemNr == 0) {
-		for (int i=0;i<numPalEls_+1;i++) {
-			palEl_[i] = "";
-		}
-	 } else {
-        for (int i=1;i<=elemNr;i++) {  //i is one based
-          ret = GetSerialAnswer (port_.c_str(), "\r", ans);
-              if (ret!=DEVICE_OK)return DEVICE_SERIAL_COMMAND_FAILED;
-          if ((i-1)==index) {
-             numbers = getNumbersFromMessage(ans,briefModeQ_);
-         	 ostringstream palElStr;
-         	 palElStr.precision(4);
-			 palElStr << "  " << (numbers[0]);
-		     for (long i=0;i<numActiveLCs_;++i) {
-        	   palElStr << "  " << (numbers[i+1]);
-		     }
-			 palEl_[index] = palElStr.str();
-          }
-        }
-	 }
-	 pProp->Set(palEl_[index].c_str());
-   }
-   else if (eAct == MM::AfterSet)
-   {
-	   long setPalEl = 0;
-	   changedTime_ = GetCurrentMMTime();  //enter in each function that sets the LCs
-	   std::string ans;
-	   ostringstream cmd;
-	   cmd.precision(0);
-	    pProp->Get(setPalEl);
-		if (setPalEl == 0) {
-		   cmd << "D " << index;
-			int ret = SendSerialCommand(port_.c_str(), cmd.str().c_str(), "\r");
-				if (ret!=DEVICE_OK)return DEVICE_SERIAL_COMMAND_FAILED;
-				GetSerialAnswer (port_.c_str(), "\r", ans);				
-		}
-		if (setPalEl == 1) {
-		   cmd << "P " << index;
-			int ret = SendSerialCommand(port_.c_str(), cmd.str().c_str(), "\r");
-				if (ret!=DEVICE_OK)return DEVICE_SERIAL_COMMAND_FAILED;				
-				GetSerialAnswer (port_.c_str(), "\r", ans);				 
-		}
-   }
-   return DEVICE_OK;
-}
-
 
 int VariLC::OnSendToVariLC(MM::PropertyBase* pProp, MM::ActionType eAct)
 {
@@ -758,101 +508,103 @@ int VariLC::OnSendToVariLC(MM::PropertyBase* pProp, MM::ActionType eAct)
 	  else if (sendToVariLC_=="L ?" || sendToVariLC_=="L?") {
 		  int ret = SendSerialCommand(port_.c_str(), "L?", "\r");
 			 if (ret!=DEVICE_OK)return DEVICE_SERIAL_COMMAND_FAILED;
-		 GetSerialAnswer (port_.c_str(), "\r", getFromVariLC_);		 
+GetSerialAnswer(port_.c_str(), "\r", getFromVariLC_);
 	  }
 	  else {
-         int ret = SendSerialCommand(port_.c_str(), sendToVariLC_.c_str(), "\r");
-         if (ret!=DEVICE_OK)
-		      return DEVICE_SERIAL_COMMAND_FAILED;		 
-      }
-	  
-		GetSerialAnswer (port_.c_str(), "\r", getFromVariLC_);  
-	  
+	  int ret = SendSerialCommand(port_.c_str(), sendToVariLC_.c_str(), "\r");
+	  if (ret != DEVICE_OK)
+		  return DEVICE_SERIAL_COMMAND_FAILED;
+	  }
+
+	  GetSerialAnswer(port_.c_str(), "\r", getFromVariLC_);
+
    }
    return DEVICE_OK;
 }
 
 int VariLC::OnGetFromVariLC(MM::PropertyBase* pProp, MM::ActionType eAct)
 {
-   if (eAct == MM::BeforeGet)
-   {
-	//   GetSerialAnswer (port_.c_str(), "\r", getFromVariLC_);
-      pProp->Set(getFromVariLC_.c_str());
-   }
-   else if (eAct == MM::AfterSet)
-   {
+	if (eAct == MM::BeforeGet)
+	{
+		//   GetSerialAnswer (port_.c_str(), "\r", getFromVariLC_);
+		pProp->Set(getFromVariLC_.c_str());
+	}
+	else if (eAct == MM::AfterSet)
+	{
 
-   }
-   return DEVICE_OK;
+	}
+	return DEVICE_OK;
 }
 
- int VariLC::OnDelay(MM::PropertyBase* pProp, MM::ActionType eAct)
+int VariLC::OnDelay(MM::PropertyBase* pProp, MM::ActionType eAct)
 {
-   if (eAct == MM::BeforeGet)
-   {
-	 double delay = GetDelayMs();
-	 initializedDelay_ = true;
-	 pProp->Set(delay);
-    }
-   else if (eAct == MM::AfterSet)
-   {
-	  double delayT;
-	  pProp->Get(delayT);
-	  if (initializedDelay_) {
-		SetDelayMs(delayT);
-	  }
-	  delay = delayT*1000;
-   }
-   
-   return DEVICE_OK;
+	if (eAct == MM::BeforeGet)
+	{
+		double delay = GetDelayMs();
+		initializedDelay_ = true;
+		pProp->Set(delay);
+	}
+	else if (eAct == MM::AfterSet)
+	{
+		double delayT;
+		pProp->Get(delayT);
+		if (initializedDelay_) {
+			SetDelayMs(delayT);
+		}
+		delay = delayT * 1000;
+	}
+
+	return DEVICE_OK;
 }
 
 bool VariLC::Busy()
 {
-   if (delay.getMsec() > 0.0) {
-      MM::MMTime interval = GetCurrentMMTime() - changedTime_;      
-      if (interval.getMsec() < delay.getMsec() ) {
-         return true;
-      }
-   }
-   
-   return false;
+	if (delay.getMsec() > 0.0) {
+		MM::MMTime interval = GetCurrentMMTime() - changedTime_;
+		if (interval.getMsec() < delay.getMsec()) {
+			return true;
+		}
+	}
+
+	return false;
 }
 
 std::string VariLC::DoubleToString(double N)
 {
-    ostringstream ss("");
-    ss << N;
-    return ss.str();
+	ostringstream ss("");
+	ss << N;
+	return ss.str();
 }
 
 std::vector<double> VariLC::getNumbersFromMessage(std::string variLCmessage, bool briefMode) {
-   std::istringstream variStream(variLCmessage);
-   std::string prefix;
-   double val;
-   std::vector<double> values;
+	std::istringstream variStream(variLCmessage);
+	std::string prefix;
+	double val;
+	std::vector<double> values;
 
-   if (!briefMode){
-      variStream >> prefix;
+	if (!briefMode) {
+		variStream >> prefix;
 	}
-    for (;;) {
-       variStream >> val;
-       if (! variStream.fail()) {
-          values.push_back(val);
-       } else {
-           break;
-       }
-	 }
+	for (;;) {
+		variStream >> val;
+		if (!variStream.fail()) {
+			values.push_back(val);
+		}
+		else {
+			break;
+		}
+	}
 
 	return values;
 }
 
 static inline bool IsSpace(char ch)
 {
-   return std::isspace(ch);
+	return std::isspace(ch);
 }
 
 void VariLC::removeSpaces(std::string input)
 {
-   input.erase(std::remove_if(input.begin(), input.end(), IsSpace), input.end());
+	input.erase(std::remove_if(input.begin(), input.end(), IsSpace), input.end());
 }
+}
