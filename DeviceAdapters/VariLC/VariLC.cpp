@@ -398,9 +398,9 @@ int VariLC::OnBriefMode(MM::PropertyBase* pProp, MM::ActionType eAct)
 		 pProp->Get(wavelength);
 		 // write wavelength out to device....
 		 ostringstream cmd;
-		 cmd.precision(5);
+		 cmd.precision(3);
 		 cmd << "W " << wavelength;
-		 int ret = sendCmd(cmd.str().c_str());
+		 int ret = sendCmd(cmd.str());
 		 if (ret != DEVICE_OK)
 			 return DEVICE_SERIAL_COMMAND_FAILED;
 		 wavelength_ = wavelength;
