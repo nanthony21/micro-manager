@@ -7,7 +7,11 @@
 //
 // AUTHOR:        Rudolf Oldenbourg, MBL, w/ Arthur Edelstein and Karl Hoover, UCSF, Sept, Oct 2010
 // COPYRIGHT:     
-// LICENSE:       
+// LICENSE:  
+
+// Change Log - Nick Anthony - Sept 11, 2018
+// 1. Wavelength upper and lower limits are now queried from the device rather than being assumed to be 400-800 nm.
+// 2. In the event that an out of range wavelength is set the adapter will now log an error and continue running. Previously this would result in a sudden crash without any log.
 
 // Change Log - Amitabh Verma - Jan. 26, 2015
 // 1. Error response retrieval using 'R?' fixed
@@ -35,11 +39,6 @@
 // 3. Total Number of LCs default value to "2" instead of "4"
 // 4. wavelength default 546
 
-
-#ifdef WIN32
-//   #include <windows.h>
-   #define snprintf _snprintf 
-#endif
 
 #include "VariLC.h"
 #include <cstdio>
@@ -69,37 +68,37 @@ using namespace std;
 ///////////////////////////////////////////////////////////////////////////////
 MODULE_API void InitializeModuleData()
 {
-   RegisterDevice(g_ControllerName, MM::GenericDevice, "VariLC");
-}                                                                            
+	RegisterDevice(g_ControllerName, MM::GenericDevice, "VariLC");
+}
 
-MODULE_API MM::Device* CreateDevice(const char* deviceName)                  
+MODULE_API MM::Device* CreateDevice(const char* deviceName)
 {
-   if (deviceName == 0) return 0;
-   if (strcmp(deviceName, g_ControllerName)    == 0) return new VariLC();                           
-   return 0;
+	if (deviceName == 0) return 0;
+	if (strcmp(deviceName, g_ControllerName) == 0) return new VariLC();
+	return 0;
 }
 
 MODULE_API void DeleteDevice(MM::Device* pDevice)
 {
-   delete pDevice;
+	delete pDevice;
 }
 
 
 // General utility function:
 int ClearPort(MM::Device& device, MM::Core& core, std::string port)
 {
-   // Clear contents of serial port 
-   const int bufSize = 2048;
-   unsigned char clear[bufSize];                                                        
-   unsigned long read = bufSize;                                               
-   int ret;                                                                    
-   while ((int) read == bufSize)                                                     
-   {                                                                           
-      ret = core.ReadFromSerial(&device, port.c_str(), clear, bufSize, read); 
-      if (ret != DEVICE_OK)                                                    
-         return ret;                                                           
-   }                                                                           
-   return DEVICE_OK;                                                           
+	// Clear contents of serial port 
+	const int bufSize = 2048;
+	unsigned char clear[bufSize];
+	unsigned long read = bufSize;
+	int ret;
+	while ((int)read == bufSize)
+	{
+		ret = core.ReadFromSerial(&device, port.c_str(), clear, bufSize, read);
+		if (ret != DEVICE_OK)
+			return ret;
+	}
+	return DEVICE_OK;
 }
 
 
@@ -111,416 +110,308 @@ int ClearPort(MM::Device& device, MM::Core& core, std::string port)
 ///////////////////////////////////////////////////////////////////////////////
 
 VariLC::VariLC() :
-  baud_(g_Baud9600),
-  initialized_(false),
-  initializedDelay_(false),
-  answerTimeoutMs_(1000),
+	baud_(g_Baud9600),
+	initialized_(false),
+	initializedDelay_(false),
+	answerTimeoutMs_(1000),
   wavelength_(546)
 {
-   InitializeDefaultErrorMessages();
-   // pre-initialization properties
-   // Port:
-   CPropertyAction* pAct = new CPropertyAction(this, &VariLC::OnPort);
-   CreateProperty(MM::g_Keyword_Port, "Undefined", MM::String, false, pAct, true);
-   SetProperty(MM::g_Keyword_Port, port_.c_str());
+	InitializeDefaultErrorMessages();
+	// pre-initialization properties
+	// Port:
+	CPropertyAction* pAct = new CPropertyAction(this, &VariLC::OnPort);
+	CreateProperty(MM::g_Keyword_Port, "Undefined", MM::String, false, pAct, true);
+	SetProperty(MM::g_Keyword_Port, port_.c_str());
    
-   pAct = new CPropertyAction(this, &VariLC::OnBaud);
-   CreateProperty(g_BaudRate_key, "Undefined", MM::String, false, pAct, true);  
-   
-   AddAllowedValue(g_BaudRate_key, g_Baud115200, (long) 115200);
-   AddAllowedValue(g_BaudRate_key, g_Baud9600, (long) 9600);
+	pAct = new CPropertyAction(this, &VariLC::OnBaud);
+	CreateProperty(g_BaudRate_key, "Undefined", MM::String, false, pAct, true);
 
-   EnableDelay();
+	AddAllowedValue(g_BaudRate_key, g_Baud115200, (long)115200);
+	AddAllowedValue(g_BaudRate_key, g_Baud9600, (long)9600);
+
+	EnableDelay();
 }
 
 
 VariLC::~VariLC()
 {
-   Shutdown();
+	Shutdown();
 }
 
 void VariLC::GetName(char* name) const
 {
-   CDeviceUtils::CopyLimitedString(name, g_ControllerName);
+	CDeviceUtils::CopyLimitedString(name, g_ControllerName);
 }
 
 
 bool VariLC::SupportsDeviceDetection(void)
 {
-   return true;
+	return true;
 }
 
 MM::DeviceDetectionStatus VariLC::DetectDevice(void)
 {
-   // all conditions must be satisfied...
-   MM::DeviceDetectionStatus result = MM::Misconfigured;
+	// all conditions must be satisfied...
+	MM::DeviceDetectionStatus result = MM::Misconfigured;
 
-   try
-   {	   
-	   long baud;
-	   GetProperty(g_BaudRate_key, baud);
+	try
+	{
+		long baud;
+		GetProperty(g_BaudRate_key, baud);
 
-      std::string transformed = port_;
-      for( std::string::iterator its = transformed.begin(); its != transformed.end(); ++its)
-      {
-         *its = (char)tolower(*its);
-      }	  	     
+		std::string transformed = port_;
+		for (std::string::iterator its = transformed.begin(); its != transformed.end(); ++its)
+		{
+			*its = (char)tolower(*its);
+		}
 
-      if( 0< transformed.length() &&  0 != transformed.compare("undefined")  && 0 != transformed.compare("unknown") )
-      {
-		int ret = 0;	  
-		MM::Device* pS;
+		if (0 < transformed.length() && 0 != transformed.compare("undefined") && 0 != transformed.compare("unknown"))
+		{
+			int ret = 0;
+			MM::Device* pS;
 
-		
-			 // the port property seems correct, so give it a try
-			 result = MM::CanNotCommunicate;
-			 // device specific default communication parameters
-			 GetCoreCallback()->SetDeviceProperty(port_.c_str(), MM::g_Keyword_AnswerTimeout, "2000.0");			 
-			 GetCoreCallback()->SetDeviceProperty(port_.c_str(), MM::g_Keyword_BaudRate, baud_.c_str() );
-			 GetCoreCallback()->SetDeviceProperty(port_.c_str(), MM::g_Keyword_DelayBetweenCharsMs, "0.0");
-			 GetCoreCallback()->SetDeviceProperty(port_.c_str(), MM::g_Keyword_Handshaking, "Off");
-			 GetCoreCallback()->SetDeviceProperty(port_.c_str(), MM::g_Keyword_Parity, "None");
-			 GetCoreCallback()->SetDeviceProperty(port_.c_str(), MM::g_Keyword_StopBits, "1");
-			 GetCoreCallback()->SetDeviceProperty(port_.c_str(), "Verbose", "1");
-			 pS = GetCoreCallback()->GetDevice(this, port_.c_str());
-			 pS->Initialize();
-	         
-			 ClearPort(*this, *GetCoreCallback(), port_);
-			 ret = SendSerialCommand(port_.c_str(), "V?", "\r");     
-			 GetSerialAnswer (port_.c_str(), "\r", serialnum_);
-			 GetSerialAnswer (port_.c_str(), "\r", serialnum_);
-				 if (ret!=DEVICE_OK || serialnum_.length() < 5)
-				 {
-					LogMessageCode(ret,true);
-					LogMessage(std::string("VariLC not found on ")+port_.c_str(), true);
-					LogMessage(std::string("VariLC serial no:")+serialnum_, true);
-					ret = 1;
-					serialnum_ = "0";
-					pS->Shutdown();	
-				 } else
-				 {
-					// to succeed must reach here....
-					LogMessage(std::string("VariLC found on ")+port_.c_str(), true);
-					LogMessage(std::string("VariLC serial no:")+serialnum_, true);
-					result = MM::CanCommunicate;	
-					GetCoreCallback()->SetSerialProperties(port_.c_str(),
-											  "600.0",
-											  baud_.c_str(),
-											  "0.0",
-											  "Off",
-											  "None",
-											  "1");
-					serialnum_ = "0";
-					pS->Initialize();
-					ret = SendSerialCommand(port_.c_str(), "R 1", "\r");
-					ret = SendSerialCommand(port_.c_str(), "C 0", "\r");
-					pS->Shutdown();					
-				}
-      }
-   }
-   catch(...)
-   {
-      LogMessage("Exception in DetectDevice!",false);
-   }
-   return result;
+
+			// the port property seems correct, so give it a try
+			result = MM::CanNotCommunicate;
+			// device specific default communication parameters
+			GetCoreCallback()->SetDeviceProperty(port_.c_str(), MM::g_Keyword_AnswerTimeout, "2000.0");
+			GetCoreCallback()->SetDeviceProperty(port_.c_str(), MM::g_Keyword_BaudRate, baud_.c_str());
+			GetCoreCallback()->SetDeviceProperty(port_.c_str(), MM::g_Keyword_DelayBetweenCharsMs, "0.0");
+			GetCoreCallback()->SetDeviceProperty(port_.c_str(), MM::g_Keyword_Handshaking, "Off");
+			GetCoreCallback()->SetDeviceProperty(port_.c_str(), MM::g_Keyword_Parity, "None");
+			GetCoreCallback()->SetDeviceProperty(port_.c_str(), MM::g_Keyword_StopBits, "1");
+			GetCoreCallback()->SetDeviceProperty(port_.c_str(), "Verbose", "1");
+			pS = GetCoreCallback()->GetDevice(this, port_.c_str());
+			pS->Initialize();
+
+			ClearPort(*this, *GetCoreCallback(), port_);
+			ret = sendCmd("V?", serialnum_);
+			if (ret != DEVICE_OK || serialnum_.length() < 5)
+			{
+				LogMessageCode(ret, true);
+				LogMessage(std::string("VariLC not found on ") + port_.c_str(), true);
+				LogMessage(std::string("VariLC serial no:") + serialnum_, true);
+				ret = 1;
+				serialnum_ = "0";
+				pS->Shutdown();
+			}
+			else
+			{
+				// to succeed must reach here....
+				LogMessage(std::string("VariLC found on ") + port_.c_str(), true);
+				LogMessage(std::string("VariLC serial no:") + serialnum_, true);
+				result = MM::CanCommunicate;
+				GetCoreCallback()->SetSerialProperties(port_.c_str(),
+					"600.0",
+					baud_.c_str(),
+					"0.0",
+					"Off",
+					"None",
+					"1");
+				serialnum_ = "0";
+				pS->Initialize();
+				ret = sendCmd("R1");
+				pS->Shutdown();
+			}
+		}
+	}
+	catch (...)
+	{
+		LogMessage("Exception in DetectDevice!", false);
+	}
+	return result;
 }
 
 int VariLC::Initialize()
 {
- 
-// empty the Rx serial buffer before sending command
-   int ret = ClearPort(*this, *GetCoreCallback(), port_);
-   if (ret != DEVICE_OK)
-      return ret;
 
-   // Name
-   ret = CreateProperty(MM::g_Keyword_Name, g_ControllerName, MM::String, true);
-   if (DEVICE_OK != ret)
-      return ret;
-    
-    // Version number
-   CPropertyAction* pAct = new CPropertyAction (this, &VariLC::OnSerialNumber);
-   ret = CreateProperty("Version Number", "Version Number Not Found", MM::String, true, pAct);
-   if (ret != DEVICE_OK)
-      return ret;
+	// empty the Rx serial buffer before sending command
+	int ret = ClearPort(*this, *GetCoreCallback(), port_);
+	if (ret != DEVICE_OK)
+		return ret;
 
-   pAct = new CPropertyAction (this, &VariLC::OnBriefMode);
-   ret = CreateProperty("Mode; 1=Brief; 0=Standard", "", MM::String, true, pAct); 
-   if (ret != DEVICE_OK)
-	   return ret;
+	// Name
+	ret = CreateProperty(MM::g_Keyword_Name, g_ControllerName, MM::String, true);
+	if (DEVICE_OK != ret)
+		return ret;
 
-   //Set VariLC to Standard mode
-   briefModeQ_ = false;
-   ret = SendSerialCommand(port_.c_str(), "B 0", "\r");
-   if (ret!=DEVICE_OK)
-	   return DEVICE_SERIAL_COMMAND_FAILED;
-   ret = GetSerialAnswer (port_.c_str(), "\r", getFromVariLC_);  //add the following error check each time GetSerialAnswer is called
-   if (ret!=DEVICE_OK) {
-	   SetErrorText(99, "The VariLC did not respond.");
-   	   return 99;
-   }
-   if (getFromVariLC_.length() == 0)
-	   return DEVICE_NOT_CONNECTED;
+	// Version number
+	CPropertyAction* pAct = new CPropertyAction(this, &VariLC::OnSerialNumber);
+	ret = CreateProperty("Version Number", "Version Number Not Found", MM::String, true, pAct);
+	if (ret != DEVICE_OK)
+		return ret;
 
-   // Wavelength
-   pAct = new CPropertyAction (this, &VariLC::OnWavelength);
-   ret = CreateProperty("Wavelength", DoubleToString(wavelength_).c_str(), MM::Float, false, pAct); 
-   if (ret != DEVICE_OK)
-      return ret;
-   SetPropertyLimits("Wavelength", 400., 800.);
+	pAct = new CPropertyAction(this, &VariLC::OnBriefMode);
+	ret = CreateProperty("Mode; 1=Brief; 0=Standard", "", MM::String, true, pAct);
+	if (ret != DEVICE_OK)
+		return ret;
 
-   // Delay
-   pAct = new CPropertyAction (this, &VariLC::OnDelay);
-   ret = CreateProperty("Device Delay (ms.)", "200.0", MM::Float, false, pAct); 
-   if (ret != DEVICE_OK)
-      return ret;
-   SetPropertyLimits("Device Delay (ms.)", 0.0, 200.0);
+	//Set VariLC to Standard mode
+	briefModeQ_ = false;
+	ret = sendCmd("B0",getFromVariLC_);
+	if (ret != DEVICE_OK)
+		return ret;
 
-   pAct = new CPropertyAction (this, &VariLC::OnSendToVariLC);
-   ret = CreateProperty("String send to VariLC", "", MM::String, false, pAct); 
-   if (ret != DEVICE_OK)
-      return ret;
- 
-   pAct = new CPropertyAction (this, &VariLC::OnGetFromVariLC);
-   ret = CreateProperty("String from VariLC", "", MM::String, true, pAct); 
-   if (ret != DEVICE_OK)
-      return ret;
+	// Wavelength
+	std:string ans;
+	ret = sendCmd("V?", ans);	//The serial number response also contains the tuning range of the device
+	std::vector<double> nums = getNumbersFromMessage(ans, briefModeQ_);	//This will be in the format (revision level, shortest wavelength, longest wavelength, serial number).
+	if (ret != DEVICE_OK)
+		return ret;
+	pAct = new CPropertyAction(this, &VariLC::OnWavelength);
+	ret = CreateProperty("Wavelength", DoubleToString(wavelength_).c_str(), MM::Float, false, pAct);
+	if (ret != DEVICE_OK)
+		return ret;
+	SetPropertyLimits("Wavelength", nums.at(1), nums.at(2));
 
-   // Needed for Busy flag
-   // changedTime_ = GetCurrentMMTime();
-   SetErrorText(99, "Device set busy for ");
+	// Delay
+	pAct = new CPropertyAction(this, &VariLC::OnDelay);
+	ret = CreateProperty("Device Delay (ms.)", "200.0", MM::Float, false, pAct);
+	if (ret != DEVICE_OK)
+		return ret;
+	SetPropertyLimits("Device Delay (ms.)", 0.0, 200.0);
 
-   return DEVICE_OK;
+	pAct = new CPropertyAction(this, &VariLC::OnSendToVariLC);
+	ret = CreateProperty("String send to VariLC", "", MM::String, false, pAct);
+	if (ret != DEVICE_OK) {
+		return ret;
+	}
+	pAct = new CPropertyAction(this, &VariLC::OnGetFromVariLC);
+	ret = CreateProperty("String from VariLC", "", MM::String, true, pAct);
+	if (ret != DEVICE_OK) {
+		return ret;
+	}
+	SetErrorText(99, "Device set busy for ");
+	return DEVICE_OK;
 }
 
-
-int VariLC::Shutdown()
-{ 
-  initialized_ = false;
-  return DEVICE_OK;
+int VariLC::Shutdown() {
+	initialized_ = false;
+	return DEVICE_OK;
 }
-
-
 
 //////////////// Action Handlers (VariLC) /////////////////
 
 int VariLC::OnPort(MM::PropertyBase* pProp, MM::ActionType pAct)
 {
-   if (pAct == MM::BeforeGet)
-   {
-      pProp->Set(port_.c_str());
-   }
-   else if (pAct == MM::AfterSet)
-   {
-      if (initialized_)
-      {
-         pProp->Set(port_.c_str());
-         return DEVICE_INVALID_INPUT_PARAM;
-      }
-      pProp->Get(port_);
-   }   
-      
-   return DEVICE_OK;
+	if (pAct == MM::BeforeGet)
+	{
+		pProp->Set(port_.c_str());
+	}
+	else if (pAct == MM::AfterSet)
+	{
+		if (initialized_)
+		{
+			pProp->Set(port_.c_str());
+			return DEVICE_INVALID_INPUT_PARAM;
+		}
+		pProp->Get(port_);
+	}
+
+	return DEVICE_OK;
 }
 
 int VariLC::OnBaud(MM::PropertyBase* pProp, MM::ActionType eAct)
-{	
-   if (eAct == MM::BeforeGet)
-   {
-      pProp->Set(baud_.c_str());
-   }
-   else if (eAct == MM::AfterSet)
-   {
-      if (initialized_)
-      {
-         pProp->Set(baud_.c_str());
-         return DEVICE_INVALID_INPUT_PARAM;
-      }
-      pProp->Get(baud_);
-   }
-
-   return DEVICE_OK;
-}
-
-
- int VariLC::OnBriefMode(MM::PropertyBase* pProp, MM::ActionType eAct)
 {
-   if (eAct == MM::BeforeGet){
-     int ret = SendSerialCommand(port_.c_str(), "B?", "\r");
-         if (ret!=DEVICE_OK)return DEVICE_SERIAL_COMMAND_FAILED;
-     std::string ans;
-     GetSerialAnswer (port_.c_str(), "\r", ans);
-	 GetSerialAnswer (port_.c_str(), "\r", ans);	 
-     
-	 if (ans == "1") {
-		 briefModeQ_ = true;
-	 } else {
-		 briefModeQ_ = false;
-	 }
-	 if (briefModeQ_) {
-	     pProp->Set(" 1");
-	 } else {
-	     pProp->Set(" 0");
-	 }
-   }
-   else if (eAct == MM::AfterSet)
-   {
+	if (eAct == MM::BeforeGet)
+	{
+		pProp->Set(baud_.c_str());
+	}
+	else if (eAct == MM::AfterSet)
+	{
+		if (initialized_)
+		{
+			pProp->Set(baud_.c_str());
+			return DEVICE_INVALID_INPUT_PARAM;
+		}
+		pProp->Get(baud_);
+	}
 
-   }
-   return DEVICE_OK;
+	return DEVICE_OK;
 }
 
 
- int VariLC::OnSerialNumber (MM::PropertyBase* pProp, MM::ActionType eAct)
+int VariLC::OnBriefMode(MM::PropertyBase* pProp, MM::ActionType eAct)
+{
+	if (eAct == MM::BeforeGet) {
+		std::string ans;
+		int ret = sendCmd("B?", ans);
+		if (ret != DEVICE_OK)return DEVICE_SERIAL_COMMAND_FAILED;
+		if (ans == "1") {
+			briefModeQ_ = true;
+		}
+		else {
+			briefModeQ_ = false;
+		}
+		if (briefModeQ_) {
+			pProp->Set(" 1");
+		}
+		else {
+			pProp->Set(" 0");
+		}
+	}
+	else if (eAct == MM::AfterSet)
+	{
+
+	}
+	return DEVICE_OK;
+}
+
+
+ int VariLC::OnSerialNumber(MM::PropertyBase* pProp, MM::ActionType eAct)
  {
-   if (eAct == MM::BeforeGet)
-  {
-     int ret = SendSerialCommand(port_.c_str(), "V?", "\r");
-         if (ret!=DEVICE_OK)return DEVICE_SERIAL_COMMAND_FAILED;
-	 GetSerialAnswer (port_.c_str(), "\r", serialnum_);
-	 GetSerialAnswer (port_.c_str(), "\r", serialnum_);
-	 
-	 pProp->Set(serialnum_.c_str());
-   }
-   return DEVICE_OK;
+	 if (eAct == MM::BeforeGet)
+	 {
+		 int ret = sendCmd("V?", serialnum_);
+		 if (ret != DEVICE_OK)return DEVICE_SERIAL_COMMAND_FAILED;
+		 pProp->Set(serialnum_.c_str());
+	 }
+	 return DEVICE_OK;
  }
 
-int VariLC::OnWavelength (MM::PropertyBase* pProp, MM::ActionType eAct)
+ int VariLC::OnWavelength(MM::PropertyBase* pProp, MM::ActionType eAct)
  {
-   if (eAct == MM::BeforeGet)
-   {
-     int ret = SendSerialCommand(port_.c_str(), "W?", "\r");
-         if (ret!=DEVICE_OK)return DEVICE_SERIAL_COMMAND_FAILED;
-     std::string ans;
-	 GetSerialAnswer (port_.c_str(), "\r", ans);
-	 GetSerialAnswer (port_.c_str(), "\r", ans);
-
-     vector<double> numbers = getNumbersFromMessage(ans,briefModeQ_);
-     pProp->Set(numbers[0]);
-   }
-   else if (eAct == MM::AfterSet)
-   {
-	  double wavelength;
-      // read value from property
-      pProp->Get(wavelength);
-      // write wavelength out to device....
-	  ostringstream cmd;
-	  cmd.precision(5);
-	  cmd << "W " << wavelength;
-     int ret = SendSerialCommand(port_.c_str(), cmd.str().c_str(), "\r");
-     if (ret!=DEVICE_OK)
-	     return DEVICE_SERIAL_COMMAND_FAILED;
-     std::string ans;
-     GetSerialAnswer (port_.c_str(), "\r", ans);
-	 
-     wavelength_ = wavelength;
-// Clear palette elements after change of wavelength
-   }
-   return DEVICE_OK;
+	 if (eAct == MM::BeforeGet)
+	 {
+		 std::string ans;
+		 int ret = sendCmd("W?", ans);
+		 if (ret != DEVICE_OK)return DEVICE_SERIAL_COMMAND_FAILED;
+		 vector<double> numbers = getNumbersFromMessage(ans, briefModeQ_);
+		 if (numbers.size() == 0) { //The device must have returned "W*" meaning that an invalid wavelength was sent
+			 SetErrorText(99, "The Varispec device was commanded to tune to an out of range wavelength.");
+			 return 99;
+		 }
+		 pProp->Set(numbers[0]);
+	 }
+	 else if (eAct == MM::AfterSet)
+	 {
+		 double wavelength;
+		 // read value from property
+		 pProp->Get(wavelength);
+		 // write wavelength out to device....
+		 ostringstream cmd;
+		 cmd.precision(5);
+		 cmd << "W " << wavelength;
+		 int ret = sendCmd(cmd.str().c_str());
+		 if (ret != DEVICE_OK)
+			 return DEVICE_SERIAL_COMMAND_FAILED;
+		 wavelength_ = wavelength;
+	 }
+	 return DEVICE_OK;
  }
 
-int VariLC::OnSendToVariLC(MM::PropertyBase* pProp, MM::ActionType eAct)
-{
-   if (eAct == MM::BeforeGet)
-   {
-//      pProp->Set(sendToVariLC_.c_str());
-   }
-   else if (eAct == MM::AfterSet)
-   {
-      // read value from property
-      pProp->Get(sendToVariLC_);
-      // write retardance out to device....
-	  
-	  size_t len = strlen(sendToVariLC_.c_str());
-	  char state[6];
-
-	  if (len > 5) {		  
-		  strncpy(state, sendToVariLC_.c_str(), 5);
-		  state[5] = '\0';
-	  }
-
-      if (sendToVariLC_=="Escape") {
-         char command[2];
-         command[0]=27;
-         command[1]=0;
-         int ret = SendSerialCommand(port_.c_str(), command, "\r");
-         if (ret!=DEVICE_OK)
-		   return DEVICE_SERIAL_COMMAND_FAILED;		 
-      } 
-	  else if (sendToVariLC_=="@") {         
-		 int ret = SendSerialCommand(port_.c_str(), sendToVariLC_.c_str(), "\r");
-         if (ret!=DEVICE_OK)
-		      return DEVICE_SERIAL_COMMAND_FAILED;
-      }
-	  else if (sendToVariLC_=="!") {                  
-		 int ret = SendSerialCommand(port_.c_str(), sendToVariLC_.c_str(), "\r");		 
-         if (ret!=DEVICE_OK)
-		      return DEVICE_SERIAL_COMMAND_FAILED;		
-      }
-	  else if ((std::string)state=="State") {   
-		  	  
-			  std::vector<char> val(len-5);
-			  for (size_t i=5; i < len; i++) {
-					val[5-i] = sendToVariLC_[i];
-			  }
-			  val[len] = '\0';
-
-			  std::stringstream ss;
-				for(size_t i = 0; i < val.size(); ++i)
-				{
-				  if(i != 0)
-					ss << ",";
-				  ss << val[i];
-				}
-			 std::string s = ss.str();
-
-			 sendToVariLC_ = "P" + s;
-
-			 changedTime_ = GetCurrentMMTime();
-			 int ret = SendSerialCommand(port_.c_str(), sendToVariLC_.c_str(), "\r");
-				 if (ret!=DEVICE_OK) {
-				   return DEVICE_SERIAL_COMMAND_FAILED;
-				 }
-      }
-	  else if (sendToVariLC_=="W ?" || sendToVariLC_=="W?") {
-		  int ret = SendSerialCommand(port_.c_str(), "W?", "\r");
-			 if (ret!=DEVICE_OK)return DEVICE_SERIAL_COMMAND_FAILED;
-		 GetSerialAnswer (port_.c_str(), "\r", getFromVariLC_);		 
-	  }
-	  else if (sendToVariLC_=="V ?" || sendToVariLC_=="V?") {
-		  int ret = SendSerialCommand(port_.c_str(), "V?", "\r");
-			 if (ret!=DEVICE_OK)return DEVICE_SERIAL_COMMAND_FAILED;
-		 GetSerialAnswer (port_.c_str(), "\r", getFromVariLC_);		 
-	  }
-	  else if (sendToVariLC_=="R ?" || sendToVariLC_=="R?") {
-		  int ret = SendSerialCommand(port_.c_str(), "R?", "\r");
-			 if (ret!=DEVICE_OK)return DEVICE_SERIAL_COMMAND_FAILED;
-		 GetSerialAnswer (port_.c_str(), "\r", getFromVariLC_);
-		 GetSerialAnswer (port_.c_str(), "\r", getFromVariLC_);
-		 removeSpaces(getFromVariLC_);
-		 return DEVICE_OK;
-	  }
-	  else if (sendToVariLC_=="B ?" || sendToVariLC_=="B?") {
-		  int ret = SendSerialCommand(port_.c_str(), "B?", "\r");
-			 if (ret!=DEVICE_OK)return DEVICE_SERIAL_COMMAND_FAILED;
-		 GetSerialAnswer (port_.c_str(), "\r", getFromVariLC_);		 
-	  }
-	  else if (sendToVariLC_=="L ?" || sendToVariLC_=="L?") {
-		  int ret = SendSerialCommand(port_.c_str(), "L?", "\r");
-			 if (ret!=DEVICE_OK)return DEVICE_SERIAL_COMMAND_FAILED;
-GetSerialAnswer(port_.c_str(), "\r", getFromVariLC_);
-	  }
-	  else {
-	  int ret = SendSerialCommand(port_.c_str(), sendToVariLC_.c_str(), "\r");
-	  if (ret != DEVICE_OK)
-		  return DEVICE_SERIAL_COMMAND_FAILED;
-	  }
-
-	  GetSerialAnswer(port_.c_str(), "\r", getFromVariLC_);
-
-   }
-   return DEVICE_OK;
-}
+		else {
+			else {
+		 else {
+ int VariLC::OnSendToVariLC(MM::PropertyBase* pProp, MM::ActionType eAct)
+ {
+	 if (eAct == MM::AfterSet) {
+		 // read value from property
+		 pProp->Get(sendToVariLC_);
+		 return sendCmd(sendToVariLC_, getFromVariLC_);
+	 }
+	 return DEVICE_OK;
+ }
 
 int VariLC::OnGetFromVariLC(MM::PropertyBase* pProp, MM::ActionType eAct)
 {
@@ -528,10 +419,6 @@ int VariLC::OnGetFromVariLC(MM::PropertyBase* pProp, MM::ActionType eAct)
 	{
 		//   GetSerialAnswer (port_.c_str(), "\r", getFromVariLC_);
 		pProp->Set(getFromVariLC_.c_str());
-	}
-	else if (eAct == MM::AfterSet)
-	{
-
 	}
 	return DEVICE_OK;
 }
@@ -553,7 +440,6 @@ int VariLC::OnDelay(MM::PropertyBase* pProp, MM::ActionType eAct)
 		}
 		delay = delayT * 1000;
 	}
-
 	return DEVICE_OK;
 }
 
@@ -565,7 +451,6 @@ bool VariLC::Busy()
 			return true;
 		}
 	}
-
 	return false;
 }
 
@@ -598,12 +483,22 @@ std::vector<double> VariLC::getNumbersFromMessage(std::string variLCmessage, boo
 	return values;
 }
 
-static inline bool IsSpace(char ch)
-{
-	return std::isspace(ch);
+int VariLC::sendCmd(std::string cmd, std::string& out) {
+	int ret = sendCmd(cmd);
+	GetSerialAnswer(port_.c_str(), "\r", out); //Try returning any extra response from the device.
+	return DEVICE_OK;
 }
 
-void VariLC::removeSpaces(std::string input)
-{
-	input.erase(std::remove_if(input.begin(), input.end(), IsSpace), input.end());
+int VariLC::sendCmd(std::string cmd) {
+	int ret = SendSerialCommand(port_.c_str(), cmd.c_str(), "\r");
+	if (ret != DEVICE_OK) {
+		return DEVICE_SERIAL_COMMAND_FAILED;
+	}
+	std::string response;
+	GetSerialAnswer(port_.c_str(), "\r", response);	//Read back the response and make sure it matches what we sent. If not there is an issue with communication.
+	if (response != cmd) {
+		SetErrorText(99, "The VariLC did not respond.");
+		return 99;
+	}
+	return DEVICE_OK;
 }
