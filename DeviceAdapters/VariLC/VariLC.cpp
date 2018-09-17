@@ -607,4 +607,3 @@ void VariLC::removeSpaces(std::string input)
 {
 	input.erase(std::remove_if(input.begin(), input.end(), IsSpace), input.end());
 }
-}
