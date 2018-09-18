@@ -234,14 +234,6 @@ int VariLC::Initialize()
 	ret = CreateProperty(MM::g_Keyword_Name, g_ControllerName, MM::String, true);
 	if (DEVICE_OK != ret)
 		return ret;
-	
-	//Sequence Property
-	CPropertyAction *pAct = new CPropertyAction(this, &CTriggerScopeTTL::OnSequence);
-	int nRet = CreateProperty("Sequence", g_On, MM::String, false, pAct);
-	if (nRet != DEVICE_OK)
-		return nRet;
-	AddAllowedValue("Sequence", g_On);
-	AddAllowedValue("Sequence", g_Off);
 
 	// Version number
 	CPropertyAction* pAct = new CPropertyAction(this, &VariLC::OnSerialNumber);
@@ -261,7 +253,7 @@ int VariLC::Initialize()
 		return ret;
 
 	// Wavelength
-	std:string ans;
+	std::string ans;
 	ret = sendCmd("V?", ans);	//The serial number response also contains the tuning range of the device
 	std::vector<double> nums = getNumbersFromMessage(ans, briefModeQ_);	//This will be in the format (revision level, shortest wavelength, longest wavelength, serial number).
 	if (ret != DEVICE_OK)
@@ -408,9 +400,6 @@ int VariLC::OnBriefMode(MM::PropertyBase* pProp, MM::ActionType eAct)
 	 return DEVICE_OK;
  }
 
-		else {
-			else {
-		 else {
  int VariLC::OnSendToVariLC(MM::PropertyBase* pProp, MM::ActionType eAct)
  {
 	 if (eAct == MM::AfterSet) {
@@ -493,6 +482,9 @@ std::vector<double> VariLC::getNumbersFromMessage(std::string variLCmessage, boo
 
 int VariLC::sendCmd(std::string cmd, std::string& out) {
 	int ret = sendCmd(cmd);
+	if (ret != DEVICE_OK) {
+		return DEVICE_SERIAL_COMMAND_FAILED;
+	}
 	GetSerialAnswer(port_.c_str(), "\r", out); //Try returning any extra response from the device.
 	return DEVICE_OK;
 }
@@ -572,8 +564,8 @@ int VariLC::ClearPropertySequence(const char* propertyName) {
 
 int VariLC::AddToPropertySequence(const char* propertyName, const char* value) {
 	if (strcmp(propertyName, "Wavelength") == 0) {
-		voltage = atof(value);
-		sequence_.push_back(voltage);
+		double wv = atof(value);
+		sequence_.push_back(wv);
 		return DEVICE_OK;
 	}
 	else {
@@ -587,7 +579,7 @@ int VariLC::SendPropertySequence(const char* propertyName) {
 		for (int i = 0; i < sequence_.size(); i++) {
 			ostringstream cmd;
 			cmd.precision(3);
-			cmd << "D" << sequence_.get(i) << "," << i;
+			cmd << "D" << sequence_.at(i) << "," << i;
 			return sendCmd(cmd.str());
 		}
 	}
