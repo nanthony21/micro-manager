@@ -60,18 +60,17 @@ class VariLC : public CGenericBase<VariLC>
 	  int OnBaud	(MM::PropertyBase* pProp, MM::ActionType eAct);
       int OnBriefMode (MM::PropertyBase* pProp, MM::ActionType eAct);
       int OnWavelength (MM::PropertyBase* pProp, MM::ActionType eAct);
-	  int OnSerialNumber (MM::PropertyBase* pProp, MM::ActionType eAct);	  
+	  int OnSerialNumber (MM::PropertyBase* pProp, MM::ActionType eAct);
+      int OnNumTotalLCs (MM::PropertyBase* pProp, MM::ActionType eAct);
+      int OnNumActiveLCs (MM::PropertyBase* pProp, MM::ActionType eAct);	  
+      int OnRetardance (MM::PropertyBase* pProp, MM::ActionType eAct, long index);
+	  int OnAbsRetardance (MM::PropertyBase* pProp, MM::ActionType eAct, long index);
+//      int OnEpilogueL (MM::PropertyBase* pProp, MM::ActionType eAct);
+      int OnNumPalEls (MM::PropertyBase* pProp, MM::ActionType eAct);
+      int OnPalEl (MM::PropertyBase* pProp, MM::ActionType eAct, long index);
       int OnSendToVariLC (MM::PropertyBase* pProp, MM::ActionType eAct);
       int OnGetFromVariLC (MM::PropertyBase* pProp, MM::ActionType eAct);
 
-	  //sequence interface
-	  int IsPropertySequenceable(const char* name, bool& isSequenceable) const;
-	  int GetPropertySequenceMaxLength(const char* name, long& nrEvents) const;
-	  int StartPropertySequence(const char* propertyName);
-	  int StopPropertySequence(const char* propertyName);
-	  int ClearPropertySequence(const char* propertyName);
-	  int AddToPropertySequence(const char* propertyName, const char* value);	//Add one value to the sequence
-	  int SendPropertySequence(const char* propertyName);	//Signal that we are done sending sequence values so that the adapter can send the whole sequence to the device
 	  
    private:
       // Command exchange with MMCore
@@ -82,16 +81,21 @@ class VariLC : public CGenericBase<VariLC>
       double answerTimeoutMs_;
 	  bool briefModeQ_;
       double wavelength_; // the cached value
+      long numTotalLCs_;  // total number of LCs	  
+      long numActiveLCs_;  // number of actively controlled LCs (the actively controlled LCs appear first in the list of retardance values in the L-command)
+      double retardance_[25]; // retardance values of total number of LCs; I made the index 8, a high number unlikely to be exceeded by the variLC hardware
+      std::string epilogueL_; // added at the end of every L command to account for uncontrolled LCs
+      long numPalEls_;  // total number of palette elements
+	  std::string palEl_[99]; // array of palette elements, index is total number of elements
+//      std::string currRet_;
 	  std::string serialnum_;
       std::string sendToVariLC_;
       std::string getFromVariLC_;
 	  MM::MMTime changedTime_;
 	  MM::MMTime delay;
-	  std::vector<double> sequence_;
       std::vector<double> getNumbersFromMessage(std::string variLCmessage, bool prefixQ);
 	  std::string DoubleToString(double N);
-	  int sendCmd(std::string cmd, std::string& out);	//Send a command and save the response in `out`.
-	  int sendCmd(std::string cmd);	//Send a command that does not repond with any extra information.
+	  void removeSpaces(std::string input);
 };
 
 
