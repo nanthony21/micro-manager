@@ -75,7 +75,7 @@ class SutterUtils
 class Wheel : public CStateDeviceBase<Wheel>
 {
 public:
-   Wheel(const char* name, unsigned id);
+   Wheel(const char* name, unsigned id, unsigned long numPos = 10);
    ~Wheel();
   
    // MMDevice API
@@ -261,5 +261,19 @@ private:
    std::string name_;
    std:: string port_;
    double answerTimeoutMs_;
+};
+
+class LambdaVF5: public Wheel //CStateDeviceBase<LambdaVF5>
+{
+public:
+	LambdaVF5(const char* name, unsigned id, unsigned long numPos = 5) : Wheel(name, id, numPos) {};
+
+	//VF-5 special commands
+	int onWhiteLightMode();// (bool enabled);
+	int onWavelength();//(unsigned int wavelength);
+	int onSpeed();//(unsigned int speed);
+private:
+
+
 };
 #endif //_SUTTER_LAMBDA_H_

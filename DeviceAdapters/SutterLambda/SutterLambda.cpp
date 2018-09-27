@@ -54,6 +54,8 @@ const double g_busyTimeoutMs = 500;
 const char* g_DG4WheelName = "Wheel-DG4";
 const char* g_DG4ShutterName = "Shutter-DG4";
 
+const char* g_LambdaVF5Name = "VF-5";
+
 const char* g_ShutterModeProperty = "Mode";
 const char* g_FastMode = "Fast";
 const char* g_SoftMode = "Soft";
@@ -93,6 +95,7 @@ MODULE_API void InitializeModuleData()
 #endif
    RegisterDevice(g_DG4ShutterName, MM::ShutterDevice, "DG4 shutter");
    RegisterDevice(g_DG4WheelName, MM::StateDevice, "DG4 filter changer");
+   RegisterDevice(g_LambdaVF5Name, MM::StateDevice, "Lambda VF-5 (10-3 only)");
 }
 
 MODULE_API MM::Device* CreateDevice(const char* deviceName)
@@ -153,6 +156,11 @@ MODULE_API MM::Device* CreateDevice(const char* deviceName)
    {
       // create DG4 Wheel
       return new DG4Wheel();
+   }
+   else if (strcmp(deviceName, g_LambdaVF5Name) == 0)
+   {
+	   //Create Lambda VF-5 tunable filter
+	   return new LambdaVF5(g_LambdaVF5Name,0);
    }
 
    return 0;
@@ -523,9 +531,9 @@ int SutterUtils::SetCommandNoCR(MM::Device& device, MM::Core& core,
 // Wheel implementation
 // ~~~~~~~~~~~~~~~~~~~~
 
-Wheel::Wheel(const char* name, unsigned id) :
+Wheel::Wheel(const char* name, unsigned id, unsigned long numPos) :
 initialized_(false), 
-numPos_(10), 
+numPos_(numPos), 
 id_(id), 
 name_(name), 
 curPos_(0), 
@@ -2154,3 +2162,6 @@ int DG4Wheel::OnBusy(MM::PropertyBase* pProp, MM::ActionType eAct)
    return DEVICE_OK;
 }
 
+int LambdaVF5::onWhiteLightMode() { return 0; }
+int LambdaVF5::onWavelength() { return 0; }
+int LambdaVF5::onSpeed() { return 0; }
