@@ -53,12 +53,6 @@ const char* g_DG4ShutterName = "Shutter-DG4";
 
 const char* g_LambdaVF5Name = "VF-5";
 
-const char* g_ShutterModeProperty = "Mode";
-const char* g_FastMode = "Fast";
-const char* g_SoftMode = "Soft";
-const char* g_NDMode = "ND";
-const char* g_ControllerID = "Controller Info";
-
 using namespace std;
 
 std::map<std::string, bool> g_Busy;

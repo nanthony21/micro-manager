@@ -1,5 +1,11 @@
 #include "SutterLambda.h"
 
+const char* g_ShutterModeProperty = "Mode";
+const char* g_FastMode = "Fast";
+const char* g_SoftMode = "Soft";
+const char* g_NDMode = "ND";
+const char* g_ControllerID = "Controller Info";
+
 ///////////////////////////////////////////////////////////////////////////////
 // Shutter implementation
 // ~~~~~~~~~~~~~~~~~~~~~~~
