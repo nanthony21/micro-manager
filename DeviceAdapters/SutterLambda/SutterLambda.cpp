@@ -53,8 +53,6 @@ const char* g_DG4ShutterName = "Shutter-DG4";
 
 const char* g_LambdaVF5Name = "VF-5";
 
-using namespace std;
-
 std::map<std::string, bool> g_Busy;
 std::map<std::string, MMThreadLock*> gplocks_;
 

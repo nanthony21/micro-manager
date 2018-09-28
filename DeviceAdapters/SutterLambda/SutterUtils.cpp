@@ -247,7 +247,7 @@ int SutterUtils::SetCommand(MM::Device& device, MM::Core& core,
 									}
 								}
 								std::ostringstream bufff;
-								bufff.flags(ios::hex | ios::showbase);
+								bufff.flags(std::ios::hex | std::ios::showbase);
 
 								bufff << (unsigned int)answer;
 								core.LogMessage(&device, (std::string("unexpected response: ") + bufff.str()).c_str(), false);
@@ -297,7 +297,7 @@ int SutterUtils::SetCommand(MM::Device& device, MM::Core& core,
 							if (0 < read)
 							{
 								std::ostringstream bufff;
-								bufff.flags(ios::hex | ios::showbase);
+								bufff.flags(std::ios::hex | std::ios::showbase);
 								bufff << (unsigned int)answer;
 								core.LogMessage(&device, ("error, extraneous response  " + bufff.str()).c_str(), false);
 							}

@@ -89,7 +89,7 @@ int Shutter::Initialize()
 	// ------------
 	if (controllerType_ == "SC" || controllerType_ == "10-3") {
 		pAct = new CPropertyAction(this, &Shutter::OnMode);
-		vector<string> modes;
+		std::vector<std::string> modes;
 		modes.push_back(g_FastMode);
 		modes.push_back(g_SoftMode);
 		modes.push_back(g_NDMode);
@@ -418,7 +418,7 @@ int Shutter::OnMode(MM::PropertyBase* pProp, MM::ActionType eAct)
 	}
 	else if (eAct == MM::AfterSet)
 	{
-		string mode;
+		std::string mode;
 		pProp->Get(mode);
 
 		if (SetShutterMode(mode.c_str()))
@@ -438,7 +438,7 @@ int Shutter::OnND(MM::PropertyBase* pProp, MM::ActionType eAct)
 	}
 	else if (eAct == MM::AfterSet)
 	{
-		string ts;
+		std::string ts;
 		pProp->Get(ts);
 		std::istringstream os(ts);
 		os >> nd_;
@@ -515,7 +515,7 @@ int ShutterOnTenDashTwo::Initialize()
 	// Shutter mode
 	// ------------
 	pAct = new CPropertyAction(this, &ShutterOnTenDashTwo::OnMode);
-	vector<string> modes;
+	std::vector<std::string> modes;
 	modes.push_back(g_FastMode);
 	modes.push_back(g_SoftMode);
 
@@ -802,7 +802,7 @@ int ShutterOnTenDashTwo::OnMode(MM::PropertyBase* pProp, MM::ActionType eAct)
 	}
 	else if (eAct == MM::AfterSet)
 	{
-		string mode;
+		std::string mode;
 		pProp->Get(mode);
 
 		if (SetShutterMode(mode.c_str()))
