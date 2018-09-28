@@ -600,7 +600,7 @@ bool ShutterOnTenDashTwo::SetShutterPosition(bool state)
 		LogMessage("busy entering SetShutterPosition", true);
 
 	MM::MMTime startTime = GetCurrentMMTime();
-	while (::g_Busy[port_] && (GetCurrentMMTime() - startTime) < (g_busyTimeoutMs * 1000.0))
+	while (::g_Busy[port_] && (GetCurrentMMTime() - startTime) < (500 * 1000.0))	//Is the timeout really supposed to be 500 seconds?
 	{
 		CDeviceUtils::SleepMs(10);
 	}
