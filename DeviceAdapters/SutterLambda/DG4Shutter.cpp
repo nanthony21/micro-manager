@@ -4,9 +4,9 @@
 // DG4Shutter implementation
 // ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-DG4Shutter::DG4Shutter() :
+DG4Shutter::DG4Shutter(const char* name) :
 	initialized_(false),
-	name_(g_DG4ShutterName),
+	name_(name),
 	answerTimeoutMs_(500)
 {
 	InitializeDefaultErrorMessages();

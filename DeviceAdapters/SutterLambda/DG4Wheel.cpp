@@ -4,10 +4,10 @@
 // DG4Wheel implementation
 // ~~~~~~~~~~~~~~~~~~~~~~~
 
-DG4Wheel::DG4Wheel() :
+DG4Wheel::DG4Wheel(const char* name) :
 	initialized_(false),
 	numPos_(13),
-	name_(g_DG4WheelName),
+	name_(name),
 	curPos_(0),
 	answerTimeoutMs_(500)
 {

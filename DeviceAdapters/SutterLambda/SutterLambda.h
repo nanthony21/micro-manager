@@ -203,7 +203,7 @@ private:
 class DG4Wheel : public CStateDeviceBase<DG4Wheel>
 {
 public:
-   DG4Wheel();
+   DG4Wheel(const char* name);
    ~DG4Wheel();
   
    // MMDevice API
@@ -236,7 +236,7 @@ private:
 class DG4Shutter : public CShutterBase<DG4Shutter>
 {
 public:
-   DG4Shutter();
+   DG4Shutter(const char* name);
    ~DG4Shutter();
 
    bool Busy() {return false;}

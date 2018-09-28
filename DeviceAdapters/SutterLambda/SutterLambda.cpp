@@ -148,18 +148,18 @@ MODULE_API MM::Device* CreateDevice(const char* deviceName)
    else if (strcmp(deviceName, g_DG4ShutterName) == 0)
    {
       // create DG4 shutter
-      return new DG4Shutter();
+      return new DG4Shutter(g_DG4ShutterName);
    }
    else if (strcmp(deviceName, g_DG4WheelName) == 0)
    {
       // create DG4 Wheel
-      return new DG4Wheel();
+      return new DG4Wheel(g_DG4WheelName);
    }
-   /*else if (strcmp(deviceName, g_LambdaVF5Name) == 0)
+   else if (strcmp(deviceName, g_LambdaVF5Name) == 0)
    {
 	   //Create Lambda VF-5 tunable filter
 	   return new LambdaVF5(g_LambdaVF5Name,0);
-   }*/
+   }
 
    return 0;
 }
@@ -169,8 +169,7 @@ MODULE_API void DeleteDevice(MM::Device* pDevice)
    delete pDevice;
 }
 
-/*
+
 int LambdaVF5::onWhiteLightMode() { return 0; }
 int LambdaVF5::onWavelength() { return 0; }
 int LambdaVF5::onSpeed() { return 0; }
-*/
