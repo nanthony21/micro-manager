@@ -262,7 +262,7 @@ private:
    std:: string port_;
    double answerTimeoutMs_;
 };
-
+/*
 class LambdaVF5: public Wheel //CStateDeviceBase<LambdaVF5>
 {
 public:
@@ -278,5 +278,5 @@ private:
 	int getStatus();
 
 
-};
+};*/
 #endif //_SUTTER_LAMBDA_H_
