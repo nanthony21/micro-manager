@@ -58,8 +58,6 @@ using namespace std;
 std::map<std::string, bool> g_Busy;
 std::map<std::string, MMThreadLock*> gplocks_;
 
-int g_DG4Position = 0;
-bool g_DG4State = false;
 
 void newGlobals(std::string p)
 {

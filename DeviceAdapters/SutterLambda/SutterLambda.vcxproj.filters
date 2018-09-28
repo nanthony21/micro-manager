@@ -18,12 +18,6 @@
     <ClCompile Include="SutterLambda.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DG4Shutter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DG4Wheel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Shutter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -31,6 +25,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Wheel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DG4.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
