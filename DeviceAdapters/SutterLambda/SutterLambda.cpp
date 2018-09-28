@@ -531,9 +531,9 @@ int SutterUtils::SetCommandNoCR(MM::Device& device, MM::Core& core,
 // Wheel implementation
 // ~~~~~~~~~~~~~~~~~~~~
 
-Wheel::Wheel(const char* name, unsigned id, unsigned long numPos) :
+Wheel::Wheel(const char* name, unsigned id) :
 initialized_(false), 
-numPos_(numPos), 
+numPos_(10), 
 id_(id), 
 name_(name), 
 curPos_(0), 
