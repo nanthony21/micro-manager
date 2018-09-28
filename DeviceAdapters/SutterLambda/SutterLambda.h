@@ -272,7 +272,10 @@ public:
 	int onWhiteLightMode();// (bool enabled);
 	int onWavelength();//(unsigned int wavelength);
 	int onSpeed();//(unsigned int speed);
+	int onWheelTilt();
+	int onMotorsEnabled();
 private:
+	int getStatus();
 
 
 };
