@@ -725,7 +725,6 @@ bool ShutterOnTenDashTwo::Busy()
 
 bool ShutterOnTenDashTwo::ControllerBusy()
 {
-
 	return g_Busy[port_];
 }
 

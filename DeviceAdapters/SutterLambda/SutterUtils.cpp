@@ -1,15 +1,18 @@
 #include "SutterLambda.h"
 
+
+
+
 ///////////////////////////////////////////////////////////////////////////////////
 //  SutterUtils: Static utility functions that can be used from all devices
 //////////////////////////////////////////////////////////////////////////////////
 bool SutterUtils::ControllerBusy(MM::Device& /*device*/, MM::Core& /*core*/, std::string port,
 	unsigned long /*answerTimeoutMs*/)
 {
-
 	MMThreadGuard g(*(::gplocks_[port]));
 	return g_Busy[port];
 }
+
 int SutterUtils::GoOnLine(MM::Device& device, MM::Core& core,
 	std::string port, unsigned long answerTimeoutMs)
 {

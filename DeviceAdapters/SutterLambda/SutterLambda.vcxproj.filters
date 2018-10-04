@@ -30,9 +30,15 @@
     <ClCompile Include="DG4.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SutterHub.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SutterLambda.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SutterHub.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
