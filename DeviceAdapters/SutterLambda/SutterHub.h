@@ -19,14 +19,14 @@ public:
 	int OnPort(MM::PropertyBase* pProp, MM::ActionType eAct);
 
 	//From old sutterutil class
-	static bool ControllerBusy();
-	static int GoOnLine(unsigned long answerTimeoutMs);
-	static int GetControllerType(unsigned long answerTimeoutMs, std::string& type, std::string& id);
-	static int GetStatus(unsigned long answerTimeoutMs, unsigned char* status);
-	static int SetCommand(const std::vector<unsigned char> command, const std::vector<unsigned char> alternateEcho, const unsigned long answerTimeoutMs, const bool responseRequired = true, const bool CRexpected = true);
-	static int SetCommand(const std::vector<unsigned char> command, const std::vector<unsigned char> alternateEcho, const unsigned long answerTimeoutMs, std::vector<unsigned char>& response, const bool responseRequired = true, const bool CRExpected = true);
+	bool ControllerBusy();
+	int GoOnLine(unsigned long answerTimeoutMs);
+	int GetControllerType(unsigned long answerTimeoutMs, std::string& type, std::string& id);
+	int GetStatus(unsigned long answerTimeoutMs, unsigned char* status);
+	int SetCommand(const std::vector<unsigned char> command, const std::vector<unsigned char> alternateEcho, const unsigned long answerTimeoutMs, const bool responseRequired = true, const bool CRexpected = true);
+	int SetCommand(const std::vector<unsigned char> command, const std::vector<unsigned char> alternateEcho, const unsigned long answerTimeoutMs, std::vector<unsigned char>& response, const bool responseRequired = true, const bool CRExpected = true);
 	// some commands don't send a \r!!!
-	static int SetCommandNoCR(const std::vector<unsigned char> command, const std::vector<unsigned char> alternateEcho, const unsigned long answerTimeoutMs, std::vector<unsigned char>& response, const bool responseRequired = true);
+	int SetCommandNoCR(const std::vector<unsigned char> command, const std::vector<unsigned char> alternateEcho, const unsigned long answerTimeoutMs, std::vector<unsigned char>& response, const bool responseRequired = true);
 private:
 	const std::string port;
 
