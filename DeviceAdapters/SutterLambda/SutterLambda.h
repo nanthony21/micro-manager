@@ -51,7 +51,7 @@ public:
 	int Initialize();
 	int Shutdown() { return DEVICE_OK; };
 	void GetName(char* pName) const;
-	bool Busy() { return busy_; };
+	bool Busy();
 
 	bool SupportsDeviceDetection() { return true; };
 	MM::DeviceDetectionStatus DetectDevice();
@@ -63,7 +63,6 @@ public:
 	int OnPort(MM::PropertyBase* pProp, MM::ActionType eAct);
 
 	//From old sutterutil class
-	bool ControllerBusy();
 	int GoOnLine(unsigned long answerTimeoutMs);
 	int GetControllerType(unsigned long answerTimeoutMs, std::string& type, std::string& id);
 	int GetStatus(unsigned long answerTimeoutMs, unsigned char* status);

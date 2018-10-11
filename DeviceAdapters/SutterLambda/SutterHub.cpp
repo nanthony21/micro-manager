@@ -1,11 +1,11 @@
-#include "SutterHub.h"
+#include "SutterLambda.h"
 
 //Based heavily on the Arduino Hub.
 
 SutterHub::SutterHub(): busy_(false), initialized_(false)
 {
-	CPropertyAction* pAct = new CPropertyAction(this, &SutterHub::onPort);
-	CreateProperty(MM::g_Keyword_Port, "Undefined", MM:String, false, pAct, true);
+	CPropertyAction* pAct = new CPropertyAction(this, &SutterHub::OnPort);
+	CreateProperty(MM::g_Keyword_Port, "Undefined", MM::String, false, pAct, true);
 }
 
 SutterHub::~SutterHub()
@@ -14,7 +14,7 @@ SutterHub::~SutterHub()
 }
 
 int SutterHub::Initialize() {
-	int ret = CreateProperty(MM:g_Keyword_Name, g_HubName, MM : String, true);
+	int ret = CreateProperty(MM::g_Keyword_Name, g_HubName, MM::String, true);
 	if (ret != DEVICE_OK) { return ret; }
 
 	MMThreadGuard myLock(GetLock());	//We are creating an object name MyLock. the constructor locks access to lock_. when myLock is destroyed it is released.
@@ -30,6 +30,7 @@ int SutterHub::Shutdown() {
 	initialized_ = false;
 	return DEVICE_OK;
 }
+
 MM::DeviceDetectionStatus SutterHub::DetectDevice() {
 	if (initialized_) {
 		return MM::CanCommunicate;
@@ -100,6 +101,11 @@ int SutterHub::DetectInstalledDevices() {
 	return DEVICE_OK
 }
 
+bool SutterHub::Busy() {
+	MMThreadGuard myLock(GetLock());
+	return busy_;
+}
+
 int SutterHub::OnPort(MM::PropertyBase* pProp, MM::ActionType pAct) {
 	if (pAct == MM::BeforeGet) {
 		pProp->Set(port_.c_str());
@@ -110,7 +116,6 @@ int SutterHub::OnPort(MM::PropertyBase* pProp, MM::ActionType pAct) {
 	return DEVICE_OK;
 }
 
-bool ControllerBusy();
 int GoOnLine(unsigned long answerTimeoutMs);
 int GetControllerType(unsigned long answerTimeoutMs, std::string& type, std::string& id);
 int GetStatus(unsigned long answerTimeoutMs, unsigned char* status);
