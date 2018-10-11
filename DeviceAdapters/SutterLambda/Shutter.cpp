@@ -54,8 +54,7 @@ int Shutter::Initialize()
 	if (initialized_)
 		return DEVICE_OK;
 
-	newGlobals(port_);
-
+	SutterHub* hub_ = dynamic_cast<SutterHub*>(GetParentHub());
 
 	// set property list
 	// -----------------
@@ -169,10 +168,7 @@ int Shutter::Initialize()
 
 int Shutter::Shutdown()
 {
-	if (initialized_)
-	{
-		initialized_ = false;
-	}
+	initialized_ = false;
 	return DEVICE_OK;
 }
 
@@ -184,50 +180,7 @@ bool Shutter::SupportsDeviceDetection(void)
 
 MM::DeviceDetectionStatus Shutter::DetectDevice(void)
 {
-	MM::DeviceDetectionStatus result = MM::Misconfigured;
-
-	try
-	{
-		// convert into lower case to detect invalid port names:
-		std::string test = port_;
-		for (std::string::iterator its = test.begin(); its != test.end(); ++its)
-		{
-			*its = (char)tolower(*its);
-		}
-		// ensure we have been provided with a valid serial port device name
-		if (0 < test.length() && 0 != test.compare("undefined") && 0 != test.compare("unknown"))
-		{
-
-
-			// the port property seems correct, so give it a try
-			result = MM::CanNotCommunicate;
-			// device specific default communication parameters
-			GetCoreCallback()->SetDeviceProperty(port_.c_str(), MM::g_Keyword_BaudRate, "9600");
-			GetCoreCallback()->SetDeviceProperty(port_.c_str(), MM::g_Keyword_StopBits, "1");
-			GetCoreCallback()->SetDeviceProperty(port_.c_str(), MM::g_Keyword_Handshaking, "Off");
-
-			// we can speed up detection with shorter answer timeout here
-			GetCoreCallback()->SetDeviceProperty(port_.c_str(), "AnswerTimeout", "50.0");
-			GetCoreCallback()->SetDeviceProperty(port_.c_str(), "DelayBetweenCharsMs", "0.0");
-			MM::Device* pS = GetCoreCallback()->GetDevice(this, port_.c_str());
-
-			if (DEVICE_OK == pS->Initialize())
-			{
-				int status = SutterUtils::GoOnLine(*this, *GetCoreCallback(), port_, nint(answerTimeoutMs_));
-				if (DEVICE_OK == status)
-					result = MM::CanCommunicate;
-				pS->Shutdown();
-			}
-			// but for operation, we'll need a longer timeout
-			GetCoreCallback()->SetDeviceProperty(port_.c_str(), "AnswerTimeout", "2000.0");
-		}
-	}
-	catch (...)
-	{
-		LogMessage("Exception in DetectDevice");
-	}
-
-	return result;
+	
 }
 
 
@@ -252,10 +205,6 @@ int Shutter::GetOpen(bool& open)
 	pos == 1 ? open = true : open = false;
 
 	return DEVICE_OK;
-}
-int Shutter::Fire(double /*deltaT*/)
-{
-	return DEVICE_UNSUPPORTED_COMMAND;
 }
 
 /**
@@ -292,9 +241,6 @@ bool Shutter::SetShutterPosition(bool state)
 
 bool Shutter::Busy()
 {
-	if (::g_Busy[port_])
-		return true;
-
 	if (GetDelayMs() > 0.0) {
 		MM::MMTime interval = GetCurrentMMTime() - changedTime_;
 		MM::MMTime delay(GetDelayMs()*1000.0);
@@ -302,13 +248,7 @@ bool Shutter::Busy()
 			return true;
 		}
 	}
-
 	return false;
-}
-
-bool Shutter::ControllerBusy()
-{
-	return SutterUtils::ControllerBusy(*this, *GetCoreCallback(), port_, static_cast<long>(0.5 + answerTimeoutMs_));
 }
 
 bool Shutter::SetShutterMode(const char* mode)
@@ -328,7 +268,7 @@ bool Shutter::SetShutterMode(const char* mode)
 		command.push_back((unsigned char)(id_ + 1));
 
 
-	int ret = SutterUtils::SetCommand(*this, *GetCoreCallback(), port_, command, alternateEcho,
+	int ret = hub_->SetCommand(*this, *GetCoreCallback(), port_, command, alternateEcho,
 		(unsigned long)(0.5 + answerTimeoutMs_));
 	return (DEVICE_OK == ret) ? true : false;
 }
@@ -350,21 +290,10 @@ bool Shutter::SetND(unsigned int nd)
 		command.push_back((unsigned char)(nd));
 	}
 
-	int ret = SutterUtils::SetCommand(*this, *GetCoreCallback(), port_, command, alternateEcho,
+	int ret = hub_->SetCommand(*this, *GetCoreCallback(), port_, command, alternateEcho,
 		(unsigned long)(0.5 + answerTimeoutMs_));
 	return (DEVICE_OK == ret) ? true : false;
 
-}
-
-int Shutter::GoOnLine()
-{
-	return SutterUtils::GoOnLine(*this, *GetCoreCallback(), port_, nint(answerTimeoutMs_));
-}
-
-int Shutter::GetControllerType(std::string& type, std::string& id)
-{
-	return SutterUtils::GetControllerType(*this, *GetCoreCallback(), port_, nint(answerTimeoutMs_),
-		type, id);
 }
 
 
@@ -374,39 +303,29 @@ int Shutter::GetControllerType(std::string& type, std::string& id)
 
 int Shutter::OnState(MM::PropertyBase* pProp, MM::ActionType eAct)
 {
-	if (eAct == MM::BeforeGet)
-	{
-	}
-	else if (eAct == MM::AfterSet)
-	{
+	if (eAct == MM::AfterSet) {
 		long pos;
 		pProp->Get(pos);
 
 		// apply the value
 		SetShutterPosition(pos == 0 ? false : true);
 	}
-
 	return DEVICE_OK;
 }
 
 int Shutter::OnPort(MM::PropertyBase* pProp, MM::ActionType eAct)
 {
-	if (eAct == MM::BeforeGet)
-	{
+	if (eAct == MM::BeforeGet) {
 		pProp->Set(port_.c_str());
 	}
-	else if (eAct == MM::AfterSet)
-	{
-		if (initialized_)
-		{
+	else if (eAct == MM::AfterSet) {
+		if (initialized_) {
 			// revert
 			pProp->Set(port_.c_str());
 			return ERR_PORT_CHANGE_FORBIDDEN;
 		}
-
 		pProp->Get(port_);
 	}
-
 	return DEVICE_OK;
 }
 
@@ -421,23 +340,22 @@ int Shutter::OnMode(MM::PropertyBase* pProp, MM::ActionType eAct)
 		std::string mode;
 		pProp->Get(mode);
 
-		if (SetShutterMode(mode.c_str()))
-			curMode_ = mode;
-		else
+		if (SetShutterMode(mode.c_str())) {
+		curMode_ = mode;
+		}
+		else {
 			return ERR_UNKNOWN_SHUTTER_MODE;
+		}
 	}
-
 	return DEVICE_OK;
 }
 
 int Shutter::OnND(MM::PropertyBase* pProp, MM::ActionType eAct)
 {
-	if (eAct == MM::BeforeGet)
-	{
+	if (eAct == MM::BeforeGet){
 		pProp->Set((long)nd_);
 	}
-	else if (eAct == MM::AfterSet)
-	{
+	else if (eAct == MM::AfterSet){
 		std::string ts;
 		pProp->Get(ts);
 		std::istringstream os(ts);
@@ -446,7 +364,6 @@ int Shutter::OnND(MM::PropertyBase* pProp, MM::ActionType eAct)
 			SetND(nd_);
 		}
 	}
-
 	return DEVICE_OK;
 }
 
