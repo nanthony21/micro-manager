@@ -12,6 +12,9 @@ public:
 	void GetName(char* pName) const;
 	bool Busy() { return busy_; };
 
+	bool SupportsDeviceDetection() { return true; };
+	MM::DeviceDetectionStatus DetectDevice();
+
 	//Hub API
 	int DetectInstalledDevices();
 
@@ -23,12 +26,15 @@ public:
 	int GoOnLine(unsigned long answerTimeoutMs);
 	int GetControllerType(unsigned long answerTimeoutMs, std::string& type, std::string& id);
 	int GetStatus(unsigned long answerTimeoutMs, unsigned char* status);
-	int SetCommand(const std::vector<unsigned char> command, const std::vector<unsigned char> alternateEcho, const unsigned long answerTimeoutMs, const bool responseRequired = true, const bool CRexpected = true);
 	int SetCommand(const std::vector<unsigned char> command, const std::vector<unsigned char> alternateEcho, const unsigned long answerTimeoutMs, std::vector<unsigned char>& response, const bool responseRequired = true, const bool CRExpected = true);
-	// some commands don't send a \r!!!
-	int SetCommandNoCR(const std::vector<unsigned char> command, const std::vector<unsigned char> alternateEcho, const unsigned long answerTimeoutMs, std::vector<unsigned char>& response, const bool responseRequired = true);
+
+	//Make comms thread safe
+	static MMThreadLock& GetLock() { return lock_; };
 private:
-	const std::string port;
+	std::string port_;
+	bool busy_;
+	bool initialized_;
+	static MMThreadLock lock_;
 
 };
 
