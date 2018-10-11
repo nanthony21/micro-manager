@@ -48,9 +48,6 @@ const char* g_ShutterAName10dash2 = "Shutter-A 10-2";
 const char* g_ShutterBName10dash2 = "Shutter-B 10-2";
 #endif
 
-const char* g_DG4WheelName = "Wheel-DG4";
-const char* g_DG4ShutterName = "Shutter-DG4";
-
 const char* g_LambdaVF5Name = "VF-5";
 
 std::map<std::string, bool> g_Busy;
@@ -80,8 +77,6 @@ MODULE_API void InitializeModuleData()
    RegisterDevice(g_ShutterAName10dash2, MM::ShutterDevice, "Lambda 10-2 shutter A");
    RegisterDevice(g_ShutterBName10dash2, MM::ShutterDevice, "Lambda 10-2 shutter B");
 #endif
-   RegisterDevice(g_DG4ShutterName, MM::ShutterDevice, "DG4 shutter");
-   RegisterDevice(g_DG4WheelName, MM::StateDevice, "DG4 filter changer");
    RegisterDevice(g_LambdaVF5Name, MM::StateDevice, "Lambda VF-5 (10-3 only)");
 }
 
@@ -134,16 +129,6 @@ MODULE_API MM::Device* CreateDevice(const char* deviceName)
       return pShutter;
    }
 #endif
-   else if (strcmp(deviceName, g_DG4ShutterName) == 0)
-   {
-      // create DG4 shutter
-      return new DG4Shutter(g_DG4ShutterName);
-   }
-   else if (strcmp(deviceName, g_DG4WheelName) == 0)
-   {
-      // create DG4 Wheel
-      return new DG4Wheel(g_DG4WheelName);
-   }
    else if (strcmp(deviceName, g_LambdaVF5Name) == 0)
    {
 	   //Create Lambda VF-5 tunable filter
