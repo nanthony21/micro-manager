@@ -43,10 +43,6 @@ const char* g_WheelCName = "Wheel-C";
 const char* g_ShutterAName = "Shutter-A";
 const char* g_ShutterBName = "Shutter-B";
 
-#ifdef DefineShutterOnTenDashTwo
-const char* g_ShutterAName10dash2 = "Shutter-A 10-2";
-const char* g_ShutterBName10dash2 = "Shutter-B 10-2";
-#endif
 
 const char* g_LambdaVF5Name = "VF-5";
 
@@ -73,10 +69,6 @@ MODULE_API void InitializeModuleData()
    RegisterDevice(g_WheelCName, MM::StateDevice, "Lambda 10 wheel C (10-3 only)");
    RegisterDevice(g_ShutterAName, MM::ShutterDevice, "Lambda 10 shutter A");
    RegisterDevice(g_ShutterBName, MM::ShutterDevice, "Lambda 10 shutter B");
-#ifdef DefineShutterOnTenDashTwo
-   RegisterDevice(g_ShutterAName10dash2, MM::ShutterDevice, "Lambda 10-2 shutter A");
-   RegisterDevice(g_ShutterBName10dash2, MM::ShutterDevice, "Lambda 10-2 shutter B");
-#endif
    RegisterDevice(g_LambdaVF5Name, MM::StateDevice, "Lambda VF-5 (10-3 only)");
 }
 
@@ -115,20 +107,6 @@ MODULE_API MM::Device* CreateDevice(const char* deviceName)
       Shutter* pShutter = new Shutter(g_ShutterBName, 1);
       return pShutter;
    }
-#ifdef DefineShutterOnTenDashTwo
-   else if (strcmp(deviceName, g_ShutterAName10dash2) == 0)
-   {
-      // create Shutter A
-      ShutterOnTenDashTwo* pShutter = new ShutterOnTenDashTwo(g_ShutterAName10dash2, 0);
-      return pShutter;
-   }
-   else if (strcmp(deviceName, g_ShutterBName10dash2) == 0)
-   {
-      // create Shutter B
-      ShutterOnTenDashTwo* pShutter = new ShutterOnTenDashTwo(g_ShutterBName10dash2, 1);
-      return pShutter;
-   }
-#endif
    else if (strcmp(deviceName, g_LambdaVF5Name) == 0)
    {
 	   //Create Lambda VF-5 tunable filter
