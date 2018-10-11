@@ -197,68 +197,6 @@ private:
 
 #endif
 
-class DG4Wheel : public CStateDeviceBase<DG4Wheel>
-{
-public:
-   DG4Wheel(const char* name);
-   ~DG4Wheel();
-  
-   // MMDevice API
-   // ------------
-   int Initialize();
-   int Shutdown();
-  
-   void GetName(char* pszName) const;
-   bool Busy();
-   unsigned long GetNumberOfPositions()const {return numPos_;}
-
-   // action interface
-   // ----------------
-   int OnState(MM::PropertyBase* pProp, MM::ActionType eAct);
-   int OnPort(MM::PropertyBase* pProp, MM::ActionType eAct);
-   int OnDelay(MM::PropertyBase* pProp, MM::ActionType eAct);
-   int OnBusy(MM::PropertyBase* pProp, MM::ActionType eAct);
-
-private:
-   bool SetWheelPosition(unsigned pos);
-
-   bool initialized_;
-   unsigned numPos_;
-   std::string name_;
-   std::string port_;
-   unsigned curPos_;
-   double answerTimeoutMs_;
-};
-
-class DG4Shutter : public CShutterBase<DG4Shutter>
-{
-public:
-   DG4Shutter(const char* name);
-   ~DG4Shutter();
-
-   bool Busy() {return false;}
-   void GetName(char* pszName) const;
-   int Initialize();
-   int Shutdown();
-      
-   // Shutter API
-   int SetOpen(bool open = true);
-   int GetOpen(bool& open);
-   int Fire(double deltaT);
-
-   // action interface
-   // ----------------
-   int OnState(MM::PropertyBase* pProp, MM::ActionType eAct);
-   int OnPort(MM::PropertyBase* pProp, MM::ActionType eAct);
-   int OnDelay(MM::PropertyBase* pProp, MM::ActionType eAct);
-
-private:
-   bool SetShutterPosition(bool state);
-   bool initialized_;
-   std::string name_;
-   std:: string port_;
-   double answerTimeoutMs_;
-};
 /*
 class LambdaVF5: public Wheel //CStateDeviceBase<LambdaVF5>
 {
