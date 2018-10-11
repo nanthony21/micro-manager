@@ -34,7 +34,46 @@ MM::DeviceDetectionStatus SutterHub::DetectDevice() {
 	if (initialized_) {
 		return MM::CanCommunicate;
 	}
-	else ...
+	else {
+		MM::DeviceDetectionStatus result = MM::Misconfigured;
+		try {
+			// convert into lower case to detect invalid port names:
+			std::string test = port_;
+			for (std::string::iterator its = test.begin(); its != test.end(); ++its) {
+				*its = (char)tolower(*its);
+			}
+			// ensure we have been provided with a valid serial port device name
+			if (0 < test.length() && 0 != test.compare("undefined") && 0 != test.compare("unknown"))
+			{
+				// the port property seems correct, so give it a try
+				result = MM::CanNotCommunicate;
+				// device specific default communication parameters
+				GetCoreCallback()->SetDeviceProperty(port_.c_str(), MM::g_Keyword_BaudRate, "9600");
+				GetCoreCallback()->SetDeviceProperty(port_.c_str(), MM::g_Keyword_StopBits, "1");
+				GetCoreCallback()->SetDeviceProperty(port_.c_str(), MM::g_Keyword_Handshaking, "Off");
+
+				// we can speed up detection with shorter answer timeout here
+				GetCoreCallback()->SetDeviceProperty(port_.c_str(), "AnswerTimeout", "50.0");
+				GetCoreCallback()->SetDeviceProperty(port_.c_str(), "DelayBetweenCharsMs", "0.0");
+				MM::Device* pS = GetCoreCallback()->GetDevice(this, port_.c_str()); //No idea what this does. Taken from shutter class
+
+				if (DEVICE_OK == pS->Initialize())
+				{
+					int status = GoOnLine(*this, *GetCoreCallback(), port_, nint(answerTimeoutMs_));
+					if (DEVICE_OK == status)
+						result = MM::CanCommunicate;
+					pS->Shutdown();
+				}
+				// but for operation, we'll need a longer timeout
+				GetCoreCallback()->SetDeviceProperty(port_.c_str(), "AnswerTimeout", "2000.0");
+			}
+		}
+		catch (...)
+		{
+			LogMessage("Exception in DetectDevice");
+		}
+		return result;
+	}
 }
 
 int SutterHub::DetectInstalledDevices() {
