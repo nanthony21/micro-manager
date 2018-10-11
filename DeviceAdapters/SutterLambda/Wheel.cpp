@@ -61,15 +61,14 @@ void Wheel::GetName(char* name) const
 */
 bool Wheel::Busy()
 {
-	MMThreadGuard g(*(::gplocks_[port_]));
-	return g_Busy[port_];
+	return hub_->Busy();
 }
 
 int Wheel::Initialize()
 {
 
 
-	newGlobals(port_);
+	SutterHub* hub_ = dynamic_cast<SutterHub*>(GetParentHub());
 	// set property list
 	// -----------------
 
@@ -109,8 +108,6 @@ int Wheel::Initialize()
 	if (ret != DEVICE_OK)
 		return ret;
 
-	newGlobals(port_);
-
 
 
 	// Busy
@@ -141,22 +138,17 @@ int Wheel::Initialize()
 		return ret;
 
 	// Transfer to On Line
-	unsigned char setSerial = (unsigned char)238;
-	ret = WriteToComPort(port_.c_str(), &setSerial, 1);
+	ret = hub_->GoOnline();
 	if (DEVICE_OK != ret)
 		return ret;
 
 	initialized_ = true;
-
 	return DEVICE_OK;
 }
 
 int Wheel::Shutdown()
 {
-	if (initialized_)
-	{
-		initialized_ = false;
-	}
+	initialized_ = false;
 	return DEVICE_OK;
 }
 
@@ -170,11 +162,8 @@ int Wheel::Shutdown()
 
 bool Wheel::SetWheelPosition(unsigned pos)
 {
-
 	// build the respective command for the wheel
-
 	unsigned char upos = (unsigned char)pos;
-
 
 	std::vector<unsigned char> command;
 
@@ -202,7 +191,7 @@ bool Wheel::SetWheelPosition(unsigned pos)
 
 	std::vector<unsigned char> tmp;
 
-	int ret2 = SutterUtils::SetCommand(*this, *GetCoreCallback(), port_, command, alternateEcho,
+	int ret2 = hub_->SetCommand(*this, *GetCoreCallback(), port_, command, alternateEcho,
 		(unsigned long)(0.5 + answerTimeoutMs_), tmp, true, true);
 	return (DEVICE_OK == ret2) ? true : false;
 
@@ -263,27 +252,6 @@ int Wheel::OnState(MM::PropertyBase* pProp, MM::ActionType eAct)
 		}
 		curPos_ = pos;
 		open_ = gateOpen;
-	}
-
-	return DEVICE_OK;
-}
-
-int Wheel::OnPort(MM::PropertyBase* pProp, MM::ActionType eAct)
-{
-	if (eAct == MM::BeforeGet)
-	{
-		pProp->Set(port_.c_str());
-	}
-	else if (eAct == MM::AfterSet)
-	{
-		if (initialized_)
-		{
-			// revert
-			pProp->Set(port_.c_str());
-			return ERR_PORT_CHANGE_FORBIDDEN;
-		}
-
-		pProp->Get(port_);
 	}
 
 	return DEVICE_OK;

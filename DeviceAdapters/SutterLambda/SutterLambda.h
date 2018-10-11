@@ -87,7 +87,6 @@ public:
    // action interface
    // ----------------
    int OnState(MM::PropertyBase* pProp, MM::ActionType eAct);
-   int OnPort(MM::PropertyBase* pProp, MM::ActionType eAct);
    int OnSpeed(MM::PropertyBase* pProp, MM::ActionType eAct);
    int OnDelay(MM::PropertyBase* pProp, MM::ActionType eAct);
    int OnBusy(MM::PropertyBase* pProp, MM::ActionType eAct);
@@ -100,7 +99,6 @@ private:
    unsigned numPos_;
    const unsigned id_;
    std::string name_;
-   std::string port_;
    unsigned curPos_;
    bool open_;
    unsigned speed_;
@@ -126,7 +124,6 @@ public:
    // action interface
    // ----------------
    int OnState(MM::PropertyBase* pProp, MM::ActionType eAct);
-   int OnPort(MM::PropertyBase* pProp, MM::ActionType eAct);
    int OnMode(MM::PropertyBase* pProp, MM::ActionType eAct);
    int OnND(MM::PropertyBase* pProp, MM::ActionType eAct);
    int OnControllerID(MM::PropertyBase* pProp, MM::ActionType eAct);
@@ -136,18 +133,14 @@ public:
 
 
 private:
-   bool ControllerBusy();
    bool SetShutterPosition(bool state);
    bool SetShutterMode(const char* mode);
    bool SetND(unsigned int nd);
-   int GetControllerType(std::string& type, std::string& id);
-   int GoOnLine();
 
    bool initialized_;
    const int id_;
    std::string name_;
    unsigned int nd_;
-   std:: string port_;
    std::string controllerType_;
    std::string controllerId_;
    double answerTimeoutMs_;

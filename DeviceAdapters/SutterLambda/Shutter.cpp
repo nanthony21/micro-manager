@@ -32,10 +32,6 @@ Shutter::Shutter(const char* name, int id) :
 	// Description
 	CreateProperty(MM::g_Keyword_Description, "Sutter Lambda shutter adapter", MM::String, true);
 
-	// Port
-	CPropertyAction* pAct = new CPropertyAction(this, &Shutter::OnPort);
-	CreateProperty(MM::g_Keyword_Port, "Undefined", MM::String, false, pAct, true);
-
 	EnableDelay();
 }
 
@@ -230,7 +226,7 @@ bool Shutter::SetShutterPosition(bool state)
 		alternateEcho.push_back(state ? 188 : 186);
 	}
 
-	int ret = SutterUtils::SetCommand(*this, *GetCoreCallback(), port_, command, alternateEcho,
+	int ret = hub_->::SetCommand(*this, *GetCoreCallback(), port_, command, alternateEcho,
 		(unsigned long)(0.5 + answerTimeoutMs_));
 
 	// Start timer for Busy flag
@@ -309,22 +305,6 @@ int Shutter::OnState(MM::PropertyBase* pProp, MM::ActionType eAct)
 
 		// apply the value
 		SetShutterPosition(pos == 0 ? false : true);
-	}
-	return DEVICE_OK;
-}
-
-int Shutter::OnPort(MM::PropertyBase* pProp, MM::ActionType eAct)
-{
-	if (eAct == MM::BeforeGet) {
-		pProp->Set(port_.c_str());
-	}
-	else if (eAct == MM::AfterSet) {
-		if (initialized_) {
-			// revert
-			pProp->Set(port_.c_str());
-			return ERR_PORT_CHANGE_FORBIDDEN;
-		}
-		pProp->Get(port_);
 	}
 	return DEVICE_OK;
 }
