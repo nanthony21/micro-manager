@@ -116,9 +116,118 @@ int SutterHub::OnPort(MM::PropertyBase* pProp, MM::ActionType pAct) {
 	return DEVICE_OK;
 }
 
-int GoOnLine(unsigned long answerTimeoutMs);
-int GetControllerType(unsigned long answerTimeoutMs, std::string& type, std::string& id);
-int GetStatus(unsigned long answerTimeoutMs, unsigned char* status);
+int SutterHub::GoOnLine(unsigned long answerTimeoutMs) {
+	// Transfer to On Line
+	unsigned char setSerial = (unsigned char)238;
+	int ret = WriteToComPort(port_.c_str(), &setSerial, 1);
+	if (DEVICE_OK != ret)
+		return ret;
+
+	unsigned char answer = 0;
+	bool responseReceived = false;
+	int unsigned long read;
+	MM::MMTime startTime = GetCurrentMMTime();
+	do {
+		if (DEVICE_OK != ReadFromComPort(port_.c_str(), &answer, 1, read))
+			return false;
+		if (answer == 238)
+			responseReceived = true;
+	} while (!responseReceived && (GetCurrentMMTime() - startTime) < (answerTimeoutMs * 1000.0));
+	if (!responseReceived)
+		return ERR_NO_ANSWER;
+	return DEVICE_OK;
+}
+
+int SutterHub::GetControllerType(unsigned long answerTimeoutMs, std::string& type, std::string& id) {
+	PurgeComPort(port_.c_str());
+	int ret = DEVICE_OK;
+	std::vector<unsigned char> ans;
+	std::vector<unsigned char> emptyv;
+	std::vector<unsigned char> command;
+	command.push_back((unsigned char)253);
+
+	ret = SetCommand(command, emptyv, answerTimeoutMs, ans, true, false);
+	if (ret != DEVICE_OK)
+		return ret;
+
+	std::string ans2;
+	ret = GetSerialAnswer(port_.c_str(), "\r", ans2);
+
+	if (ret != DEVICE_OK) {
+		std::ostringstream errOss;
+		errOss << "Could not get answer from 253 command (GetSerialAnswer returned " << ret << "). Assuming a 10-2";
+		LogMessage(errOss.str().c_str(), true);
+		type = "10-2";
+		id = "10-2";
+	}
+	else if (ans2.length() == 0) {
+		LogMessage("Answer from 253 command was empty. Assuming a 10-2", true);
+		type = "10-2";
+		id = "10-2";
+	}
+	else {
+		if (ans2.substr(0, 2) == "SC") {
+			type = "SC";
+		}
+		else if (ans2.substr(0, 4) == "10-3") {
+			type = "10-3";
+		}
+		id = ans2.substr(0, ans2.length() - 2);
+		LogMessage(("Controller type is " + std::string(type)).c_str(), true);
+	}
+	return DEVICE_OK;
+}
+
+/**
+* Queries the controller for its status
+* Meaning of status depends on controller type
+* status should be allocated by the caller and at least be 21 bytes long
+* status will be the answer returned by the controller, stripped from the first byte (which echos the command)
+*/
+int SutterHub::GetStatus(unsigned long answerTimeoutMs, unsigned char* status) {
+	PurgeComPort(port_.c_str());
+	unsigned char msg[1];
+	msg[0] = 204;
+	// send command
+	int ret = WriteToComPort(port_.c_str(), msg, 1);
+	if (ret != DEVICE_OK)
+		return ret;
+
+	unsigned char ans = 0;
+	bool responseReceived = false;
+	unsigned long read;
+	MM::MMTime startTime = GetCurrentMMTime();
+	do {
+		if (DEVICE_OK != ReadFromComPort(port_.c_str(), &ans, 1, read))
+			return false;
+		/*if (read > 0)
+		printf("Read char: %x", ans);*/
+		if (ans == 204)
+			responseReceived = true;
+		CDeviceUtils::SleepMs(2);
+	} while (!responseReceived && (GetCurrentMMTime() - startTime) < (answerTimeoutMs * 1000.0));
+	if (!responseReceived)
+		return ERR_NO_ANSWER;
+
+	responseReceived = false;
+	int j = 0;
+	startTime = GetCurrentMMTime();
+	do {
+		if (DEVICE_OK != ReadFromComPort(port_.c_str(), &ans, 1, read))
+			return false;
+		if (read > 0) {
+			/* printf("Read char: %x", ans);*/
+			status[j] = ans;
+			j++;
+			if (ans == '\r')
+				responseReceived = true;
+		}
+		CDeviceUtils::SleepMs(2);
+	} while (!responseReceived && (GetCurrentMMTime() - startTime) < (answerTimeoutMs * 1000.0) && j < 22);
+	if (!responseReceived)
+		return ERR_NO_ANSWER;
+	return DEVICE_OK;
+}
 
 
 // lock the port for access,
