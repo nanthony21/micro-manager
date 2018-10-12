@@ -129,6 +129,7 @@ public:
    // Shutter API
    int SetOpen(bool open = true);
    int GetOpen(bool& open);
+   int Fire(double deltaT);
 
    // action interface
    // ----------------

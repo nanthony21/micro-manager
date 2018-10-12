@@ -202,6 +202,10 @@ int Shutter::GetOpen(bool& open)
 
 	return DEVICE_OK;
 }
+int Shutter::Fire(double /*deltaT*/)
+{
+	return DEVICE_UNSUPPORTED_COMMAND;
+}
 
 /**
 * Sends a command to Lambda through the serial port.
