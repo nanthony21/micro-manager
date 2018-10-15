@@ -37,7 +37,7 @@ int SutterHub::Shutdown() {
 	return DEVICE_OK;
 }
 
-void Wheel::GetName(char* name) const
+void SutterHub::GetName(char* name) const
 {
 	assert(name_.length() < CDeviceUtils::GetMaxStringLength());
 	CDeviceUtils::CopyLimitedString(name, name_.c_str());
