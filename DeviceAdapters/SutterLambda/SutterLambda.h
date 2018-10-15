@@ -18,6 +18,7 @@
 //
 // AUTHOR:        Nenad Amodaj, nenad@amodaj.com, 10/26/2005
 //                Nico Stuurman, Oct. 2010
+//				  Nick Anthony, Oct. 2018
 //
 // CVS:           $Id$
 //
@@ -61,6 +62,7 @@ public:
 
 	//Action API
 	int OnPort(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int OnAnswerTimeout(MM::PropertyBase* pProp, MM::ActionType eAct);
 
 	//From old sutterutil class
 	int GoOnline();

@@ -72,7 +72,7 @@ MM::DeviceDetectionStatus SutterHub::DetectDevice() {
 
 				if (DEVICE_OK == pS->Initialize())
 				{
-					int status = GoOnLine(*this, *GetCoreCallback(), port_, nint(answerTimeoutMs_));
+					int status = GoOnline();
 					if (DEVICE_OK == status)
 						result = MM::CanCommunicate;
 					pS->Shutdown();
@@ -128,6 +128,16 @@ int SutterHub::OnPort(MM::PropertyBase* pProp, MM::ActionType pAct) {
 	return DEVICE_OK;
 }
 
+int SutterHub::OnAnswerTimeout(MM::PropertyBase* pProp, MM::ActionType eAct) {
+	if (eAct == MM::BeforeGet) {
+		pProp->Set(timeout_);
+	}
+	else if (eAct == MM::AfterSet) {
+		pProp->Get(timeout_);
+	}
+	return DEVICE_OK;
+}
+
 int SutterHub::GoOnline() {
 	// Transfer to On Line
 	unsigned char setSerial = (unsigned char)238;
@@ -144,7 +154,7 @@ int SutterHub::GoOnline() {
 			return false;
 		if (answer == 238)
 			responseReceived = true;
-	} while (!responseReceived && (GetCurrentMMTime() - startTime) < (timeout_ * 1000.0));
+	} while (!responseReceived && (GetCurrentMMTime() - startTime) < (timeout_));
 	if (!responseReceived)
 		return ERR_NO_ANSWER;
 	return DEVICE_OK;
@@ -217,7 +227,7 @@ int SutterHub::GetStatus(unsigned char* status) {
 		if (ans == 204)
 			responseReceived = true;
 		CDeviceUtils::SleepMs(2);
-	} while (!responseReceived && (GetCurrentMMTime() - startTime) < (timeout_ * 1000.0));
+	} while (!responseReceived && (GetCurrentMMTime() - startTime) < (timeout_));
 	if (!responseReceived)
 		return ERR_NO_ANSWER;
 
@@ -235,7 +245,7 @@ int SutterHub::GetStatus(unsigned char* status) {
 				responseReceived = true;
 		}
 		CDeviceUtils::SleepMs(2);
-	} while (!responseReceived && (GetCurrentMMTime() - startTime) < (timeout_ * 1000.0) && j < 22);
+	} while (!responseReceived && (GetCurrentMMTime() - startTime) < (timeout_) && j < 22);
 	if (!responseReceived)
 		return ERR_NO_ANSWER;
 	return DEVICE_OK;
@@ -313,7 +323,7 @@ int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::v
 						break;
 					}
 					MM::MMTime delta = GetCurrentMMTime() - responseStartTime;
-					if (1000.0 * timeout_ < delta.getUsec()) {
+					if (timeout_ < delta.getUsec()) {
 						expectCR = false;
 						std::ostringstream bufff;
 						bufff << delta.getUsec() << " microsec";
@@ -356,7 +366,7 @@ int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::v
 					}
 
 					MM::MMTime del2 = GetCurrentMMTime() - startTime;
-					if (1000.0 * timeout_ < del2.getUsec()) {
+					if (timeout_ < del2.getUsec()) {
 						std::ostringstream bufff;
 						MM::MMTime del3 = GetCurrentMMTime() - commandStartTime;
 						bufff << "command completion timeout after " << del3.getUsec() << " microsec";
