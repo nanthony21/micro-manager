@@ -36,14 +36,7 @@
 #include "../../MMDevice/DeviceUtils.h"
 #include <sstream>
 
-// Device Names
-const char* g_HubName = "SutterHub";
-const char* g_WheelAName = "Wheel-A";
-const char* g_WheelBName = "Wheel-B";
-const char* g_WheelCName = "Wheel-C";
-const char* g_ShutterAName = "Shutter-A";
-const char* g_ShutterBName = "Shutter-B";
-const char* g_LambdaVF5Name = "VF-5";
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // Exported MMDevice API
