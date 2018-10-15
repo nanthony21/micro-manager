@@ -7,6 +7,10 @@ SutterHub::SutterHub(const char* name): busy_(false), initialized_(false), name_
 	CPropertyAction* pAct = new CPropertyAction(this, &SutterHub::OnPort);
 	CreateProperty(MM::g_Keyword_Port, "Undefined", MM::String, false, pAct, true);
 
+	// Answertimeout
+	pAct = new CPropertyAction(this, &SutterHub::OnAnswerTimeout);
+	CreateProperty("Timeout(ms)", "500", MM::Integer, false, pAct, true);
+
 	// Name
 	CreateProperty(MM::g_Keyword_Name, name_.c_str(), MM::String, true);
 

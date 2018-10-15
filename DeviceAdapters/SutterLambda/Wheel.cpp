@@ -33,14 +33,6 @@ Wheel::Wheel(const char* name, unsigned id) :
 	// Description
 	CreateProperty(MM::g_Keyword_Description, "Sutter Lambda filter wheel adapter", MM::String, true);
 
-	// Port
-	CPropertyAction* pAct = new CPropertyAction(this, &Wheel::OnPort);
-	CreateProperty(MM::g_Keyword_Port, "Undefined", MM::String, false, pAct, true);
-
-	// Answertimeout
-	pAct = new CPropertyAction(this, &Wheel::OnAnswerTimeout);
-	CreateProperty("Timeout(ms)", "500", MM::Integer, false, pAct, true);
-
 	UpdateStatus();
 }
 
@@ -294,21 +286,10 @@ int Wheel::OnDelay(MM::PropertyBase* pProp, MM::ActionType eAct)
 	return DEVICE_OK;
 }
 
-int Wheel::OnBusy(MM::PropertyBase* pProp, MM::ActionType eAct)
-{
-	if (eAct == MM::BeforeGet)
-	{
-		MMThreadGuard g(*(::gplocks_[port_]));
-		pProp->Set(g_Busy[port_] ? 1L : 0L);
+int Wheel::OnBusy(MM::PropertyBase* pProp, MM::ActionType eAct) {
+	if (eAct == MM::BeforeGet) {
+			pProp->Set(hub_->Busy());
 	}
-	else if (eAct == MM::AfterSet)
-	{
-		MMThreadGuard g(*(::gplocks_[port_]));
-		long b;
-		pProp->Get(b);
-		g_Busy[port_] = !(b == 0);
-	}
-
 	return DEVICE_OK;
 }
 
