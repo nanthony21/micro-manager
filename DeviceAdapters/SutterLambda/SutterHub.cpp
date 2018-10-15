@@ -266,14 +266,14 @@ int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::v
 				// block/wait for acknowledge, or until we time out;
 				unsigned char answer = 0;
 				unsigned long read;
-				MM::MMTime responseStartTime = core.GetCurrentMMTime();
+				MM::MMTime responseStartTime = GetCurrentMMTime();
 				// read the response
 				for (;;) {
 					answer = 0;
-					int status = core.ReadFromSerial(&device, port.c_str(), &answer, 1, read);
+					int status = ReadFromComPort(port_.c_str(), &answer, 1, read);
 					if (DEVICE_OK != status) {
 						// give up - somebody pulled the serial hardware out of the computer
-						core.LogMessage(&device, "ReadFromSerial failed", false);
+						LogMessage("ReadFromSerial failed", false);
 						return status;
 					}
 					if (0 < read)
@@ -287,7 +287,7 @@ int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::v
 					else if (answer == 13) { //CR
 						if (CRExpected) {
 							expectA13 = false;
-							core.LogMessage(&device, "error, command was not echoed!", false);
+							LogMessage("error, command was not echoed!", false);
 						}
 						else {
 							// todo: can 13 ever be a command echo?? (probably not - no 14 position filter wheels)
@@ -299,8 +299,7 @@ int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::v
 						if (alternateEcho.end() != allowedResponse) {
 							// command was echoed, after a fashion....
 							if (answer == *allowedResponse) {
-
-								core.LogMessage(&device, ("command " + CDeviceUtils::HexRep(command) +
+								LogMessage(("command " + CDeviceUtils::HexRep(command) +
 									" was echoed as " + CDeviceUtils::HexRep(response)).c_str(), true);
 								++allowedResponse;
 								break;
@@ -310,10 +309,10 @@ int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::v
 						bufff.flags(std::ios::hex | std::ios::showbase);
 
 						bufff << (unsigned int)answer;
-						core.LogMessage(&device, (std::string("unexpected response: ") + bufff.str()).c_str(), false);
+						LogMessage((std::string("unexpected response: ") + bufff.str()).c_str(), false);
 						break;
 					}
-					MM::MMTime delta = core.GetCurrentMMTime() - responseStartTime;
+					MM::MMTime delta = GetCurrentMMTime() - responseStartTime;
 					if (1000.0 * timeout_ < delta.getUsec()) {
 						expectA13 = false;
 						std::ostringstream bufff;
@@ -322,7 +321,7 @@ int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::v
 						// in some cases it might be normal for the controller to not respond,
 						// for example, whenever the command is the same as the previous command or when
 						// go on-line sent to a controller already on-line
-						core.LogMessage(&device, (std::string("command echo timeout after ") + bufff.str()).c_str(), !responseRequired);
+						LogMessage((std::string("command echo timeout after ") + bufff.str()).c_str(), !responseRequired);
 						break;
 					}
 					CDeviceUtils::SleepMs(5);
@@ -332,15 +331,15 @@ int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::v
 				} // loop over timeout
 			} // the command was echoed  entirely...
 			if (expectA13) {
-				MM::MMTime startTime = core.GetCurrentMMTime();
+				MM::MMTime startTime = GetCurrentMMTime();
 				// now look for a 13 - this indicates that the command has really completed!
 				unsigned char answer = 0;
 				unsigned long read;
 				for (;;) {
 					answer = 0;
-					int status = core.ReadFromSerial(&device, port.c_str(), &answer, 1, read);
+					int status = ReadFromComPort(port_.c_str(), &answer, 1, read);
 					if (DEVICE_OK != status) {
-						core.LogMessage(&device, "ReadFromComPort failed", false);
+						LogMessage("ReadFromComPort failed", false);
 						return status;
 					}
 					if (0 < read)
@@ -353,15 +352,15 @@ int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::v
 						std::ostringstream bufff;
 						bufff.flags(std::ios::hex | std::ios::showbase);
 						bufff << (unsigned int)answer;
-						core.LogMessage(&device, ("error, extraneous response  " + bufff.str()).c_str(), false);
+						LogMessage(("error, extraneous response  " + bufff.str()).c_str(), false);
 					}
 
-					MM::MMTime del2 = core.GetCurrentMMTime() - startTime;
+					MM::MMTime del2 = GetCurrentMMTime() - startTime;
 					if (1000.0 * timeout_ < del2.getUsec()) {
 						std::ostringstream bufff;
-						MM::MMTime del3 = core.GetCurrentMMTime() - commandStartTime;
+						MM::MMTime del3 = GetCurrentMMTime() - commandStartTime;
 						bufff << "command completion timeout after " << del3.getUsec() << " microsec";
-						core.LogMessage(&device, bufff.str().c_str(), false);
+						LogMessage(bufff.str().c_str(), false);
 						break;
 					}
 				}
