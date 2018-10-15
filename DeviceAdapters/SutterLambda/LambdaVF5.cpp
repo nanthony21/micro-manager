@@ -54,9 +54,33 @@ int LambdaVF5::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) {
 }
 
 int LambdaVF5::onWheelTilt(MM::PropertyBase* pProp, MM::ActionType eAct) {
-
+	if (eAct == MM::AfterSet)
+	{
+		long uSteps;
+		pProp->Get(uSteps);
+		if ((uSteps > 273) || (uSteps < 0)) {
+			return DEVICE_ERR;
+		}
+		std::vector<unsigned char> cmd;
+		std::vector<unsigned char> response;
+		cmd.push_back(0xDE);
+		cmd.push_back((unsigned char) uSteps);
+		hub_->SetCommand(cmd, cmd, response, false);
+		uSteps_ = uSteps;
+	}
+	return DEVICE_OK;
 }
 
 int LambdaVF5::onMotorsEnabled(MM::PropertyBase* pProp, MM::ActionType eAct) {
-
+	if (eAct == MM::AfterSet)
+	{
+		long mEnabled;
+		pProp->Get(mEnabled);
+		std::vector<unsigned char> cmd;
+		std::vector<unsigned char> response;
+		cmd.push_back(0xCE | (unsigned char) mEnabled);
+		hub_->SetCommand(cmd, cmd, response, false);
+		mEnabled_ = (bool) mEnabled;
+	}
+	return DEVICE_OK;
 }

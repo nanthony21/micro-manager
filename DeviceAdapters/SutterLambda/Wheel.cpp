@@ -10,8 +10,7 @@ Wheel::Wheel(const char* name, unsigned id) :
 	id_(id),
 	name_(name),
 	curPos_(0),
-	speed_(3),
-	answerTimeoutMs_(500)
+	speed_(3)
 {
 	assert(id == 0 || id == 1 || id == 2);
 	assert(strlen(name) < (unsigned int)MM::MaxStrLength);

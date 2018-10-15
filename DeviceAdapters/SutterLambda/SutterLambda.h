@@ -182,5 +182,7 @@ public:
 private:
 	long wv_;
 	bool whiteLightMode_;
+	long uSteps_;
+	bool mEnabled_;
 };
 #endif //_SUTTER_LAMBDA_H_
