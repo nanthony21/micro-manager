@@ -60,7 +60,7 @@ public:
 
 	//Device API
 	int Initialize();
-	int Shutdown() { return DEVICE_OK; };
+	int Shutdown();
 	void GetName(char* pName) const;
 	bool Busy();
 
@@ -113,7 +113,6 @@ public:
    int OnSpeed(MM::PropertyBase* pProp, MM::ActionType eAct);
    int OnDelay(MM::PropertyBase* pProp, MM::ActionType eAct);
    int OnBusy(MM::PropertyBase* pProp, MM::ActionType eAct);
-   int OnAnswerTimeout(MM::PropertyBase* pProp, MM::ActionType eAct);
 
 private:
    bool SetWheelPosition(unsigned pos);
@@ -151,10 +150,6 @@ public:
    int OnState(MM::PropertyBase* pProp, MM::ActionType eAct);
    int OnMode(MM::PropertyBase* pProp, MM::ActionType eAct);
    int OnND(MM::PropertyBase* pProp, MM::ActionType eAct);
-   // for device discovery:
-   bool SupportsDeviceDetection(void);
-   MM::DeviceDetectionStatus DetectDevice(void);
-
 
 private:
    bool SetShutterPosition(bool state);
@@ -184,9 +179,5 @@ public:
 	int onWavelength();//(unsigned int wavelength);
 	int onWheelTilt();
 	int onMotorsEnabled();
-private:
-	int getStatus();
-
-
 };
 #endif //_SUTTER_LAMBDA_H_

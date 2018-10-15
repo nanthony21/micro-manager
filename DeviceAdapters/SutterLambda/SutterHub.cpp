@@ -29,7 +29,7 @@ int SutterHub::Initialize() {
 
 	MMThreadGuard myLock(GetLock());	//We are creating an object name MyLock. the constructor locks access to lock_. when myLock is destroyed it is released.
 	PurgeComPort(port_.c_str());
-	ret = CheckDevice is connected();
+	ret = CheckDeviceisconnected();
 	if (ret != DEVICE_OK) { return ret; }
 
 	initialized_ = true;
@@ -94,7 +94,7 @@ MM::DeviceDetectionStatus SutterHub::DetectDevice() {
 }
 
 int SutterHub::DetectInstalledDevices() {
-	if (DetectDevice() == MM:CanCommunicate) {
+	if (DetectDevice() == MM::CanCommunicate) {
 		std::vector<std::string> peripherals;
 		peripherals.clear();
 		peripherals.push_back(g_WheelAName);
@@ -112,7 +112,7 @@ int SutterHub::DetectInstalledDevices() {
 			}
 		}
 	}
-	return DEVICE_OK
+	return DEVICE_OK;
 }
 
 bool SutterHub::Busy() {
@@ -135,7 +135,7 @@ int SutterHub::OnAnswerTimeout(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		pProp->Set((long)timeout_);
 	}
 	else if (eAct == MM::AfterSet) {
-		pProp->Get((long)timeout_);
+		pProp->Get((long&)timeout_);
 	}
 	return DEVICE_OK;
 }
@@ -381,7 +381,7 @@ int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::v
 		else {// no response required / expected
 			CDeviceUtils::SleepMs(5); // docs say controller echoes any command within 100 microseconds
 			// 3 ms is enough time for controller to send 3 bytes @  9600 baud
-			read unneeded response here.
+			readunneededresponsehere();
 		}
 	}
 	else{

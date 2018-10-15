@@ -286,7 +286,7 @@ int Wheel::OnDelay(MM::PropertyBase* pProp, MM::ActionType eAct)
 
 int Wheel::OnBusy(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	if (eAct == MM::BeforeGet) {
-			pProp->Set(hub_->Busy());
+			pProp->Set((long)hub_->Busy());
 	}
 	return DEVICE_OK;
 }

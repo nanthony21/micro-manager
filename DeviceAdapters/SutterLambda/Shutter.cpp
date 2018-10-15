@@ -50,7 +50,7 @@ int Shutter::Initialize()
 	if (initialized_)
 		return DEVICE_OK;
 
-	SutterHub* hub_ = dynamic_cast<SutterHub*>(GetParentHub());
+	hub_ = dynamic_cast<SutterHub*>(GetParentHub());
 
 	// set property list
 	// -----------------
@@ -67,12 +67,12 @@ int Shutter::Initialize()
 
 
 	int j = 0;
-	while (GoOnLine() != DEVICE_OK && j < 4)
+	while (hub_->GoOnline() != DEVICE_OK && j < 4)
 		j++;
 	if (j >= 4)
 		return ERR_NO_ANSWER;
 
-	ret = GetControllerType(controllerType_, controllerId_);
+	ret = hub_->GetControllerType(controllerType_, controllerId_);
 	if (ret != DEVICE_OK)
 		return ret;
 
@@ -167,19 +167,6 @@ int Shutter::Shutdown()
 	initialized_ = false;
 	return DEVICE_OK;
 }
-
-
-bool Shutter::SupportsDeviceDetection(void)
-{
-	return true;
-}
-
-MM::DeviceDetectionStatus Shutter::DetectDevice(void)
-{
-	
-}
-
-
 
 int Shutter::SetOpen(bool open)
 {
