@@ -2,10 +2,16 @@
 
 //Based heavily on the Arduino Hub.
 
-SutterHub::SutterHub(): busy_(false), initialized_(false)
+SutterHub::SutterHub(const char* name): busy_(false), initialized_(false), name_(name)
 {
 	CPropertyAction* pAct = new CPropertyAction(this, &SutterHub::OnPort);
 	CreateProperty(MM::g_Keyword_Port, "Undefined", MM::String, false, pAct, true);
+
+	// Name
+	CreateProperty(MM::g_Keyword_Name, name_.c_str(), MM::String, true);
+
+	// Description
+	CreateProperty(MM::g_Keyword_Description, "Sutter Lambda Controller", MM::String, true);
 }
 
 SutterHub::~SutterHub()
@@ -29,6 +35,12 @@ int SutterHub::Initialize() {
 int SutterHub::Shutdown() {
 	initialized_ = false;
 	return DEVICE_OK;
+}
+
+void Wheel::GetName(char* name) const
+{
+	assert(name_.length() < CDeviceUtils::GetMaxStringLength());
+	CDeviceUtils::CopyLimitedString(name, name_.c_str());
 }
 
 MM::DeviceDetectionStatus SutterHub::DetectDevice() {

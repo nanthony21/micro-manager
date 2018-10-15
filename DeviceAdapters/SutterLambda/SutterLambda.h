@@ -44,7 +44,7 @@
 class SutterHub : public HubBase<SutterHub>
 {
 public:
-	SutterHub();
+	SutterHub(const char* name);
 	~SutterHub();
 
 	//Device API
@@ -72,6 +72,7 @@ public:
 	static MMThreadLock& GetLock() { return lock_; };
 private:
 	std::string port_;
+	std::string name_;
 	bool busy_;
 	bool initialized_;
 	static MMThreadLock lock_;
@@ -160,8 +161,8 @@ private:
 };
 
 
-/*
-class LambdaVF5: public Wheel //CStateDeviceBase<LambdaVF5>
+
+class LambdaVF5: public Wheel
 {
 public:
 	LambdaVF5(const char* name, unsigned id) : Wheel(name, id) {};
@@ -176,5 +177,5 @@ private:
 	int getStatus();
 
 
-};*/
+};
 #endif //_SUTTER_LAMBDA_H_

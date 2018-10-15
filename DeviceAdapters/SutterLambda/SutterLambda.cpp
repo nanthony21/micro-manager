@@ -36,7 +36,8 @@
 #include "../../MMDevice/DeviceUtils.h"
 #include <sstream>
 
-// Wheels
+// Device Names
+const char* g_HubName = "SutterHub";
 const char* g_WheelAName = "Wheel-A";
 const char* g_WheelBName = "Wheel-B";
 const char* g_WheelCName = "Wheel-C";
@@ -64,12 +65,13 @@ void newGlobals(std::string p)
 ///////////////////////////////////////////////////////////////////////////////
 MODULE_API void InitializeModuleData()
 {
-   RegisterDevice(g_WheelAName, MM::StateDevice, "Lambda 10 filter wheel A");
-   RegisterDevice(g_WheelBName, MM::StateDevice, "Lambda 10 filter wheel B");
-   RegisterDevice(g_WheelCName, MM::StateDevice, "Lambda 10 wheel C (10-3 only)");
-   RegisterDevice(g_ShutterAName, MM::ShutterDevice, "Lambda 10 shutter A");
-   RegisterDevice(g_ShutterBName, MM::ShutterDevice, "Lambda 10 shutter B");
-   RegisterDevice(g_LambdaVF5Name, MM::StateDevice, "Lambda VF-5 (10-3 only)");
+	RegisterDevice(g_HubName, MM::HubDevice, "Lambda Controller Hub");
+	RegisterDevice(g_WheelAName, MM::StateDevice, "Lambda 10 filter wheel A");
+    RegisterDevice(g_WheelBName, MM::StateDevice, "Lambda 10 filter wheel B");
+    RegisterDevice(g_WheelCName, MM::StateDevice, "Lambda 10 wheel C (10-3 only)");
+    RegisterDevice(g_ShutterAName, MM::ShutterDevice, "Lambda 10 shutter A");
+    RegisterDevice(g_ShutterBName, MM::ShutterDevice, "Lambda 10 shutter B");
+    RegisterDevice(g_LambdaVF5Name, MM::StateDevice, "Lambda VF-5 (10-3 only)");
 }
 
 MODULE_API MM::Device* CreateDevice(const char* deviceName)
@@ -77,7 +79,11 @@ MODULE_API MM::Device* CreateDevice(const char* deviceName)
    if (deviceName == 0)
       return 0;
 
-   if (strcmp(deviceName, g_WheelAName) == 0)
+   if (strcmp(deviceName, g_HubName) == 0) {
+	   SutterHub* pHub = new SutterHub(g_HubName);
+	   return pHub;
+   }
+   else if (strcmp(deviceName, g_WheelAName) == 0)
    {
       // create Wheel A
       Wheel* pWheel = new Wheel(g_WheelAName, 0);
