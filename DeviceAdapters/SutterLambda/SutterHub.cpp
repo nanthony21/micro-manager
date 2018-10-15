@@ -29,7 +29,7 @@ int SutterHub::Initialize() {
 
 	MMThreadGuard myLock(GetLock());	//We are creating an object name MyLock. the constructor locks access to lock_. when myLock is destroyed it is released.
 	PurgeComPort(port_.c_str());
-	ret = CheckDeviceisconnected();
+	ret = GoOnline(); //Check that we're connected
 	if (ret != DEVICE_OK) { return ret; }
 
 	initialized_ = true;
@@ -381,7 +381,7 @@ int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::v
 		else {// no response required / expected
 			CDeviceUtils::SleepMs(5); // docs say controller echoes any command within 100 microseconds
 			// 3 ms is enough time for controller to send 3 bytes @  9600 baud
-			readunneededresponsehere();
+			PurgeComPort(port_.c_str());
 		}
 	}
 	else{
