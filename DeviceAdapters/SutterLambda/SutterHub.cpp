@@ -128,7 +128,7 @@ int SutterHub::OnPort(MM::PropertyBase* pProp, MM::ActionType pAct) {
 	return DEVICE_OK;
 }
 
-int SutterHub::GoOnLine(unsigned long answerTimeoutMs) {
+int SutterHub::GoOnline() {
 	// Transfer to On Line
 	unsigned char setSerial = (unsigned char)238;
 	int ret = WriteToComPort(port_.c_str(), &setSerial, 1);
@@ -144,13 +144,13 @@ int SutterHub::GoOnLine(unsigned long answerTimeoutMs) {
 			return false;
 		if (answer == 238)
 			responseReceived = true;
-	} while (!responseReceived && (GetCurrentMMTime() - startTime) < (answerTimeoutMs * 1000.0));
+	} while (!responseReceived && (GetCurrentMMTime() - startTime) < (timeout_ * 1000.0));
 	if (!responseReceived)
 		return ERR_NO_ANSWER;
 	return DEVICE_OK;
 }
 
-int SutterHub::GetControllerType(unsigned long answerTimeoutMs, std::string& type, std::string& id) {
+int SutterHub::GetControllerType(std::string& type, std::string& id) {
 	PurgeComPort(port_.c_str());
 	int ret = DEVICE_OK;
 	std::vector<unsigned char> ans;
@@ -158,7 +158,7 @@ int SutterHub::GetControllerType(unsigned long answerTimeoutMs, std::string& typ
 	std::vector<unsigned char> command;
 	command.push_back((unsigned char)253);
 
-	ret = SetCommand(command, emptyv, answerTimeoutMs, ans, true, false);
+	ret = SetCommand(command, emptyv, ans, true, false);
 	if (ret != DEVICE_OK)
 		return ret;
 
@@ -196,7 +196,7 @@ int SutterHub::GetControllerType(unsigned long answerTimeoutMs, std::string& typ
 * status should be allocated by the caller and at least be 21 bytes long
 * status will be the answer returned by the controller, stripped from the first byte (which echos the command)
 */
-int SutterHub::GetStatus(unsigned long answerTimeoutMs, unsigned char* status) {
+int SutterHub::GetStatus(unsigned char* status) {
 	PurgeComPort(port_.c_str());
 	unsigned char msg[1];
 	msg[0] = 204;
@@ -217,7 +217,7 @@ int SutterHub::GetStatus(unsigned long answerTimeoutMs, unsigned char* status) {
 		if (ans == 204)
 			responseReceived = true;
 		CDeviceUtils::SleepMs(2);
-	} while (!responseReceived && (GetCurrentMMTime() - startTime) < (answerTimeoutMs * 1000.0));
+	} while (!responseReceived && (GetCurrentMMTime() - startTime) < (timeout_ * 1000.0));
 	if (!responseReceived)
 		return ERR_NO_ANSWER;
 
@@ -235,7 +235,7 @@ int SutterHub::GetStatus(unsigned long answerTimeoutMs, unsigned char* status) {
 				responseReceived = true;
 		}
 		CDeviceUtils::SleepMs(2);
-	} while (!responseReceived && (GetCurrentMMTime() - startTime) < (answerTimeoutMs * 1000.0) && j < 22);
+	} while (!responseReceived && (GetCurrentMMTime() - startTime) < (timeout_ * 1000.0) && j < 22);
 	if (!responseReceived)
 		return ERR_NO_ANSWER;
 	return DEVICE_OK;
@@ -246,7 +246,7 @@ int SutterHub::GetStatus(unsigned long answerTimeoutMs, unsigned char* status) {
 // write 1, 2, or 3 char. command to equipment
 // ensure the command completed by waiting for \r
 // pass response back in argument
-int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::vector<unsigned char> alternateEcho, const unsigned long answerTimeoutMs, std::vector<unsigned char>& response, const bool responseRequired, const bool CRExpected) {
+int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::vector<unsigned char> alternateEcho, std::vector<unsigned char>& response, const bool responseRequired, const bool CRExpected) {
 	int ret = DEVICE_OK;
 	bool responseReceived = false;
 	MMThreadGuard myLock(GetLock());
@@ -314,7 +314,7 @@ int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::v
 						break;
 					}
 					MM::MMTime delta = core.GetCurrentMMTime() - responseStartTime;
-					if (1000.0 * answerTimeoutMs < delta.getUsec()) {
+					if (1000.0 * timeout_ < delta.getUsec()) {
 						expectA13 = false;
 						std::ostringstream bufff;
 						bufff << delta.getUsec() << " microsec";
@@ -357,7 +357,7 @@ int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::v
 					}
 
 					MM::MMTime del2 = core.GetCurrentMMTime() - startTime;
-					if (1000.0 * answerTimeoutMs < del2.getUsec()) {
+					if (1000.0 * timeout_ < del2.getUsec()) {
 						std::ostringstream bufff;
 						MM::MMTime del3 = core.GetCurrentMMTime() - commandStartTime;
 						bufff << "command completion timeout after " << del3.getUsec() << " microsec";

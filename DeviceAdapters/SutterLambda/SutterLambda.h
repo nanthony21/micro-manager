@@ -63,10 +63,10 @@ public:
 	int OnPort(MM::PropertyBase* pProp, MM::ActionType eAct);
 
 	//From old sutterutil class
-	int GoOnLine(unsigned long answerTimeoutMs);
-	int GetControllerType(unsigned long answerTimeoutMs, std::string& type, std::string& id);
-	int GetStatus(unsigned long answerTimeoutMs, unsigned char* status);
-	int SetCommand(const std::vector<unsigned char> command, const std::vector<unsigned char> alternateEcho, const unsigned long answerTimeoutMs, std::vector<unsigned char>& response, const bool responseRequired = true, const bool CRExpected = true);
+	int GoOnline();
+	int GetControllerType(std::string& type, std::string& id);
+	int GetStatus(unsigned char* status);
+	int SetCommand(const std::vector<unsigned char> command, const std::vector<unsigned char> alternateEcho, std::vector<unsigned char>& response, const bool responseRequired = true, const bool CRExpected = true);
 
 	//Make comms thread safe
 	static MMThreadLock& GetLock() { return lock_; };
@@ -76,6 +76,7 @@ private:
 	bool busy_;
 	bool initialized_;
 	static MMThreadLock lock_;
+	unsigned long timeout_;
 
 };
 
@@ -113,6 +114,7 @@ private:
    bool open_;
    unsigned speed_;
    double answerTimeoutMs_;
+   SutterHub* hub_;
    Wheel& operator=(Wheel& /*rhs*/) {assert(false); return *this;}
 };
 
@@ -156,10 +158,9 @@ private:
    double answerTimeoutMs_;
    MM::MMTime changedTime_;
    std::string curMode_;
+   SutterHub* hub_;
    Shutter& operator=(Shutter& /*rhs*/) {assert(false); return *this;}
 };
-
-
 
 class LambdaVF5: public Wheel
 {
@@ -169,7 +170,6 @@ public:
 	//VF-5 special commands
 	int onWhiteLightMode();// (bool enabled);
 	int onWavelength();//(unsigned int wavelength);
-	int onSpeed();//(unsigned int speed);
 	int onWheelTilt();
 	int onMotorsEnabled();
 private:
