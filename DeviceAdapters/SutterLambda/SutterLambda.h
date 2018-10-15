@@ -114,18 +114,18 @@ public:
    int OnDelay(MM::PropertyBase* pProp, MM::ActionType eAct);
    int OnBusy(MM::PropertyBase* pProp, MM::ActionType eAct);
 
+
+protected:
+	unsigned speed_;
+	SutterHub* hub_;
 private:
    bool SetWheelPosition(unsigned pos);
-
    bool initialized_;
    unsigned numPos_;
    const unsigned id_;
    std::string name_;
    unsigned curPos_;
-   bool open_;
-   unsigned speed_;
-   double answerTimeoutMs_;
-   SutterHub* hub_;
+   bool open_;  
    Wheel& operator=(Wheel& /*rhs*/) {assert(false); return *this;}
 };
 
@@ -175,9 +175,12 @@ public:
 	LambdaVF5(const char* name, unsigned id) : Wheel(name, id) {};
 
 	//VF-5 special commands
-	int onWhiteLightMode();// (bool enabled);
-	int onWavelength();//(unsigned int wavelength);
-	int onWheelTilt();
-	int onMotorsEnabled();
+	int onWhiteLightMode(MM::PropertyBase* pProp, MM::ActionType eAct);// (bool enabled);
+	int onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct);//(unsigned int wavelength);
+	int onWheelTilt(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int onMotorsEnabled(MM::PropertyBase* pProp, MM::ActionType eAct);
+private:
+	long wv_;
+	bool whiteLightMode_;
 };
 #endif //_SUTTER_LAMBDA_H_

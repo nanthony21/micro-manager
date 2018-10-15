@@ -211,7 +211,7 @@ int SutterHub::GetControllerType(std::string& type, std::string& id) {
 int SutterHub::GetStatus(unsigned char* status) {
 	PurgeComPort(port_.c_str());
 	unsigned char msg[1];
-	msg[0] = 204;
+	msg[0] = 204;	//0xCC
 	// send command
 	int ret = WriteToComPort(port_.c_str(), msg, 1);
 	if (ret != DEVICE_OK)
