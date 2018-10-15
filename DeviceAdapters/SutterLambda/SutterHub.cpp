@@ -286,7 +286,7 @@ int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::v
 					}
 					else if (answer == 13) { //CR
 						if (CRExpected) {
-							expectA13 = false;
+							expectCR = false;
 							LogMessage("error, command was not echoed!", false);
 						}
 						else {
@@ -314,7 +314,7 @@ int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::v
 					}
 					MM::MMTime delta = GetCurrentMMTime() - responseStartTime;
 					if (1000.0 * timeout_ < delta.getUsec()) {
-						expectA13 = false;
+						expectCR = false;
 						std::ostringstream bufff;
 						bufff << delta.getUsec() << " microsec";
 
@@ -330,7 +330,7 @@ int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::v
 						++allowedResponse;
 				} // loop over timeout
 			} // the command was echoed  entirely...
-			if (expectA13) {
+			if (expectCR) {
 				MM::MMTime startTime = GetCurrentMMTime();
 				// now look for a 13 - this indicates that the command has really completed!
 				unsigned char answer = 0;
