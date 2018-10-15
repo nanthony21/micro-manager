@@ -43,22 +43,7 @@ const char* g_WheelBName = "Wheel-B";
 const char* g_WheelCName = "Wheel-C";
 const char* g_ShutterAName = "Shutter-A";
 const char* g_ShutterBName = "Shutter-B";
-
-
 const char* g_LambdaVF5Name = "VF-5";
-
-std::map<std::string, bool> g_Busy;
-std::map<std::string, MMThreadLock*> gplocks_;
-
-
-void newGlobals(std::string p)
-{
-   if( g_Busy.end() ==  g_Busy.find(p))
-   {
-      g_Busy[p] = false;
-      gplocks_[p] = new MMThreadLock();
-   }
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Exported MMDevice API
@@ -126,8 +111,3 @@ MODULE_API void DeleteDevice(MM::Device* pDevice)
 {
    delete pDevice;
 }
-
-
-int LambdaVF5::onWhiteLightMode() { return 0; }
-int LambdaVF5::onWavelength() { return 0; }
-int LambdaVF5::onSpeed() { return 0; }

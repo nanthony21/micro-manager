@@ -137,7 +137,6 @@ public:
    int OnState(MM::PropertyBase* pProp, MM::ActionType eAct);
    int OnMode(MM::PropertyBase* pProp, MM::ActionType eAct);
    int OnND(MM::PropertyBase* pProp, MM::ActionType eAct);
-   int OnControllerID(MM::PropertyBase* pProp, MM::ActionType eAct);
    // for device discovery:
    bool SupportsDeviceDetection(void);
    MM::DeviceDetectionStatus DetectDevice(void);
