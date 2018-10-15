@@ -18,4 +18,7 @@
       <UniqueIdentifier>{555519e4-5a24-40fe-996c-5859ef6beedd}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
 </Project>
