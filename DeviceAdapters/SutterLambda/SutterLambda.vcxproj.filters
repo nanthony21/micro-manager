@@ -27,9 +27,6 @@
     <ClCompile Include="Wheel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DG4.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="SutterHub.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -161,7 +161,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="DG4.cpp" />
     <ClCompile Include="Shutter.cpp" />
     <ClCompile Include="SutterHub.cpp" />
     <ClCompile Include="SutterLambda.cpp" />
