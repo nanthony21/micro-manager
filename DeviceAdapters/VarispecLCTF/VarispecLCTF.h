@@ -86,7 +86,7 @@ class VarispecLCTF : public CGenericBase<VarispecLCTF>
       std::string sendToVarispecLCTF_;
       std::string getFromVarispecLCTF_;
 	  MM::MMTime changedTime_;
-	  MM::MMTime delay;
+	  MM::MMTime delay_;
 	  std::vector<double> sequence_;
       std::vector<double> getNumbersFromMessage(std::string VarispecLCTFmessage, bool prefixQ);
 	  std::string DoubleToString(double N);

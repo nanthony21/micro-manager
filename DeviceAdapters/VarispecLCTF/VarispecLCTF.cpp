@@ -403,16 +403,16 @@ int VarispecLCTF::OnDelay(MM::PropertyBase* pProp, MM::ActionType eAct)
 		if (initializedDelay_) {
 			SetDelayMs(delayT);
 		}
-		delay = delayT * 1000;
+		delay_ = delayT * 1000;
 	}
 	return DEVICE_OK;
 }
 
 bool VarispecLCTF::Busy()
 {
-	if (delay.getMsec() > 0.0) {
+	if (delay_.getMsec() > 0.0) {
 		MM::MMTime interval = GetCurrentMMTime() - changedTime_;
-		if (interval.getMsec() < delay.getMsec()) {
+		if (interval.getMsec() < delay_.getMsec()) {
 			return true;
 		}
 	}
