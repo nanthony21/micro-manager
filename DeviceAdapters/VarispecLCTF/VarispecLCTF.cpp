@@ -544,13 +544,14 @@ int VarispecLCTF::AddToPropertySequence(const char* propertyName, const char* va
 int VarispecLCTF::SendPropertySequence(const char* propertyName) {
 	if (strcmp(propertyName, "Wavelength") == 0)
 	{
-		for (int i = 0; i < sequence_.size(); i++) {
-			ostringstream cmd;
+		ostringstream cmd;
+		for (unsigned int i = 0; i < sequence_.size(); i++) {
 			cmd.precision(3);
 			cmd << "D" << sequence_.at(i) << "," << i;
-			return sendCmd(cmd.str());
 		}
+		return sendCmd(cmd.str());
 	}
-	else
+	else {
 		return DEVICE_UNSUPPORTED_COMMAND;
+	}
 }
