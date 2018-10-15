@@ -101,7 +101,7 @@ int Shutter::Initialize()
 	}
 
 	unsigned char status[22];
-	ret = SutterUtils::GetStatus(*this, *GetCoreCallback(), port_, 100, status);
+	ret = hub_->GetStatus(status);
 	// note: some controllers will not know this command and return an error, 
 	// so do not balk if we do not get an answer
 
@@ -230,8 +230,8 @@ bool Shutter::SetShutterPosition(bool state)
 		alternateEcho.push_back(state ? 188 : 186);
 	}
 
-	int ret = hub_->::SetCommand(*this, *GetCoreCallback(), port_, command, alternateEcho,
-		(unsigned long)(0.5 + answerTimeoutMs_));
+	std::vector<unsigned char> _;
+	int ret = hub_->SetCommand(command, alternateEcho, _, false);
 
 	// Start timer for Busy flag
 	changedTime_ = GetCurrentMMTime();
@@ -267,9 +267,8 @@ bool Shutter::SetShutterMode(const char* mode)
 	if ("SC" != controllerType_)
 		command.push_back((unsigned char)(id_ + 1));
 
-
-	int ret = hub_->SetCommand(*this, *GetCoreCallback(), port_, command, alternateEcho,
-		(unsigned long)(0.5 + answerTimeoutMs_));
+	std::vector<unsigned char> _;
+	int ret = hub_->SetCommand(command, alternateEcho, _, false);
 	return (DEVICE_OK == ret) ? true : false;
 }
 
@@ -289,9 +288,8 @@ bool Shutter::SetND(unsigned int nd)
 		command.push_back((unsigned char)(id_ + 1));
 		command.push_back((unsigned char)(nd));
 	}
-
-	int ret = hub_->SetCommand(*this, *GetCoreCallback(), port_, command, alternateEcho,
-		(unsigned long)(0.5 + answerTimeoutMs_));
+	std::vector<unsigned char> _;
+	int ret = hub_->SetCommand(command, alternateEcho, _, false);
 	return (DEVICE_OK == ret) ? true : false;
 
 }

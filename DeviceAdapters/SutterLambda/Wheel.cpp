@@ -60,7 +60,7 @@ int Wheel::Initialize()
 {
 
 
-	SutterHub* hub_ = dynamic_cast<SutterHub*>(GetParentHub());
+	hub_ = dynamic_cast<SutterHub*>(GetParentHub());
 	// set property list
 	// -----------------
 
@@ -182,9 +182,7 @@ bool Wheel::SetWheelPosition(unsigned pos)
 	}
 
 	std::vector<unsigned char> tmp;
-
-	int ret2 = hub_->SetCommand(*this, *GetCoreCallback(), port_, command, alternateEcho,
-		(unsigned long)(0.5 + answerTimeoutMs_), tmp, true, true);
+	int ret2 = hub_->SetCommand(command, alternateEcho, tmp, true, true);
 	return (DEVICE_OK == ret2) ? true : false;
 
 }

@@ -102,8 +102,6 @@ int SutterHub::DetectInstalledDevices() {
 		peripherals.push_back(g_WheelCName);
 		peripherals.push_back(g_ShutterAName);
 		peripherals.push_back(g_ShutterBName);
-		peripherals.push_back(g_DG4WheelName);
-		peripherals.push_back(g_DG4ShutterName);
 		peripherals.push_back(g_LambdaVF5Name);
 		for (size_t i = 0; i < peripherals.size(); i++)
 		{
@@ -134,10 +132,10 @@ int SutterHub::OnPort(MM::PropertyBase* pProp, MM::ActionType pAct) {
 
 int SutterHub::OnAnswerTimeout(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	if (eAct == MM::BeforeGet) {
-		pProp->Set(timeout_);
+		pProp->Set((long)timeout_);
 	}
 	else if (eAct == MM::AfterSet) {
-		pProp->Get(timeout_);
+		pProp->Get((long)timeout_);
 	}
 	return DEVICE_OK;
 }
