@@ -21,21 +21,18 @@
     <ClCompile Include="Shutter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SutterUtils.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Wheel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SutterHub.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="LambdaVF5.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SutterLambda.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SutterHub.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

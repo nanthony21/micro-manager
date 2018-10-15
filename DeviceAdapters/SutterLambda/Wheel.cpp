@@ -312,16 +312,3 @@ int Wheel::OnBusy(MM::PropertyBase* pProp, MM::ActionType eAct)
 	return DEVICE_OK;
 }
 
-int Wheel::OnAnswerTimeout(MM::PropertyBase* pProp, MM::ActionType eAct)
-{
-	if (eAct == MM::BeforeGet)
-	{
-		pProp->Set(answerTimeoutMs_);
-	}
-	else if (eAct == MM::AfterSet)
-	{
-		pProp->Get(answerTimeoutMs_);
-	}
-
-	return DEVICE_OK;
-}
