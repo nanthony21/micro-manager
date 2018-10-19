@@ -16,7 +16,7 @@ import org.micromanager.StagePosition;
  * @author kthorn
  */
 class ZGeneratorShepard implements ZGenerator {
-    ZGeneratorType type_;
+    static ZGeneratorType type_ = ZGenerator.ZGeneratorType.SHEPINTERPOLATE;
     Map <String, ShepardInterpolator> interpolators_;
 
     /**
@@ -24,30 +24,26 @@ class ZGeneratorShepard implements ZGenerator {
      * @param positionList
      * @param type
      */
-    public ZGeneratorShepard (PositionList positionList, ZGeneratorType type) {  
+    public ZGeneratorShepard (PositionList positionList) {  
         //use default exponent of 2
-        createInterpolator (positionList, type, 2.0);
+        createInterpolator (positionList, 2.0);
     }
     
-    public ZGeneratorShepard (PositionList positionList, 
-            ZGeneratorType type, double exponent) {
-        createInterpolator (positionList, type, exponent);
+    public ZGeneratorShepard (PositionList positionList,  double exponent) {
+        createInterpolator (positionList, exponent);
     }
     
-    private void createInterpolator (PositionList positionList, 
-            ZGeneratorType type, double exp){
+    private void createInterpolator (PositionList positionList, double exp){
         int nPositions;
         double x[], y[], z[]; //positions to be passed to interpolator
         MultiStagePosition msp;
         StagePosition sp;
 
-        type_ = type; //remember type of ZGenerator
         //initialize arrays
         nPositions = positionList.getNumberOfPositions();
         x = new double[nPositions];
         y = new double[nPositions];
-
-        
+ 
         interpolators_ = new HashMap<String, ShepardInterpolator>(5);
         //Loop over all positions and extract X and Y values
         for (int p=0; p<nPositions; p++){
@@ -84,4 +80,51 @@ class ZGeneratorShepard implements ZGenerator {
         interpolator = interpolators_.get(axis);
         return interpolator.interpolate(X, Y);
     }
+}
+
+class ShepardInterpolator {
+    private double[] x_, y_, z_;
+    public double exponent_;
+    
+    /**
+     *
+     * @param xin x position list
+     * @param yin y position list
+     * @param zin z position list
+     * @param exp radial weighting exponent
+     */
+    public ShepardInterpolator(double[] xin, double[] yin, double[] zin, double exp) {
+        this.exponent_ = exp;
+        if (xin.length != yin.length || xin.length != zin.length ) {
+            throw new IllegalArgumentException();
+        }
+        this.x_ = xin;
+        this.y_ = yin;
+        this.z_ = zin;
+    }    
+    
+    public double interpolate(double xi, double yi){
+        double weight, numerator, denominator;
+        double epsilon = 0.001;
+        double d;
+        int i;
+        numerator = 0;
+        denominator = 0;
+        for (i=0; i<x_.length; i++) {
+            //calculate weight
+            d = distance(x_[i], xi, y_[i], yi);
+            if (d < epsilon) {
+                //if we're on top of a point, return it's z coordinate,
+                //otherwise d = 0, weight = infinity, and we return a NaN
+                return z_[i];
+            }
+            weight = Math.pow(d, -exponent_);
+            numerator += z_[i] * weight;
+            denominator += weight;
+        }
+        return numerator / denominator;
+    }  
+    private double distance(double x1, double x2, double y1, double y2) {
+        return Math.pow((Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2)), 0.5);
+    }  
 }

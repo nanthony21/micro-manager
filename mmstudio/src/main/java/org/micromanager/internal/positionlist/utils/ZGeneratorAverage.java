@@ -15,16 +15,14 @@ import org.micromanager.StagePosition;
  */
 class ZGeneratorAverage implements ZGenerator {
      Map <String, Double> averageZPositions_;
-     ZGeneratorType type_;
+     static ZGeneratorType type_ = ZGenerator.ZGeneratorType.AVERAGE;
      /**
      * Constructor
      * 
      * @param positionList initial position list
      * @param type 
      */  
-    public ZGeneratorAverage (PositionList positionList, ZGeneratorType type) {
-       type_ = type; //remember type of ZGenerator
-
+    public ZGeneratorAverage (PositionList positionList) {
        MultiStagePosition msp0;
        StagePosition sp;
        double c;
