@@ -29,6 +29,10 @@ class ZGeneratorShepard implements ZGenerator {
     }
     
     public ZGeneratorShepard (PositionList positionList,  double exponent) {
+        createInterpolator (positionList, exponent);
+    }
+    
+    private void createInterpolator (PositionList positionList, double exp){
         int nPositions;
         double x[], y[], z[]; //positions to be passed to interpolator
         MultiStagePosition msp;
@@ -57,7 +61,7 @@ class ZGeneratorShepard implements ZGenerator {
                   z[p] = positionList.getPosition(p).get(a).x;                
               }              
               interpolators_.put(sp.getStageDeviceLabel(), 
-                      new ShepardInterpolator(x, y, z, exponent)); //store the interpolator for this axis
+                      new ShepardInterpolator(x, y, z, exp)); //store the interpolator for this axis
            }
        }        
     }
