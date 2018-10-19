@@ -15,7 +15,6 @@ import org.micromanager.StagePosition;
  */
 class ZGeneratorAverage implements ZGenerator {
      Map <String, Double> averageZPositions_;
-     static ZGeneratorType type_ = ZGenerator.ZGeneratorType.AVERAGE;
      /**
      * Constructor
      * 
@@ -50,4 +49,8 @@ class ZGeneratorAverage implements ZGenerator {
         return averageZPositions_.get(axis);
     }
 
+    @Override
+    public String getDescription(){
+        return "Average";   
+    }
 }
