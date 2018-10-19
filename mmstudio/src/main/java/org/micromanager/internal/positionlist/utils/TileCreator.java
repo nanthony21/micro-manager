@@ -20,7 +20,7 @@
 //INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES.
 
 
-package org.micromanager.internal.utils;
+package org.micromanager.internal.positionlist.utils;
 
 import java.text.DecimalFormat;
 import javax.swing.JOptionPane;
@@ -29,6 +29,8 @@ import mmcorej.MMCoreJ;
 import org.micromanager.StagePosition;
 import org.micromanager.MultiStagePosition;
 import org.micromanager.PositionList;
+import org.micromanager.internal.utils.NumberUtils;
+import org.micromanager.internal.utils.ReportingUtils;
 
 /**
  *

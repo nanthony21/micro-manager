@@ -4,7 +4,7 @@ import java.io.File;
 import java.nio.file.Path;
 import org.micromanager.MultiStagePosition;
 import org.micromanager.PositionList;
-import org.micromanager.internal.utils.TileCreator;
+import org.micromanager.internal.positionlist.utils.TileCreator;
 import org.micromanager.internal.utils.ReportingUtils;
 
 /**
