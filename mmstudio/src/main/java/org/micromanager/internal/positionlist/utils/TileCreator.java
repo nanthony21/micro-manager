@@ -4,7 +4,7 @@
 //-----------------------------------------------------------------------------
 
 //AUTHOR:       Nico Stuurman, nico@cmp.ucsf.edu, January 10, 2008
-//              Nick Anthony, nicholas.anthony@northwestern.edu, Octoboer 18, 2018 Refactored from the TileCreatorDlg class to it's own utility class 
+//              Nick Anthony, nicholas.anthony@northwestern.edu, Octoboer 18, 2018
 
 //COPYRIGHT:    University of California, San Francisco, 2008 - 2018
 
