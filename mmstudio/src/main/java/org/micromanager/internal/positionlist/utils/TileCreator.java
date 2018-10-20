@@ -63,7 +63,10 @@ public final class TileCreator {
         }  
 
         ZGenerator zGen = null;
-        if (zStages!=null){
+        if (zStages==null){
+            zStages = new StrVector();
+        }
+        if (zStages.size()>0){
             PositionList posList = new PositionList();
             posList.setPositions(endPoints);
             switch (zType) {

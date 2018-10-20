@@ -398,7 +398,7 @@ public final class TileCreatorDlg extends MMDialog {
       try {
          // read 1-axis stages
          final StrVector zStages = positionListDlg_.get1DAxes();
-         if (zStages != null) {
+         if (zStages.size()>0) {
             msp.setDefaultZStage(zStages.get(0));
             for (int i=0; i<zStages.size(); i++){
                 StagePosition sp = StagePosition.create1D(zStages.get(i), core_.getPosition(zStages.get(i)));
@@ -503,8 +503,8 @@ public final class TileCreatorDlg extends MMDialog {
          // read 1-axis stages
          try {
             final StrVector zStages = positionListDlg_.get1DAxes();
-            msp.setDefaultZStage(zStages.get(0));
-            if (zStages != null) {
+            if (zStages.size()>0){
+                msp.setDefaultZStage(zStages.get(0));
                 for (int i=0; i<zStages.size(); i++){
                     StagePosition sp = StagePosition.create1D(zStages.get(i), core_.getPosition(zStages.get(i)));
                     msp.add(sp);
