@@ -47,20 +47,26 @@ public final class TileCreator {
     /*
     * Create the tile list based on user input, pixelsize, and imagesize
     */
-    public PositionList createTiles(double overlap, OverlapUnitEnum overlapUnit, MultiStagePosition[] endPoints, double pixelSizeUm, String labelPrefix, String zStage, ZGenerator zGen, String xyStage) {
+    public PositionList createTiles(double overlap, OverlapUnitEnum overlapUnit, MultiStagePosition[] endPoints, double pixelSizeUm, String labelPrefix, String zStage, ZGenerator zGenType, String xyStage) {
          // Make sure at least two corners were set
          if (endPoints.length < 2) {
             ReportingUtils.showError("At least two corners should be set");
             return null;
          }
-         
-         //Make sure all Points have the same stage
-         for (int i=1; i<endPoints.length; i++){
-             if (!xyStage.equals(endPoints[i].getDefaultXYStage())){
-                 ReportingUtils.showError("All positions given to TileCreator must use the same xy stage");
-                 return null;
-             }
-         }       
+        //Make sure all Points have the same stage
+        for (int i=1; i<endPoints.length; i++){
+            if (!xyStage.equals(endPoints[i].getDefaultXYStage())){
+                ReportingUtils.showError("All positions given to TileCreator must use the same xy stage");
+                return null;
+            }
+        }  
+        if (zStage.equals("")){
+            zStage = null;
+        }
+        if (zStage!=null){
+            ZGenerator zGen(endPoints)
+        } 
+     
                   
          // Calculate a bounding rectangle around the defaultXYStage positions
          // TODO: develop method to deal with multiple axis
@@ -120,7 +126,7 @@ public final class TileCreator {
                msp.add(spXY);
 
                // Add Z position
-               if (!zStage.equals("")) {
+               if (zStage!=null) {
                   msp.setDefaultZStage(zStage);
                   double z;
                   z = zGen.getZ(X, Y, zStage);
