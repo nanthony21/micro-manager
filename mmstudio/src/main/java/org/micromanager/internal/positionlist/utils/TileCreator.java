@@ -47,7 +47,7 @@ public final class TileCreator {
     /*
     * Create the tile list based on user input, pixelsize, and imagesize
     */
-    public PositionList createTiles(double overlap, OverlapUnitEnum overlapUnit, MultiStagePosition[] endPoints, double pixelSizeUm, String labelPrefix, String zStage, ZGenerator zGenType, String xyStage) {
+    public PositionList createTiles(double overlap, OverlapUnitEnum overlapUnit, MultiStagePosition[] endPoints, double pixelSizeUm, String labelPrefix, String zStage, ZGenerator.Type zType, String xyStage) {
          // Make sure at least two corners were set
          if (endPoints.length < 2) {
             ReportingUtils.showError("At least two corners should be set");
@@ -63,9 +63,20 @@ public final class TileCreator {
         if (zStage.equals("")){
             zStage = null;
         }
+        ZGenerator zGen = null;
         if (zStage!=null){
-            ZGenerator zGen(endPoints)
-        } 
+            PositionList posList = new PositionList();
+            posList.setPositions(endPoints);
+            switch (zType) {
+                case SHEPINTERPOLATE:
+                   zGen = new ZGeneratorShepard(posList);
+                   break;
+                case AVERAGE:
+                default:
+                   zGen = new ZGeneratorAverage(posList);
+                   break;
+           }
+        }
      
                   
          // Calculate a bounding rectangle around the defaultXYStage positions
@@ -126,7 +137,7 @@ public final class TileCreator {
                msp.add(spXY);
 
                // Add Z position
-               if (zStage!=null) {
+               if (zGen!=null) {
                   msp.setDefaultZStage(zStage);
                   double z;
                   z = zGen.getZ(X, Y, zStage);
