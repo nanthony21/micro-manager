@@ -37,19 +37,17 @@ import org.micromanager.internal.utils.ReportingUtils;
  * @author N2-LiveCell
  */
 public final class TileCreator {
-    private CMMCore core_;
-    private String xyStage_;
+    private final CMMCore core_;
     static public enum OverlapUnitEnum {UM, PX, PERCENT};
     private static final DecimalFormat FMT_POS = new DecimalFormat("000");
    
     public TileCreator(CMMCore core, String xyStage){
         core_ = core;
-        xyStage_ = xyStage;
     }
     /*
     * Create the tile list based on user input, pixelsize, and imagesize
     */
-    public PositionList createTiles(double overlap, OverlapUnitEnum overlapUnit, MultiStagePosition[] endPoints, double pixelSizeUm, String labelPrefix, String zStage, ZGenerator zGen) {
+    public PositionList createTiles(double overlap, OverlapUnitEnum overlapUnit, MultiStagePosition[] endPoints, double pixelSizeUm, String labelPrefix, String zStage, ZGenerator zGen, String xyStage) {
          // Make sure at least two corners were set
          if (endPoints.length < 2) {
             ReportingUtils.showError("At least two corners should be set");
@@ -58,7 +56,7 @@ public final class TileCreator {
          
          //Make sure all Points have the same stage
          for (int i=1; i<endPoints.length; i++){
-             if (!xyStage_.equals(endPoints[i].getDefaultXYStage())){
+             if (!xyStage.equals(endPoints[i].getDefaultXYStage())){
                  ReportingUtils.showError("All positions given to TileCreator must use the same xy stage");
                  return null;
              }
@@ -107,18 +105,18 @@ public final class TileCreator {
 
             for (int i = 0; i < endPoints.length; i++) {
                if (!sp1Set) {
-                  x1 = endPoints[i].get(xyStage_).x;
-                  y1 = endPoints[i].get(xyStage_).y;
+                  x1 = endPoints[i].get(xyStage).x;
+                  y1 = endPoints[i].get(xyStage).y;
                   z1 = endPoints[i].get(zStage).x;
                   sp1Set = true;
                } else if (!sp2Set) {
-                  x2 = endPoints[i].get(xyStage_).x;
-                  y2 = endPoints[i].get(xyStage_).y;
+                  x2 = endPoints[i].get(xyStage).x;
+                  y2 = endPoints[i].get(xyStage).y;
                   z2 = endPoints[i].get(zStage).x;
                   sp2Set = true;
                } else if (!sp3Set) {
-                  x3 = endPoints[i].get(xyStage_).x;
-                  y3 = endPoints[i].get(xyStage_).y;
+                  x3 = endPoints[i].get(xyStage).x;
+                  y3 = endPoints[i].get(xyStage).y;
                   z3 = endPoints[i].get(zStage).x;
                   sp3Set = true;
                }
@@ -213,8 +211,8 @@ public final class TileCreator {
 
                // Add XY position
                // xyStage is not null; we've checked above.
-               msp.setDefaultXYStage(xyStage_);
-               StagePosition spXY = StagePosition.create2D(xyStage_, 
+               msp.setDefaultXYStage(xyStage);
+               StagePosition spXY = StagePosition.create2D(xyStage, 
                        minX - offsetXUm + (tmpX * tileSizeXUm), //X
                        minY - offsetYUm + (y * tileSizeYUm));   //Y
                msp.add(spXY);
@@ -320,14 +318,14 @@ public final class TileCreator {
         return new double[] {imageSizeXUm, imageSizeYUm};
    }
     
-    public StagePosition[] boundingBox(MultiStagePosition[] endPoints){
+    public StagePosition[] boundingBox(MultiStagePosition[] endPoints, String xyStage){
         double minX = Double.POSITIVE_INFINITY;
         double minY = Double.POSITIVE_INFINITY;
         double maxX = Double.NEGATIVE_INFINITY;
         double maxY = Double.NEGATIVE_INFINITY;
         StagePosition sp;
         for (int i = 0; i < endPoints.length; i++) {
-           sp = endPoints[i].get(xyStage_);
+           sp = endPoints[i].get(xyStage);
            if (sp.x < minX) {
               minX = sp.x;
            }
@@ -341,8 +339,8 @@ public final class TileCreator {
               maxY = sp.y;
            }
         }
-        StagePosition minCoords = StagePosition.create2D(xyStage_, minX, minY);
-        StagePosition maxCoords = StagePosition.create2D(xyStage_, maxX, maxY);
+        StagePosition minCoords = StagePosition.create2D(xyStage, minX, minY);
+        StagePosition maxCoords = StagePosition.create2D(xyStage, maxX, maxY);
         StagePosition[] arr = new StagePosition[2];
         arr[0] = minCoords;
         arr[1] = maxCoords;
