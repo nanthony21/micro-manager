@@ -155,27 +155,21 @@ public final class TileCreator {
     }
    
     private boolean isSwappedXY() {
-        boolean correction, transposeXY, mirrorX, mirrorY;
+        boolean correction, transposeXY;
         String camera = core_.getCameraDevice();
         if (camera == null) {
            JOptionPane.showMessageDialog(null, "This function does not work without a camera");
            return false;
         }
-
         try {
            String tmp = core_.getProperty(camera, "TransposeCorrection");
            correction = !tmp.equals("0");
-           tmp = core_.getProperty(camera, MMCoreJ.getG_Keyword_Transpose_MirrorX());
-           mirrorX = !tmp.equals("0");
-           tmp = core_.getProperty(camera, MMCoreJ.getG_Keyword_Transpose_MirrorY());
-           mirrorY = !tmp.equals("0");
            tmp = core_.getProperty(camera, MMCoreJ.getG_Keyword_Transpose_SwapXY());
            transposeXY = !tmp.equals("0");
         } catch (Exception exc) {
            ReportingUtils.showError(exc);
            return false;
         }
-
         return !correction && transposeXY;
     }
 
