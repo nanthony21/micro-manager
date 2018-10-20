@@ -114,17 +114,16 @@ public final class TileCreator {
                // Add XY position
                // xyStage is not null; we've checked above.
                msp.setDefaultXYStage(xyStage);
-               StagePosition spXY = StagePosition.create2D(xyStage, 
-                       minX - offsetXUm + (tmpX * tileSizeXUm), //X
-                       minY - offsetYUm + (y * tileSizeYUm));   //Y
+               double X = minX - offsetXUm + (tmpX * tileSizeXUm);
+               double Y = minY - offsetYUm + (y * tileSizeYUm);
+               StagePosition spXY = StagePosition.create2D(xyStage, X, Y);
                msp.add(spXY);
 
                // Add Z position
                if (!zStage.equals("")) {
                   msp.setDefaultZStage(zStage);
                   double z;
-                  z = zGen.getZ(
-                  
+                  z = zGen.getZ(X, Y, zStage);
                   StagePosition spZ = StagePosition.create1D(zStage, z);
                   msp.add(spZ);
                }
