@@ -8,7 +8,7 @@ package org.micromanager.internal.positionlist.utils;
  * 
  * @author kthorn
  */
-interface ZGenerator {
+public interface ZGenerator {
     public enum Type{
         SHEPINTERPOLATE ("Weighted Interpolation"),
         AVERAGE ("Average");
