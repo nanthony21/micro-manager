@@ -105,16 +105,16 @@ public final class TileCreator {
          double boundingYUm = maxY - minY + imageSizeYUm;
 
          // calculate number of images in X and Y
-         int nrImagesX = (int) Math.ceil((boundingXUm - overlapXUm) / tileSizeXUm);
-         int nrImagesY = (int) Math.ceil((boundingYUm - overlapYUm) / tileSizeYUm);
+         int nrImagesX = (int) Math.ceil((boundingXUm - overlapXUm * 2) / tileSizeXUm); //The overlap is on both sides of the image so we multiply by 2.
+         int nrImagesY = (int) Math.ceil((boundingYUm - overlapYUm * 2) / tileSizeYUm);
          
          if (nrImagesX < 1 || nrImagesY < 1) {
             ReportingUtils.showError("Zero or negative number of images requested. " + "Is the overlap larger than the Image Width or Height?");
             return null;
          }
 
-         double totalSizeXUm = nrImagesX * tileSizeXUm + overlapXUm;
-         double totalSizeYUm = nrImagesY * tileSizeYUm + overlapYUm;
+         double totalSizeXUm = nrImagesX * tileSizeXUm + overlapXUm * 2; //The overlap is on both sides of the image so we multiply by 2.
+         double totalSizeYUm = nrImagesY * tileSizeYUm + overlapYUm * 2;
 
          //Since an evenly spaced grid will likely not perfectly fit the bounding box
          //that was specified we use this offset so that our grid is still centered properly.
