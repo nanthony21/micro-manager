@@ -46,7 +46,6 @@ class VariLC : public CGenericBase<VariLC>
 	  int GetVLCSerialAnswer (const char* portName, const char* term, std::string& ans);
 	  int OnDelay (MM::PropertyBase* pProp, MM::ActionType eAct);
 
-//      int Initialize(MM::Device& device, MM::Core& core);
       int DeInitialize() {initialized_ = false; return DEVICE_OK;};
       bool Initialized() {return initialized_;};
 	  
