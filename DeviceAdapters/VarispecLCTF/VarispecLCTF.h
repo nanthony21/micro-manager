@@ -57,15 +57,6 @@ public:
 	int OnSerialNumber (MM::PropertyBase* pProp, MM::ActionType eAct);	  
 	int OnSendToVarispecLCTF (MM::PropertyBase* pProp, MM::ActionType eAct);
 	int OnGetFromVarispecLCTF (MM::PropertyBase* pProp, MM::ActionType eAct);
-
-	//sequence interface
-	int IsPropertySequenceable(const char* name, bool& isSequenceable) const;
-	int GetPropertySequenceMaxLength(const char* name, long& nrEvents) const;
-	int StartPropertySequence(const char* propertyName);
-	int StopPropertySequence(const char* propertyName);
-	int ClearPropertySequence(const char* propertyName);
-	int AddToPropertySequence(const char* propertyName, const char* value);	//Add one value to the sequence
-	int SendPropertySequence(const char* propertyName);	//Signal that we are done sending sequence values so that the adapter can send the whole sequence to the device
 	  
 private:
 	// Command exchange with MMCore
