@@ -83,8 +83,7 @@ private:
 	MM::MMTime changedTime_;
 	MM::MMTime delay_;
 	std::vector<double> sequence_;
-	std::vector<double> getNumbersFromMessage(std::string VarispecLCTFmessage, bool prefixQ);
-	std::string DoubleToString(double N);
+
 	int sendCmd(std::string cmd, std::string& out);	//Send a command and save the response in `out`.
 	int sendCmd(std::string cmd);	//Send a command that does not repond with any extra information.
 };

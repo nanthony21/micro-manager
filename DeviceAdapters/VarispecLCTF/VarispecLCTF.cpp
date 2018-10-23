@@ -31,6 +31,36 @@ const char* g_Baud115200          = "115200";
 
 using namespace std;
 
+//Local utility functions.
+std::string DoubleToString(double N)
+{
+	ostringstream ss("");
+	ss << N;
+	return ss.str();
+}
+
+std::vector<double> getNumbersFromMessage(std::string VarispecLCTFmessage, bool briefMode) {
+	std::istringstream variStream(VarispecLCTFmessage);
+	std::string prefix;
+	double val;
+	std::vector<double> values;
+
+	if (!briefMode) {
+		variStream >> prefix;
+	}
+	for (;;) {
+		variStream >> val;
+		if (!variStream.fail()) {
+			values.push_back(val);
+		}
+		else {
+			break;
+		}
+	}
+
+	return values;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Exported MMDevice API
 ///////////////////////////////////////////////////////////////////////////////
@@ -420,34 +450,7 @@ bool VarispecLCTF::Busy()
 	return false;
 }
 
-std::string VarispecLCTF::DoubleToString(double N)
-{
-	ostringstream ss("");
-	ss << N;
-	return ss.str();
-}
 
-std::vector<double> VarispecLCTF::getNumbersFromMessage(std::string VarispecLCTFmessage, bool briefMode) {
-	std::istringstream variStream(VarispecLCTFmessage);
-	std::string prefix;
-	double val;
-	std::vector<double> values;
-
-	if (!briefMode) {
-		variStream >> prefix;
-	}
-	for (;;) {
-		variStream >> val;
-		if (!variStream.fail()) {
-			values.push_back(val);
-		}
-		else {
-			break;
-		}
-	}
-
-	return values;
-}
 
 int VarispecLCTF::sendCmd(std::string cmd, std::string& out) {
 	int ret = sendCmd(cmd);
