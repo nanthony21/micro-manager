@@ -172,7 +172,13 @@ private:
 class LambdaVF5: public Wheel
 {
 public:
-	LambdaVF5(const char* name, unsigned id) : Wheel(name, id) {};
+	LambdaVF5(const char* name, unsigned id):
+		Wheel(name, id),
+		whiteLightMode_(false),
+		mEnabled_(true),
+		wv_(500),
+		uSteps_(100)
+		{};
 
 	//VF-5 special commands
 	int onWhiteLightMode(MM::PropertyBase* pProp, MM::ActionType eAct);// (bool enabled);
