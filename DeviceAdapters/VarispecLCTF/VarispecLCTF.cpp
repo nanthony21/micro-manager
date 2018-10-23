@@ -363,6 +363,7 @@ int VarispecLCTF::OnBriefMode(MM::PropertyBase* pProp, MM::ActionType eAct)
 		 int ret = sendCmd(cmd.str());
 		 if (ret != DEVICE_OK)
 			 return DEVICE_SERIAL_COMMAND_FAILED;
+		 changedTime_ = GetCurrentMMTime();
 		 wavelength_ = wavelength;
 	 }
 	 return DEVICE_OK;
