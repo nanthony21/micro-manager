@@ -1,7 +1,5 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28010.2019
-MinimumVisualStudioVersion = 10.0.40219.1
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual C++ Express 2010
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MMCore", "MMCore\MMCore.vcxproj", "{36571628-728C-4ACD-A47F-503BA91C5D43}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MMCoreJ_wrap", "MMCoreJ_wrap\MMCoreJ_wrap.vcxproj", "{EFA68887-8A97-49D7-BAB4-768E15A4E597}"
@@ -407,8 +405,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HamiltonMVP", "DeviceAdapters\HamiltonMVP\HamiltonMVP.vcxproj", "{A0676B13-4850-4BF4-88BC-F099BEE5B762}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IsmatecMCP", "DeviceAdapters\IsmatecMCP\IsmatecMCP.vcxproj", "{EAF38044-90A7-4062-B4B6-C0F6357E9EB9}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VarispecLCTF", "DeviceAdapters\VarispecLCTF\VarispecLCTF.vcxproj", "{DFA5AB7B-A917-44BB-AB76-6AB1AECFADC8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -2007,19 +2003,8 @@ Global
 		{EAF38044-90A7-4062-B4B6-C0F6357E9EB9}.Release|Win32.Build.0 = Release|Win32
 		{EAF38044-90A7-4062-B4B6-C0F6357E9EB9}.Release|x64.ActiveCfg = Release|x64
 		{EAF38044-90A7-4062-B4B6-C0F6357E9EB9}.Release|x64.Build.0 = Release|x64
-		{DFA5AB7B-A917-44BB-AB76-6AB1AECFADC8}.Debug|Win32.ActiveCfg = Debug|Win32
-		{DFA5AB7B-A917-44BB-AB76-6AB1AECFADC8}.Debug|Win32.Build.0 = Debug|Win32
-		{DFA5AB7B-A917-44BB-AB76-6AB1AECFADC8}.Debug|x64.ActiveCfg = Debug|x64
-		{DFA5AB7B-A917-44BB-AB76-6AB1AECFADC8}.Debug|x64.Build.0 = Debug|x64
-		{DFA5AB7B-A917-44BB-AB76-6AB1AECFADC8}.Release|Win32.ActiveCfg = Release|Win32
-		{DFA5AB7B-A917-44BB-AB76-6AB1AECFADC8}.Release|Win32.Build.0 = Release|Win32
-		{DFA5AB7B-A917-44BB-AB76-6AB1AECFADC8}.Release|x64.ActiveCfg = Release|x64
-		{DFA5AB7B-A917-44BB-AB76-6AB1AECFADC8}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {AE2C7249-16A0-4182-A35E-903E6A93F5EF}
 	EndGlobalSection
 EndGlobal
