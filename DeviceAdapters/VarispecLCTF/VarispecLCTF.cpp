@@ -82,24 +82,6 @@ MODULE_API void DeleteDevice(MM::Device* pDevice)
 }
 
 
-// General utility function:
-int ClearPort(MM::Device& device, MM::Core& core, std::string port)
-{
-	// Clear contents of serial port 
-	const int bufSize = 2048;
-	unsigned char clear[bufSize];
-	unsigned long read = bufSize;
-	int ret;
-	while ((int)read == bufSize)
-	{
-		ret = core.ReadFromSerial(&device, port.c_str(), clear, bufSize, read);
-		if (ret != DEVICE_OK)
-			return ret;
-	}
-	return DEVICE_OK;
-}
-
-
 
 
 
@@ -182,7 +164,7 @@ MM::DeviceDetectionStatus VarispecLCTF::DetectDevice(void)
 			pS = GetCoreCallback()->GetDevice(this, port_.c_str());
 			pS->Initialize();
 
-			ClearPort(*this, *GetCoreCallback(), port_);
+			PurgeComPort(port_.c_str());
 			ret = sendCmd("V?", serialnum_);
 			if (ret != DEVICE_OK || serialnum_.length() < 5)
 			{
@@ -224,7 +206,7 @@ int VarispecLCTF::Initialize()
 {
 
 	// empty the Rx serial buffer before sending command
-	int ret = ClearPort(*this, *GetCoreCallback(), port_);
+	int ret = PurgeComPort(port_.c_str());
 	if (ret != DEVICE_OK)
 		return ret;
 
