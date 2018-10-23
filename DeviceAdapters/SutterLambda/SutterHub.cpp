@@ -1,5 +1,14 @@
 #include "SutterLambda.h"
 
+
+extern const char* g_HubName;
+extern const char* g_WheelAName;
+extern const char* g_WheelBName;
+extern const char* g_WheelCName;
+extern const char* g_ShutterAName;
+extern const char* g_ShutterBName;
+extern const char* g_LambdaVF5Name;
+
 //Based heavily on the Arduino Hub.
 
 SutterHub::SutterHub(const char* name): busy_(false), initialized_(false), name_(name)
