@@ -448,7 +448,7 @@ int VarispecLCTF::StartPropertySequence(const char* propertyName) {
 		int ret;
 		ret = sendCmd("M0"); //Ensure we are in sequence mode 0.
 		if (ret != DEVICE_OK) {return ret;}
-		ret = sendCmd("G1"); //Enable the TTL port. wavength will change every pulse
+		ret = sendCmd("G1"); //Enable the TTL port. wavelength will change every pulse
 		if (ret != DEVICE_OK) { return ret; }
 		ret = sendCmd("P0");	//Go to the first pallete element before sequencing begins
 		if (ret != DEVICE_OK) { return ret; }
@@ -473,8 +473,8 @@ int VarispecLCTF::StopPropertySequence(const char* propertyName) {
 int VarispecLCTF::ClearPropertySequence(const char* propertyName) {
 	if (strcmp(propertyName, "Wavelength") == 0)
 	{
-		int ret = sendCmd("C1");
-		sequence_.clear();
+		int ret = sendCmd("C1"); //Clear the devices pallete memory
+		sequence_.clear();	//Clear the classes sequence memory.
 		return ret;
 	}
 	else
