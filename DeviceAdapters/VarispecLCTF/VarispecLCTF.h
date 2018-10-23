@@ -53,7 +53,6 @@ public:
 	int OnDelay (MM::PropertyBase* pProp, MM::ActionType eAct);
 	int OnPort    (MM::PropertyBase* pProp, MM::ActionType eAct);
 	int OnBaud	(MM::PropertyBase* pProp, MM::ActionType eAct);
-	int OnBriefMode (MM::PropertyBase* pProp, MM::ActionType eAct);
 	int OnWavelength (MM::PropertyBase* pProp, MM::ActionType eAct);
 	int OnSerialNumber (MM::PropertyBase* pProp, MM::ActionType eAct);	  
 	int OnSendToVarispecLCTF (MM::PropertyBase* pProp, MM::ActionType eAct);
@@ -75,7 +74,6 @@ private:
 	bool initialized_;
 	bool initializedDelay_;
 	double answerTimeoutMs_;
-	bool briefModeQ_;
 	double wavelength_; // the cached value
 	std::string serialnum_;
 	std::string sendToVarispecLCTF_;

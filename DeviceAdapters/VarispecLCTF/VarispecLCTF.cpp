@@ -39,15 +39,13 @@ std::string DoubleToString(double N)
 	return ss.str();
 }
 
-std::vector<double> getNumbersFromMessage(std::string VarispecLCTFmessage, bool briefMode) {
+std::vector<double> getNumbersFromMessage(std::string VarispecLCTFmessage) {
 	std::istringstream variStream(VarispecLCTFmessage);
 	std::string prefix;
 	double val;
 	std::vector<double> values;
 
-	if (!briefMode) {
-		variStream >> prefix;
-	}
+	variStream >> prefix;
 	for (;;) {
 		variStream >> val;
 		if (!variStream.fail()) {
@@ -221,13 +219,7 @@ int VarispecLCTF::Initialize()
 	if (ret != DEVICE_OK)
 		return ret;
 
-	pAct = new CPropertyAction(this, &VarispecLCTF::OnBriefMode);
-	ret = CreateProperty("Mode; 1=Brief; 0=Standard", "", MM::String, true, pAct);
-	if (ret != DEVICE_OK)
-		return ret;
-
-	//Set VarispecLCTF to Standard mode
-	briefModeQ_ = false;
+	//Set VarispecLCTF to Standard Comms mode
 	ret = sendCmd("B0",getFromVarispecLCTF_);
 	if (ret != DEVICE_OK)
 		return ret;
@@ -235,7 +227,7 @@ int VarispecLCTF::Initialize()
 	// Wavelength
 	std::string ans;
 	ret = sendCmd("V?", ans);	//The serial number response also contains the tuning range of the device
-	std::vector<double> nums = getNumbersFromMessage(ans, briefModeQ_);	//This will be in the format (revision level, shortest wavelength, longest wavelength, serial number).
+	std::vector<double> nums = getNumbersFromMessage(ans);	//This will be in the format (revision level, shortest wavelength, longest wavelength, serial number).
 	if (ret != DEVICE_OK)
 		return ret;
 	pAct = new CPropertyAction(this, &VarispecLCTF::OnWavelength);
@@ -311,33 +303,6 @@ int VarispecLCTF::OnBaud(MM::PropertyBase* pProp, MM::ActionType eAct)
 }
 
 
-int VarispecLCTF::OnBriefMode(MM::PropertyBase* pProp, MM::ActionType eAct)
-{
-	if (eAct == MM::BeforeGet) {
-		std::string ans;
-		int ret = sendCmd("B?", ans);
-		if (ret != DEVICE_OK)return DEVICE_SERIAL_COMMAND_FAILED;
-		if (ans == "1") {
-			briefModeQ_ = true;
-		}
-		else {
-			briefModeQ_ = false;
-		}
-		if (briefModeQ_) {
-			pProp->Set(" 1");
-		}
-		else {
-			pProp->Set(" 0");
-		}
-	}
-	else if (eAct == MM::AfterSet)
-	{
-
-	}
-	return DEVICE_OK;
-}
-
-
  int VarispecLCTF::OnSerialNumber(MM::PropertyBase* pProp, MM::ActionType eAct)
  {
 	 if (eAct == MM::BeforeGet)
@@ -356,7 +321,7 @@ int VarispecLCTF::OnBriefMode(MM::PropertyBase* pProp, MM::ActionType eAct)
 		 std::string ans;
 		 int ret = sendCmd("W?", ans);
 		 if (ret != DEVICE_OK)return DEVICE_SERIAL_COMMAND_FAILED;
-		 vector<double> numbers = getNumbersFromMessage(ans, briefModeQ_);
+		 vector<double> numbers = getNumbersFromMessage(ans);
 		 if (numbers.size() == 0) { //The device must have returned "W*" meaning that an invalid wavelength was sent
 			 SetErrorText(99, "The Varispec device was commanded to tune to an out of range wavelength.");
 			 return 99;
