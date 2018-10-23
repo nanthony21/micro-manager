@@ -316,10 +316,11 @@ int VarispecLCTF::OnBaud(MM::PropertyBase* pProp, MM::ActionType eAct)
 
  int VarispecLCTF::OnWavelength(MM::PropertyBase* pProp, MM::ActionType eAct)
  {
-	 if (eAct == MM::BeforeGet)
-	 {
+	 int ret;
+	 switch (eAct) {
+	 case (MM::BeforeGet):{
 		 std::string ans;
-		 int ret = sendCmd("W?", ans);
+		 ret = sendCmd("W?", ans);
 		 if (ret != DEVICE_OK)return DEVICE_SERIAL_COMMAND_FAILED;
 		 vector<double> numbers = getNumbersFromMessage(ans);
 		 if (numbers.size() == 0) { //The device must have returned "W*" meaning that an invalid wavelength was sent
@@ -327,9 +328,10 @@ int VarispecLCTF::OnBaud(MM::PropertyBase* pProp, MM::ActionType eAct)
 			 return 99;
 		 }
 		 pProp->Set(numbers[0]);
+		 break;
 	 }
-	 else if (eAct == MM::AfterSet)
-	 {
+	 case (MM::AfterSet): {
+
 		 double wavelength;
 		 // read value from property
 		 pProp->Get(wavelength);
@@ -337,13 +339,46 @@ int VarispecLCTF::OnBaud(MM::PropertyBase* pProp, MM::ActionType eAct)
 		 ostringstream cmd;
 		 cmd.precision(3);
 		 cmd << "W " << wavelength;
-		 int ret = sendCmd(cmd.str());
+		 ret = sendCmd(cmd.str());
 		 if (ret != DEVICE_OK)
 			 return DEVICE_SERIAL_COMMAND_FAILED;
 		 changedTime_ = GetCurrentMMTime();
 		 wavelength_ = wavelength;
+		 break;
 	 }
-	 return DEVICE_OK;
+	 case (MM::IsSequenceable): {
+		pProp->SetSequenceable(128);	//We are using the palette functionality as this is slightly faster than specifying a wavelength jump. the limit of paletted is 128
+		break;
+	 }
+	 case (MM::StartSequence): {
+		ret = sendCmd("M0"); //Ensure we are in sequence mode 0.
+		if (ret != DEVICE_OK) {return ret;}
+		ret = sendCmd("G1"); //Enable the TTL port. wavelength will change every pulse
+		if (ret != DEVICE_OK) { return ret; }
+		ret = sendCmd("P0");	//Go to the first pallete element before sequencing begins
+		if (ret != DEVICE_OK) { return ret; }
+		break;
+	 }
+	 case (MM::StopSequence): {
+		ret = sendCmd("G0"); //disable the TTL port
+		ret |= sendCmd("P0");//Go to the first pallete element after sequencing
+		if (ret != DEVICE_OK) { return ret; }
+		break;
+	 }
+	 case (MM::AfterLoadSequence): {
+		ret = sendCmd("C1"); //Clear the devices pallete memory
+		if (ret != DEVICE_OK) { return ret; }
+		std::vector<std::string> sequence =  pProp->GetSequence();
+		ostringstream cmd;
+		for (unsigned int i = 0; i < sequence.size(); i++) {
+			cmd << "D" << sequence.at(i) << "," << i;
+		}
+		ret = sendCmd(cmd.str());	//Send the sequence over serial.
+		if (ret != DEVICE_OK) { return ret; }
+		break;
+    }
+	}
+	return DEVICE_OK;
  }
 
  int VarispecLCTF::OnSendToVarispecLCTF(MM::PropertyBase* pProp, MM::ActionType eAct)
@@ -422,87 +457,3 @@ int VarispecLCTF::sendCmd(std::string cmd) {
 	return DEVICE_OK;
 }
 
-int VarispecLCTF::IsPropertySequenceable(const char* name, bool& isSequenceable) const
-{
-	if (strcmp(name, "Wavelength") == 0)
-		isSequenceable = true;
-	else
-		isSequenceable = false;
-	return DEVICE_OK;
-}
-
-int VarispecLCTF::GetPropertySequenceMaxLength(const char* name, long& nrEvents) const
-{
-	if (strcmp(name, "Wavelength") == 0) {
-		nrEvents = 128;	//We are using the palette functionality as this is slightly faster than specifying a wavelength jump. the limit of paletted is 128
-	}
-	else {
-		nrEvents = 0;
-	}
-	return DEVICE_OK;
-}
-
-int VarispecLCTF::StartPropertySequence(const char* propertyName) {
-	if (strcmp(propertyName, "Wavelength") == 0)
-	{
-		int ret;
-		ret = sendCmd("M0"); //Ensure we are in sequence mode 0.
-		if (ret != DEVICE_OK) {return ret;}
-		ret = sendCmd("G1"); //Enable the TTL port. wavelength will change every pulse
-		if (ret != DEVICE_OK) { return ret; }
-		ret = sendCmd("P0");	//Go to the first pallete element before sequencing begins
-		if (ret != DEVICE_OK) { return ret; }
-		return DEVICE_OK;
-	}
-	else {
-		return DEVICE_UNSUPPORTED_COMMAND;
-	}
-}
-
-int VarispecLCTF::StopPropertySequence(const char* propertyName) {
-	if (strcmp(propertyName, "Wavelength") == 0)
-	{
-		int ret = sendCmd("G0"); //disable the TTL port
-		ret |= sendCmd("P0");//Go to the first pallete element after sequencing
-		return ret;
-	}
-	else
-		return DEVICE_UNSUPPORTED_COMMAND;
-}
-
-int VarispecLCTF::ClearPropertySequence(const char* propertyName) {
-	if (strcmp(propertyName, "Wavelength") == 0)
-	{
-		int ret = sendCmd("C1"); //Clear the devices pallete memory
-		sequence_.clear();	//Clear the classes sequence memory.
-		return ret;
-	}
-	else
-		return DEVICE_UNSUPPORTED_COMMAND;
-}
-
-int VarispecLCTF::AddToPropertySequence(const char* propertyName, const char* value) {
-	if (strcmp(propertyName, "Wavelength") == 0) {
-		double wv = atof(value);
-		sequence_.push_back(wv);
-		return DEVICE_OK;
-	}
-	else {
-		return DEVICE_UNSUPPORTED_COMMAND;
-	}
-}
-
-int VarispecLCTF::SendPropertySequence(const char* propertyName) {
-	if (strcmp(propertyName, "Wavelength") == 0)
-	{
-		ostringstream cmd;
-		for (unsigned int i = 0; i < sequence_.size(); i++) {
-			cmd.precision(3);
-			cmd << "D" << sequence_.at(i) << "," << i;
-		}
-		return sendCmd(cmd.str());
-	}
-	else {
-		return DEVICE_UNSUPPORTED_COMMAND;
-	}
-}
