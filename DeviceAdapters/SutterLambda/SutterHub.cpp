@@ -112,11 +112,9 @@ int SutterHub::DetectInstalledDevices() {
 		peripherals.push_back(g_ShutterAName);
 		peripherals.push_back(g_ShutterBName);
 		peripherals.push_back(g_LambdaVF5Name);
-		for (size_t i = 0; i < peripherals.size(); i++)
-		{
-			MM::Device* pDev = ::CreateDevice(peripherals[i].c_str());
-			if (pDev)
-			{
+		for (size_t i=0; i<peripherals.size(); i++) {
+			MM::Device* pDev = CreateDevice(peripherals[i].c_str());
+			if (pDev) {
 				AddInstalledDevice(pDev);
 			}
 		}
