@@ -81,13 +81,13 @@ public:
 	int SetCommand(const std::vector<unsigned char> command, const std::vector<unsigned char> alternateEcho, std::vector<unsigned char>& response, const bool responseRequired = true, const bool CRExpected = true);
 
 	//Make comms thread safe
-	static MMThreadLock& GetLock() { return lock_; };
+	MMThreadLock& GetLock() { return lock_; };
 private:
 	std::string port_;
 	std::string name_;
 	bool busy_;
 	bool initialized_;
-	static MMThreadLock lock_;
+	MMThreadLock lock_;
 	unsigned long timeout_;
 
 };
