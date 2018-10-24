@@ -79,6 +79,7 @@ public:
 private:
 	std::string port_;
 	std::string name_;
+	bool mEnabled_;
 	bool busy_;
 	bool initialized_;
 	MMThreadLock lock_;
