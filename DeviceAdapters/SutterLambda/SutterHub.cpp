@@ -414,3 +414,8 @@ int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::v
 	}
 	return responseRequired ? (responseReceived ? DEVICE_OK : DEVICE_ERR) : DEVICE_OK;
 }
+
+int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::vector<unsigned char> altEcho){
+	std::vector<unsigned char> response;
+	SetCommand(command, altEcho, response, false);
+}

@@ -69,13 +69,11 @@ public:
 	int OnMotorsEnabled(MM::PropertyBase* pProp, MM::ActionType eAct);
 
 	//From old sutterutil class
-	int GoOnline();
+	
 	int GetControllerType(std::string& type, std::string& id);
-	int GetStatus(unsigned char* status);
+	int GetStatus(std::vector<unsigned char>& status);
 	int SetCommand(const std::vector<unsigned char> command, const std::vector<unsigned char> alternateEcho, std::vector<unsigned char>& response, const bool responseRequired = true, const bool CRExpected = true);
-
-	//Make comms thread safe
-	MMThreadLock& GetLock() { return lock_; };
+	int SetCommand(const std::vector<unsigned char> command, const std::vector<unsigned char> altEcho);
 private:
 	std::string port_;
 	std::string name_;
@@ -84,6 +82,9 @@ private:
 	bool initialized_;
 	MMThreadLock lock_;
 	unsigned long timeout_;
+	//Make comms thread safe
+	MMThreadLock& GetLock() { return lock_; };
+	int GoOnline(); //Transfer control to serial.
 
 };
 
