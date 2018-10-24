@@ -245,110 +245,85 @@ int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::v
 	bool expectCR = CRExpected;
 	std::vector<unsigned char>::const_iterator allowedResponse = alternateEcho.begin();
 	for (std::vector<unsigned char>::const_iterator irep = command.begin(); irep != command.end(); ++irep) {
-
 		// block/wait for acknowledge, or until we time out;
 		unsigned char answer = 0;
 		unsigned long read;
 		MM::MMTime responseStartTime = GetCurrentMMTime();
 		// read the response
-		for (;;) {
-			answer = 0;
-			int status = ReadFromComPort(port_.c_str(), &answer, 1, read);
-			if (DEVICE_OK != status) {
-				// give up - somebody pulled the serial hardware out of the computer
-				LogMessage("ReadFromSerial failed", false);
-				return status;
-			}
-			if (0 < read)
-				response.push_back(answer);
+		int status = ReadFromComPort(port_.c_str(), &answer, 1, read);
+		if (DEVICE_OK != status) {return status;} // give up - somebody pulled the serial hardware out of the computer
+		if (read > 0){
 			if (answer == *irep) {
-				if (!CRExpected) {
-					responseReceived = true;
-				}
-				break;
 			}
-			else if (answer == 13) { //CR
-				if (CRExpected) {
-					expectCR = false;
-					LogMessage("error, command was not echoed!", false);
+			else if (alternateEcho.end() != allowedResponse) {
+				if (answer == *allowedResponse) {
+					LogMessage(("command " + CDeviceUtils::HexRep(command) +
+						" was echoed as alternate " + CDeviceUtils::HexRep(response)).c_str(), true);
+					++allowedResponse;
 				}
-				else {
-					// todo: can 13 ever be a command echo?? (probably not - no 14 position filter wheels)
-					;
-				}
-				break;
 			}
-			else if (answer != 0) {
-				if (alternateEcho.end() != allowedResponse) {
-					// command was echoed, after a fashion....
-					if (answer == *allowedResponse) {
-						LogMessage(("command " + CDeviceUtils::HexRep(command) +
-							" was echoed as " + CDeviceUtils::HexRep(response)).c_str(), true);
-						++allowedResponse;
-						break;
-					}
-				}
+			else {
+				//We got an unexpected response
 				std::ostringstream bufff;
 				bufff.flags(std::ios::hex | std::ios::showbase);
-
 				bufff << (unsigned int)answer;
 				LogMessage((std::string("unexpected response: ") + bufff.str()).c_str(), false);
-				break;
 			}
-			MM::MMTime delta = GetCurrentMMTime() - responseStartTime;
-			if (timeout_ < delta.getUsec()) {
-				expectCR = false;
-				std::ostringstream bufff;
-				bufff << delta.getUsec() << " microsec";
+			continue;
+		}
+		else {
+			LogMessage("SutterHub Serial timed out", false);
+			return DEVICE_ERR;
+		}
 
-				// in some cases it might be normal for the controller to not respond,
-				// for example, whenever the command is the same as the previous command or when
-				// go on-line sent to a controller already on-line
-				LogMessage((std::string("command echo timeout after ") + bufff.str()).c_str(), !responseRequired);
-				break;
-			}
-			CDeviceUtils::SleepMs(5);
-			// if we are not at the end of the 'alternate' echo, iterate forward in that alternate echo string
-			if (alternateEcho.end() != allowedResponse)
-				++allowedResponse;
-		} // loop over timeout
+		MM::MMTime delta = GetCurrentMMTime() - responseStartTime;
+		if (timeout_ < delta.getUsec()) {
+			expectCR = false;
+			std::ostringstream bufff;
+			bufff << delta.getUsec() << " microsec";
+
+			// in some cases it might be normal for the controller to not respond,
+			// for example, whenever the command is the same as the previous command or when
+			// go on-line sent to a controller already on-line
+			LogMessage((std::string("command echo timeout after ") + bufff.str()).c_str(), !responseRequired);
+			return DEVICE_ERR;
+		}
 	} // the command was echoed  entirely...
-	if (expectCR) {
-		MM::MMTime startTime = GetCurrentMMTime();
-		// now look for a 13 - this indicates that the command has really completed!
-		unsigned char answer = 0;
-		unsigned long read;
-		for (;;) {
-			answer = 0;
-			int status = ReadFromComPort(port_.c_str(), &answer, 1, read);
-			if (DEVICE_OK != status) {
-				LogMessage("ReadFromComPort failed", false);
-				return status;
-			}
-			if (0 < read)
-				response.push_back(answer);
+	MM::MMTime startTime = GetCurrentMMTime();
+	// now look for a 13 - this indicates that the command has really completed!
+	unsigned char answer = 0;
+	unsigned long read;
+	while (true) {
+		answer = 0;
+		int status = ReadFromComPort(port_.c_str(), &answer, 1, read);
+		if (DEVICE_OK != status) {return status;}
+		if (0 < read) {
+			response.push_back(answer);
 			if (answer == 13) { // CR  - sometimes the SC sends a 1 before the 13....
 				responseReceived = true;
-				break;
+				return DEVICE_OK;
 			}
-			if (0 < read) {
+			else {
 				std::ostringstream bufff;
 				bufff.flags(std::ios::hex | std::ios::showbase);
 				bufff << (unsigned int)answer;
 				LogMessage(("error, extraneous response  " + bufff.str()).c_str(), false);
 			}
+		}
+		else {
+			LogMessage("Sutter Serial Timed Out", false);
+			return DEVICE_ERR;
+		}
 
-			MM::MMTime del2 = GetCurrentMMTime() - startTime;
-			if (timeout_ < del2.getUsec()) {
-				std::ostringstream bufff;
-				MM::MMTime del3 = GetCurrentMMTime() - commandStartTime;
-				bufff << "command completion timeout after " << del3.getUsec() << " microsec";
-				LogMessage(bufff.str().c_str(), false);
-				break;
-			}
+		MM::MMTime del2 = GetCurrentMMTime() - startTime;
+		if (timeout_ < del2.getUsec()) {
+			std::ostringstream bufff;
+			MM::MMTime del3 = GetCurrentMMTime() - commandStartTime;
+			bufff << "command completion timeout after " << del3.getUsec() << " microsec";
+			LogMessage(bufff.str().c_str(), false);
+			return DEVICE_ERR;
 		}
 	}
-	return responseRequired ? (responseReceived ? DEVICE_OK : DEVICE_ERR) : DEVICE_OK;
 }
 
 int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::vector<unsigned char> altEcho){
