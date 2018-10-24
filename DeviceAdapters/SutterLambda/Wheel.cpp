@@ -4,13 +4,14 @@
 // Wheel implementation
 // ~~~~~~~~~~~~~~~~~~~~
 
-Wheel::Wheel(const char* name, unsigned id) :
+Wheel::Wheel(const char* name, unsigned id, bool evenPositionsOnly) :
 	initialized_(false),
 	numPos_(10),
 	id_(id),
 	name_(name),
 	curPos_(0),
-	speed_(3)
+	speed_(3),
+	evenPositionsOnly_(evenPositionsOnly)
 {
 	assert(id == 0 || id == 1 || id == 2);
 	assert(strlen(name) < (unsigned int)MM::MaxStrLength);
@@ -113,7 +114,8 @@ int Wheel::Initialize()
 	// create default positions and labels
 	const int bufSize = 1024;
 	char buf[bufSize];
-	for (unsigned i = 0; i < numPos_; i++)
+	int _ = evenPositionsOnly_ ? 2 : 1;
+	for (unsigned i = 0; i < numPos_; i+=_)
 	{
 		snprintf(buf, bufSize, "Filter-%d", i);
 		SetPositionLabel(i, buf);
@@ -126,11 +128,6 @@ int Wheel::Initialize()
 
 	ret = UpdateStatus();
 	if (ret != DEVICE_OK)
-		return ret;
-
-	// Transfer to On Line
-	ret = hub_->GoOnline();
-	if (DEVICE_OK != ret)
 		return ret;
 
 	initialized_ = true;

@@ -92,7 +92,7 @@ private:
 class Wheel : public CStateDeviceBase<Wheel>
 {
 public:
-   Wheel(const char* name, unsigned id);
+   Wheel(const char* name, unsigned id, bool evenPositionsOnly = false);
    ~Wheel();
   
    // MMDevice API
@@ -119,6 +119,7 @@ private:
    bool SetWheelPosition(unsigned pos);
    bool initialized_;
    unsigned numPos_;
+   bool evenPositionsOnly_;
    const unsigned id_;
    std::string name_;
    unsigned curPos_;
