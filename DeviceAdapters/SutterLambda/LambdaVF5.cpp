@@ -1,5 +1,8 @@
 #include "SutterLambda.h"
 
+LambdaVF5::LambdaVF5(const char* name): Wheel(name, 0), whiteLightMode_(false), mEnabled_(true), wv_(500), uSteps_(100){
+};
+
 int LambdaVF5::onWhiteLightMode(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	if (eAct == MM::BeforeGet)
 	{
@@ -71,5 +74,19 @@ int LambdaVF5::onWheelTilt(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	return DEVICE_OK;
 }
 
-int LambdaVF5::TTL
-
+int LambdaVF5::configureTTL( bool risingEdge, bool enabled, bool output, unsigned int channel){
+	if (channel > 2) {
+		LogMessage("Lambda VF5: Invalid TTL Channel specified", false);
+	}
+	std::vector<unsigned char> cmd;
+	cmd.push_back(0xFA);
+	unsigned char action = 0xA0;
+	action |= (output << 4);
+	if (enabled) {
+		if (risingEdge) { action |= 0x03; }
+		else { action |= 0x04; }
+	}
+	cmd.push_back(action);
+	cmd.push_back(channel);
+	hub_->SetCommand(cmd);
+}

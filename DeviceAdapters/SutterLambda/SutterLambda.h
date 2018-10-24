@@ -170,19 +170,14 @@ private:
 class LambdaVF5: public Wheel
 {
 public:
-	LambdaVF5(const char* name, unsigned id):
-		Wheel(name, id),
-		whiteLightMode_(false),
-		mEnabled_(true),
-		wv_(500),
-		uSteps_(100)
-		{};
+	LambdaVF5(const char* name);
 
 	//VF-5 special commands
 	int onWhiteLightMode(MM::PropertyBase* pProp, MM::ActionType eAct);// (bool enabled);
 	int onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct);//(unsigned int wavelength);
 	int onWheelTilt(MM::PropertyBase* pProp, MM::ActionType eAct);
 private:
+	configureTTL( bool risingEdge, bool enabled, bool output, unsigned int channel);
 	long wv_;
 	bool whiteLightMode_;
 	long uSteps_;
