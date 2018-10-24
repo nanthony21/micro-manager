@@ -1,7 +1,7 @@
 #include "SutterLambda.h"
 
 LambdaVF5::LambdaVF5(const char* name):
-	Wheel(name, 0, "Lambda VF-5 Tunable Filter"),
+	WheelBase(name, 0, true, "Lambda VF-5 Tunable Filter"),
 	whiteLightMode_(false), 
 	mEnabled_(true), 
 	wv_(500),
@@ -9,7 +9,7 @@ LambdaVF5::LambdaVF5(const char* name):
 {};
 
 int LambdaVF5::Initialize(){
-	int ret = Wheel.Initialize();
+	int ret = WheelBase::Initialize();
 	if (ret != DEVICE_OK) { return ret;}
 
 	CPropertyAction* pAct = new CPropertyAction(this, &LambdaVF5::onWhiteLightMode);

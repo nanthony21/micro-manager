@@ -89,11 +89,12 @@ private:
 
 };
 
-class Wheel : public CStateDeviceBase<Wheel>
+template <class U>
+class WheelBase : public CStateDeviceBase<U>
 {
 public:
-   Wheel(const char* name, unsigned id, bool evenPositionsOnly = false, const char* description = "Sutter Lambda Filter Wheel");
-   ~Wheel();
+   WheelBase(const char* name, unsigned id, bool evenPositionsOnly, const char* description);
+   ~WheelBase();
   
    // MMDevice API
    // ------------
@@ -127,6 +128,12 @@ private:
    bool open_;  
    Wheel& operator=(Wheel& /*rhs*/) {assert(false); return *this;}
 };
+
+class Wheel: public WheelBase<Wheel>{
+	Wheel(const char* name, unsigned id):
+		WheelBase(name, id, false,  "Sutter Lambda Filter Wheel")
+	{};
+}
 
 class Shutter : public CShutterBase<Shutter>
 {
@@ -168,7 +175,7 @@ private:
    Shutter& operator=(Shutter& /*rhs*/) {assert(false); return *this;}
 };
 
-class LambdaVF5: public Wheel
+class LambdaVF5: public WheelBase<LambdaVF5>
 {
 public:
 	LambdaVF5(const char* name);
