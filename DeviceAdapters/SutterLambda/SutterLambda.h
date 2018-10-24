@@ -66,6 +66,7 @@ public:
 	//Action API
 	int OnPort(MM::PropertyBase* pProp, MM::ActionType eAct);
 	int OnAnswerTimeout(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int OnMotorsEnabled(MM::PropertyBase* pProp, MM::ActionType eAct);
 
 	//From old sutterutil class
 	int GoOnline();
@@ -177,7 +178,6 @@ public:
 	int onWhiteLightMode(MM::PropertyBase* pProp, MM::ActionType eAct);// (bool enabled);
 	int onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct);//(unsigned int wavelength);
 	int onWheelTilt(MM::PropertyBase* pProp, MM::ActionType eAct);
-	int onMotorsEnabled(MM::PropertyBase* pProp, MM::ActionType eAct);
 private:
 	long wv_;
 	bool whiteLightMode_;

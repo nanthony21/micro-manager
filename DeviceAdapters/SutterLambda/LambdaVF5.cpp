@@ -71,16 +71,3 @@ int LambdaVF5::onWheelTilt(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	return DEVICE_OK;
 }
 
-int LambdaVF5::onMotorsEnabled(MM::PropertyBase* pProp, MM::ActionType eAct) {
-	if (eAct == MM::AfterSet)
-	{
-		long mEnabled;
-		pProp->Get(mEnabled);
-		std::vector<unsigned char> cmd;
-		std::vector<unsigned char> response;
-		cmd.push_back(0xCE | (unsigned char) mEnabled);
-		hub_->SetCommand(cmd, cmd, response, false);
-		mEnabled_ = (bool) mEnabled;
-	}
-	return DEVICE_OK;
-}

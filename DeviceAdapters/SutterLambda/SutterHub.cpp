@@ -20,6 +20,10 @@ SutterHub::SutterHub(const char* name): busy_(false), initialized_(false), name_
 	pAct = new CPropertyAction(this, &SutterHub::OnAnswerTimeout);
 	CreateProperty("Timeout(ms)", "500", MM::Integer, false, pAct, true);
 
+	//Motors Enabled
+	pAct = new CPropertyAction(this, &SutterHub::OnMotorsEnabled);
+	CreateProperty("Motors Enabled", "1", MM::Integer, false, pAct, false);
+
 	// Name
 	CreateProperty(MM::g_Keyword_Name, name_.c_str(), MM::String, true);
 
@@ -36,7 +40,7 @@ int SutterHub::Initialize() {
 	int ret = CreateProperty(MM::g_Keyword_Name, g_HubName, MM::String, true);
 	if (ret != DEVICE_OK) { return ret; }
 
-	MMThreadGuard myLock(GetLock());	//We are creating an object name MyLock. the constructor locks access to lock_. when myLock is destroyed it is released.
+	MMThreadGuard myLock(GetLock());	//We are creating an object named MyLock. the constructor locks access to lock_. when myLock is destroyed it is released.
 	PurgeComPort(port_.c_str());
 	ret = GoOnline(); //Check that we're connected
 	if (ret != DEVICE_OK) { return ret; }
@@ -96,7 +100,7 @@ MM::DeviceDetectionStatus SutterHub::DetectDevice() {
 		}
 		catch (...)
 		{
-			LogMessage("Exception in DetectDevice");
+			LogMessage("Exception in SutterHub DetectDevice");
 		}
 		return result;
 	}
@@ -257,6 +261,19 @@ int SutterHub::GetStatus(unsigned char* status) {
 	} while (!responseReceived && (GetCurrentMMTime() - startTime) < (timeout_) && j < 22);
 	if (!responseReceived)
 		return ERR_NO_ANSWER;
+int SutterHub::OnMotorsEnabled(MM::PropertyBase* pProp, MM::ActionType eAct) {
+	if (eAct == MM::AfterSet) {
+		long mEnabled;
+		pProp->Get(mEnabled);
+		std::vector<unsigned char> cmd;
+		std::vector<unsigned char> response;
+		cmd.push_back(0xCE | (unsigned char) mEnabled);
+		SetCommand(cmd, cmd, response, false);
+		mEnabled_ = (bool) mEnabled;
+	}
+	if (eAct == MM::BeforeGet){
+		pProp->Set((long) mEnabled_);
+	}
 	return DEVICE_OK;
 }
 
