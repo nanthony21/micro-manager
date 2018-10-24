@@ -153,24 +153,10 @@ int SutterHub::OnAnswerTimeout(MM::PropertyBase* pProp, MM::ActionType eAct) {
 
 int SutterHub::GoOnline() {
 	// Transfer to On Line
-	unsigned char setSerial = (unsigned char)238;
-	int ret = WriteToComPort(port_.c_str(), &setSerial, 1);
-	if (DEVICE_OK != ret)
-		return ret;
-
-	unsigned char answer = 0;
-	bool responseReceived = false;
-	int unsigned long read;
-	MM::MMTime startTime = GetCurrentMMTime();
-	do {
-		if (DEVICE_OK != ReadFromComPort(port_.c_str(), &answer, 1, read))
-			return false;
-		if (answer == 238)
-			responseReceived = true;
-	} while (!responseReceived && (GetCurrentMMTime() - startTime) < (timeout_));
-	if (!responseReceived)
-		return ERR_NO_ANSWER;
-	return DEVICE_OK;
+	std::vector<unsigned char> cmd;
+	cmd.push_back(238); //0xEE
+	int ret = SetCommand(cmd,cmd);
+	if (DEVICE_OK != ret) {return ret;}
 }
 
 int SutterHub::GetControllerType(std::string& type, std::string& id) {
@@ -179,7 +165,7 @@ int SutterHub::GetControllerType(std::string& type, std::string& id) {
 	std::vector<unsigned char> ans;
 	std::vector<unsigned char> emptyv;
 	std::vector<unsigned char> command;
-	command.push_back((unsigned char)253);
+	command.push_back((unsigned char)253); //0xFD
 
 	ret = SetCommand(command, emptyv, ans, true, false);
 	if (ret != DEVICE_OK)
@@ -219,48 +205,14 @@ int SutterHub::GetControllerType(std::string& type, std::string& id) {
 * status should be allocated by the caller and at least be 21 bytes long
 * status will be the answer returned by the controller, stripped from the first byte (which echos the command)
 */
-int SutterHub::GetStatus(unsigned char* status) {
-	PurgeComPort(port_.c_str());
-	unsigned char msg[1];
-	msg[0] = 204;	//0xCC
+int SutterHub::GetStatus(std::vector<unsigned char>& status) {
+	std::vector<unsigned char> msg;
+	msg.push_back(204);	//0xCC
 	// send command
-	int ret = WriteToComPort(port_.c_str(), msg, 1);
-	if (ret != DEVICE_OK)
-		return ret;
+	int ret = SetCommand(msg,msg,status);
+	return ret;
+}
 
-	unsigned char ans = 0;
-	bool responseReceived = false;
-	unsigned long read;
-	MM::MMTime startTime = GetCurrentMMTime();
-	do {
-		if (DEVICE_OK != ReadFromComPort(port_.c_str(), &ans, 1, read))
-			return false;
-		/*if (read > 0)
-		printf("Read char: %x", ans);*/
-		if (ans == 204)
-			responseReceived = true;
-		CDeviceUtils::SleepMs(2);
-	} while (!responseReceived && (GetCurrentMMTime() - startTime) < (timeout_));
-	if (!responseReceived)
-		return ERR_NO_ANSWER;
-
-	responseReceived = false;
-	int j = 0;
-	startTime = GetCurrentMMTime();
-	do {
-		if (DEVICE_OK != ReadFromComPort(port_.c_str(), &ans, 1, read))
-			return false;
-		if (read > 0) {
-			/* printf("Read char: %x", ans);*/
-			status[j] = ans;
-			j++;
-			if (ans == '\r')
-				responseReceived = true;
-		}
-		CDeviceUtils::SleepMs(2);
-	} while (!responseReceived && (GetCurrentMMTime() - startTime) < (timeout_) && j < 22);
-	if (!responseReceived)
-		return ERR_NO_ANSWER;
 int SutterHub::OnMotorsEnabled(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	if (eAct == MM::AfterSet) {
 		long mEnabled;
@@ -276,7 +228,6 @@ int SutterHub::OnMotorsEnabled(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	}
 	return DEVICE_OK;
 }
-
 
 // lock the port for access,
 // write 1, 2, or 3 char. command to equipment
