@@ -8,6 +8,46 @@ LambdaVF5::LambdaVF5(const char* name):
 	uSteps_(100)
 {};
 
+int LambdaVF5::Initialize(){
+	int ret = Wheel.Initialize();
+	if (ret != DEVICE_OK) { return ret;}
+
+	CPropertyAction* pAct = new CPropertyAction(this, &LambdaVF5::onWhiteLightMode);
+	ret = CreateProperty("White Light Mode", "0", MM::Integer, false, pAct);
+	if (ret != DEVICE_OK) { return ret; }
+
+	CPropertyAction* pAct = new CPropertyAction(this, &LambdaVF5::onWavelength);
+	ret = CreateProperty("Wavelength", "500", MM::Integer, false, pAct);
+	if (ret != DEVICE_OK) { return ret; }
+	
+	CPropertyAction* pAct = new CPropertyAction(this, &LambdaVF5::onWheelTilt);
+	ret = CreateProperty("Wheel Tilt (uSteps)", "100", MM::Integer, false, pAct);
+	if (ret != DEVICE_OK) { return ret; }
+
+	CPropertyAction* pAct = new CPropertyAction(this, &LambdaVF5::onSequenceTriggerChannel);
+	ret = CreateProperty("Sequencing TTL Channel", "0", MM::Integer, false, pAct);
+	if (ret != DEVICE_OK) { return ret; }
+}
+
+int LambdaVF5::onSequenceTriggerChannel(MM::PropertyBase* pProp, MM::ActionType eAct) {
+	if (eAct == MM::BeforeGet){
+		pProp->Set((long)sequenceTriggerTTL_);
+	}
+	else if (eAct == MM::AfterSet) {
+		long newChannel;
+		pProp->Get(newChannel);
+		if ((newChannel < 0) || (newChannel > 2)){
+			LogMessage("Lambda VF5: Invalid TTL channel was specified.");
+			return DEVICE_ERR;
+		}
+		else{
+			sequenceTriggerTTL_ = newChannel;
+			return DEVICE_OK;
+		}
+	}
+	return DEVICE_OK;
+}
+
 int LambdaVF5::onWhiteLightMode(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	if (eAct == MM::BeforeGet)
 	{
@@ -28,8 +68,7 @@ int LambdaVF5::onWhiteLightMode(MM::PropertyBase* pProp, MM::ActionType eAct) {
 }
 
 int LambdaVF5::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) {
-	if (eAct == MM::BeforeGet)
-	{
+	if (eAct == MM::BeforeGet) {
 		std::vector<unsigned char> cmd;
 		std::vector<unsigned char> response;
 		cmd.push_back(0xDB);
@@ -40,9 +79,9 @@ int LambdaVF5::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		long wv = ((response.at(1) << 8) | (response.at(2)));
 		pProp->Set(wv);
 		wv_ = wv;
+		return DEVICE_OK;
 	}
-	else if (eAct == MM::AfterSet)
-	{
+	else if (eAct == MM::AfterSet) {
 		long wv;
 		pProp->Get(wv);
 		if ((wv > 900) || (wv < 338)) {
@@ -54,9 +93,34 @@ int LambdaVF5::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		cmd.push_back(0x01);
 		cmd.push_back((unsigned char) ((wv << 8) | (speed_ << 6)));
 		cmd.push_back((unsigned char)wv);
-
-		hub_->SetCommand(cmd);
 		wv_ = wv;
+		return hub_->SetCommand(cmd);
+		
+	}
+	else if (eAct == MM::IsSequenceable) {
+		pProp->SetSequenceable(100);
+		return DEVICE_OK;
+	}
+	else if (eAct == MM::StartSequence) {
+		return configureTTL(true, true, false, sequenceTriggerTTL_);
+	}
+	else if (eAct == MM::StopSequence) {
+		return configureTTL(true,false,false, sequenceTriggerTTL_);
+	}
+	else if (eAct == MM::AfterLoadSequence) {
+		std::vector<unsigned char> cmd;
+		cmd.push_back(0xFA);
+		cmd.push_back(0xF2);
+		cmd.push_back(sequenceTriggerTTL_);
+		std::vector<std::string> seq = pProp->GetSequence();
+		for (int i=0; i<seq.size(); i++){
+			int wv = std::stoi(seq.at(i));
+			cmd.push_back((unsigned char) (wv << 8));
+			cmd.push_back((unsigned char) wv);
+		}
+		cmd.push_back(0);	//Terminate the sequence loading command.
+		cmd.push_back(0);
+		return hub_->SetCommand(cmd);
 	}
 	return DEVICE_OK;
 }
@@ -82,6 +146,7 @@ int LambdaVF5::onWheelTilt(MM::PropertyBase* pProp, MM::ActionType eAct) {
 int LambdaVF5::configureTTL( bool risingEdge, bool enabled, bool output, unsigned int channel){
 	if (channel > 2) {
 		LogMessage("Lambda VF5: Invalid TTL Channel specified", false);
+		return DEVICE_ERR;
 	}
 	std::vector<unsigned char> cmd;
 	cmd.push_back(0xFA);
@@ -93,5 +158,5 @@ int LambdaVF5::configureTTL( bool risingEdge, bool enabled, bool output, unsigne
 	}
 	cmd.push_back(action);
 	cmd.push_back(channel);
-	hub_->SetCommand(cmd);
+	return hub_->SetCommand(cmd);
 }

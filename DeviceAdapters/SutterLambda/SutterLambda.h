@@ -173,15 +173,19 @@ class LambdaVF5: public Wheel
 public:
 	LambdaVF5(const char* name);
 
+	int Initialize();
+
 	//VF-5 special commands
 	int onWhiteLightMode(MM::PropertyBase* pProp, MM::ActionType eAct);// (bool enabled);
 	int onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct);//(unsigned int wavelength);
 	int onWheelTilt(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int onSequenceTriggerChannel(MM::PropertyBase* pProp, MM::ActionType eAct); //The channel number for the TTL we want to use for sequence triggering. 0, 1, or 2
 private:
-	configureTTL( bool risingEdge, bool enabled, bool output, unsigned int channel);
+	int configureTTL( bool risingEdge, bool enabled, bool output, unsigned int channel);
 	long wv_;
 	bool whiteLightMode_;
 	long uSteps_;
 	bool mEnabled_;
+	int sequenceTriggerTTL_;
 };
 #endif //_SUTTER_LAMBDA_H_
