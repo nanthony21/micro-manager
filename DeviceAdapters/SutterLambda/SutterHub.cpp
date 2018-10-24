@@ -153,8 +153,7 @@ int SutterHub::GoOnline() {
 	// Transfer to On Line
 	std::vector<unsigned char> cmd;
 	cmd.push_back(238); //0xEE
-	int ret = SetCommand(cmd);
-	if (DEVICE_OK != ret) {return ret;}
+	return SetCommand(cmd);
 }
 
 int SutterHub::GetControllerType(std::string& type, std::string& id) {
@@ -281,7 +280,7 @@ int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::v
 			// in some cases it might be normal for the controller to not respond,
 			// for example, whenever the command is the same as the previous command or when
 			// go on-line sent to a controller already on-line
-			LogMessage((std::string("command echo timeout after ") + bufff.str()).c_str(), !responseRequired);
+			LogMessage((std::string("command echo timeout after ") + bufff.str()).c_str(), false);
 			return DEVICE_ERR;
 		}
 	} // the command was echoed  entirely...
@@ -324,9 +323,9 @@ int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::v
 
 int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::vector<unsigned char> altEcho){
 	std::vector<unsigned char> response;
-	SetCommand(command, altEcho, response, false);
+	return SetCommand(command, altEcho, response);
 }
 
 int SutterHub::SetCommand(const std::vector<unsigned char> command) {
-	SetCommand(command,command);
+	return SetCommand(command,command);
 }

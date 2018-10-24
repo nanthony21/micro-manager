@@ -16,15 +16,15 @@ int LambdaVF5::Initialize(){
 	ret = CreateProperty("White Light Mode", "0", MM::Integer, false, pAct);
 	if (ret != DEVICE_OK) { return ret; }
 
-	CPropertyAction* pAct = new CPropertyAction(this, &LambdaVF5::onWavelength);
+	pAct = new CPropertyAction(this, &LambdaVF5::onWavelength);
 	ret = CreateProperty("Wavelength", "500", MM::Integer, false, pAct);
 	if (ret != DEVICE_OK) { return ret; }
 	
-	CPropertyAction* pAct = new CPropertyAction(this, &LambdaVF5::onWheelTilt);
+	pAct = new CPropertyAction(this, &LambdaVF5::onWheelTilt);
 	ret = CreateProperty("Wheel Tilt (uSteps)", "100", MM::Integer, false, pAct);
 	if (ret != DEVICE_OK) { return ret; }
 
-	CPropertyAction* pAct = new CPropertyAction(this, &LambdaVF5::onSequenceTriggerChannel);
+	pAct = new CPropertyAction(this, &LambdaVF5::onSequenceTriggerChannel);
 	ret = CreateProperty("Sequencing TTL Channel", "0", MM::Integer, false, pAct);
 	if (ret != DEVICE_OK) { return ret; }
 }

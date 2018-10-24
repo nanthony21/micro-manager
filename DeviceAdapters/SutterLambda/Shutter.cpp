@@ -65,13 +65,6 @@ int Shutter::Initialize()
 	AddAllowedValue(MM::g_Keyword_State, "0");
 	AddAllowedValue(MM::g_Keyword_State, "1");
 
-
-	int j = 0;
-	while (hub_->GoOnline() != DEVICE_OK && j < 4)
-		j++;
-	if (j >= 4)
-		return ERR_NO_ANSWER;
-
 	ret = hub_->GetControllerType(controllerType_, controllerId_);
 	if (ret != DEVICE_OK)
 		return ret;
@@ -100,7 +93,7 @@ int Shutter::Initialize()
 		SetPropertyLimits("NDSetting", 1, 144);
 	}
 
-	unsigned char status[22];
+	std::vector<unsigned char> status;
 	ret = hub_->GetStatus(status);
 	// note: some controllers will not know this command and return an error, 
 	// so do not balk if we do not get an answer

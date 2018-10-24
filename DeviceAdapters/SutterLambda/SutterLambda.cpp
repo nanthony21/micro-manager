@@ -101,7 +101,7 @@ MODULE_API MM::Device* CreateDevice(const char* deviceName)
    else if (strcmp(deviceName, g_LambdaVF5Name) == 0)
    {
 	   //Create Lambda VF-5 tunable filter
-	   return new LambdaVF5(g_LambdaVF5Name,0);
+	   return new LambdaVF5(g_LambdaVF5Name);
    }
 
    return 0;
