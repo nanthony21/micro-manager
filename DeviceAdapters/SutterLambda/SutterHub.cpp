@@ -368,3 +368,7 @@ int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::v
 	std::vector<unsigned char> response;
 	SetCommand(command, altEcho, response, false);
 }
+
+int SutterHub::SetCommand(const std::vector<unsigned char> command) {
+	SetCommand(command,command);
+}
