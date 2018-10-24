@@ -126,7 +126,6 @@ int SutterHub::DetectInstalledDevices() {
 }
 
 bool SutterHub::Busy() {
-	MMThreadGuard myLock(GetLock());
 	return busy_;
 }
 
