@@ -4,14 +4,15 @@
 // Wheel implementation
 // ~~~~~~~~~~~~~~~~~~~~
 
-Wheel::Wheel(const char* name, unsigned id, bool evenPositionsOnly) :
+Wheel::Wheel(const char* name, unsigned id, bool evenPositionsOnly, const char* description) :
 	initialized_(false),
 	numPos_(10),
 	id_(id),
 	name_(name),
 	curPos_(0),
 	speed_(3),
-	evenPositionsOnly_(evenPositionsOnly)
+	evenPositionsOnly_(evenPositionsOnly),
+	description_(description)
 {
 	assert(id == 0 || id == 1 || id == 2);
 	assert(strlen(name) < (unsigned int)MM::MaxStrLength);
@@ -31,7 +32,7 @@ Wheel::Wheel(const char* name, unsigned id, bool evenPositionsOnly) :
 	CreateProperty(MM::g_Keyword_Name, name_.c_str(), MM::String, true);
 
 	// Description
-	CreateProperty(MM::g_Keyword_Description, "Sutter Lambda filter wheel adapter", MM::String, true);
+	CreateProperty(MM::g_Keyword_Description, description_, MM::String, true);
 
 	UpdateStatus();
 }
@@ -51,15 +52,11 @@ void Wheel::GetName(char* name) const
 * Kludgey implementation of the status check
 *
 */
-bool Wheel::Busy()
-{
+bool Wheel::Busy() {
 	return hub_->Busy();
 }
 
-int Wheel::Initialize()
-{
-
-
+int Wheel::Initialize() {
 	hub_ = dynamic_cast<SutterHub*>(GetParentHub());
 	// set property list
 	// -----------------

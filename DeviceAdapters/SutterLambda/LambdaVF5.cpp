@@ -1,7 +1,12 @@
 #include "SutterLambda.h"
 
-LambdaVF5::LambdaVF5(const char* name): Wheel(name, 0), whiteLightMode_(false), mEnabled_(true), wv_(500), uSteps_(100){
-};
+LambdaVF5::LambdaVF5(const char* name):
+	Wheel(name, 0, "Lambda VF-5 Tunable Filter"),
+	whiteLightMode_(false), 
+	mEnabled_(true), 
+	wv_(500),
+	uSteps_(100)
+{};
 
 int LambdaVF5::onWhiteLightMode(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	if (eAct == MM::BeforeGet)

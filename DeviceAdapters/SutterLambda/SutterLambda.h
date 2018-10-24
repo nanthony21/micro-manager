@@ -92,7 +92,7 @@ private:
 class Wheel : public CStateDeviceBase<Wheel>
 {
 public:
-   Wheel(const char* name, unsigned id, bool evenPositionsOnly = false);
+   Wheel(const char* name, unsigned id, bool evenPositionsOnly = false, const char* description = "Sutter Lambda Filter Wheel");
    ~Wheel();
   
    // MMDevice API
@@ -120,6 +120,7 @@ private:
    bool initialized_;
    unsigned numPos_;
    bool evenPositionsOnly_;
+   const char* description_;
    const unsigned id_;
    std::string name_;
    unsigned curPos_;
