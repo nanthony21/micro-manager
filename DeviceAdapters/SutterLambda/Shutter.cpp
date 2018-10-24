@@ -218,7 +218,7 @@ bool Shutter::SetShutterPosition(bool state)
 	}
 
 	std::vector<unsigned char> _;
-	int ret = hub_->SetCommand(command, alternateEcho, _, false);
+	int ret = hub_->SetCommand(command, alternateEcho);
 
 	// Start timer for Busy flag
 	changedTime_ = GetCurrentMMTime();
@@ -255,7 +255,7 @@ bool Shutter::SetShutterMode(const char* mode)
 		command.push_back((unsigned char)(id_ + 1));
 
 	std::vector<unsigned char> _;
-	int ret = hub_->SetCommand(command, alternateEcho, _, false);
+	int ret = hub_->SetCommand(command, alternateEcho);
 	return (DEVICE_OK == ret) ? true : false;
 }
 
@@ -276,7 +276,7 @@ bool Shutter::SetND(unsigned int nd)
 		command.push_back((unsigned char)(nd));
 	}
 	std::vector<unsigned char> _;
-	int ret = hub_->SetCommand(command, alternateEcho, _, false);
+	int ret = hub_->SetCommand(command, alternateEcho);
 	return (DEVICE_OK == ret) ? true : false;
 
 }

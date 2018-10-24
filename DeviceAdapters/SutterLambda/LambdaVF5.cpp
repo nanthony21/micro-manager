@@ -13,7 +13,7 @@ int LambdaVF5::onWhiteLightMode(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		std::vector<unsigned char> response ;
 		unsigned char _ = whiteLightMode ? 0xAA : 0xAC;
 		cmd.push_back(_);
-		hub_->SetCommand(cmd, cmd, response, false);
+		hub_->SetCommand(cmd);
 		whiteLightMode_ = (bool) whiteLightMode;
 	}
 	return DEVICE_OK;
@@ -47,7 +47,7 @@ int LambdaVF5::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		cmd.push_back((unsigned char) ((wv << 8) | (speed_ << 6)));
 		cmd.push_back((unsigned char)wv);
 
-		hub_->SetCommand(cmd, cmd, response, false);
+		hub_->SetCommand(cmd);
 		wv_ = wv;
 	}
 	return DEVICE_OK;
@@ -65,9 +65,11 @@ int LambdaVF5::onWheelTilt(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		std::vector<unsigned char> response;
 		cmd.push_back(0xDE);
 		cmd.push_back((unsigned char) uSteps);
-		hub_->SetCommand(cmd, cmd, response, false);
+		hub_->SetCommand(cmd);
 		uSteps_ = uSteps;
 	}
 	return DEVICE_OK;
 }
+
+int LambdaVF5::TTL
 

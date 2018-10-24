@@ -153,7 +153,7 @@ int SutterHub::GoOnline() {
 	// Transfer to On Line
 	std::vector<unsigned char> cmd;
 	cmd.push_back(238); //0xEE
-	int ret = SetCommand(cmd,cmd);
+	int ret = SetCommand(cmd);
 	if (DEVICE_OK != ret) {return ret;}
 }
 
@@ -165,12 +165,10 @@ int SutterHub::GetControllerType(std::string& type, std::string& id) {
 	std::vector<unsigned char> command;
 	command.push_back((unsigned char)253); //0xFD
 
-	ret = SetCommand(command, emptyv, ans, true, false);
-	if (ret != DEVICE_OK)
-		return ret;
+	ret = SetCommand(command, emptyv, ans);
+	if (ret != DEVICE_OK) {return ret;}
 
-	std::string ans2;
-	ret = GetSerialAnswer(port_.c_str(), "\r", ans2);
+	std::string ans2(ans.begin(), ans.end());
 
 	if (ret != DEVICE_OK) {
 		std::ostringstream errOss;
@@ -218,7 +216,7 @@ int SutterHub::OnMotorsEnabled(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		std::vector<unsigned char> cmd;
 		std::vector<unsigned char> response;
 		cmd.push_back(0xCE | (unsigned char) mEnabled);
-		SetCommand(cmd, cmd, response, false);
+		SetCommand(cmd);
 		mEnabled_ = (bool) mEnabled;
 	}
 	if (eAct == MM::BeforeGet){
@@ -231,7 +229,7 @@ int SutterHub::OnMotorsEnabled(MM::PropertyBase* pProp, MM::ActionType eAct) {
 // write 1, 2, or 3 char. command to equipment
 // ensure the command completed by waiting for \r
 // pass response back in argument
-int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::vector<unsigned char> alternateEcho, std::vector<unsigned char>& response, const bool responseRequired, const bool CRExpected) {
+int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::vector<unsigned char> alternateEcho, std::vector<unsigned char>& response) {
 	bool responseReceived = false;
 	MMThreadGuard myLock(GetLock());
 
@@ -242,7 +240,6 @@ int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::v
 	if (ret != DEVICE_OK) {return ret;}
 
 	// now ensure that command is echoed from controller
-	bool expectCR = CRExpected;
 	std::vector<unsigned char>::const_iterator allowedResponse = alternateEcho.begin();
 	for (std::vector<unsigned char>::const_iterator irep = command.begin(); irep != command.end(); ++irep) {
 		// block/wait for acknowledge, or until we time out;
@@ -278,7 +275,6 @@ int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::v
 
 		MM::MMTime delta = GetCurrentMMTime() - responseStartTime;
 		if (timeout_ < delta.getUsec()) {
-			expectCR = false;
 			std::ostringstream bufff;
 			bufff << delta.getUsec() << " microsec";
 
