@@ -180,8 +180,7 @@ bool Wheel::SetWheelPosition(unsigned pos)
 		break;
 	}
 
-	std::vector<unsigned char> tmp;
-	int ret2 = hub_->SetCommand(command, alternateEcho, tmp, true, true);
+	int ret2 = hub_->SetCommand(command, alternateEcho);
 	return (DEVICE_OK == ret2) ? true : false;
 
 }
