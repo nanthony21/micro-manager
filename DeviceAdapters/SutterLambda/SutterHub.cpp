@@ -271,18 +271,6 @@ int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::v
 			LogMessage("SutterHub Serial timed out", false);
 			return DEVICE_ERR;
 		}
-
-		MM::MMTime delta = GetCurrentMMTime() - responseStartTime;
-		if (timeout_ < delta.getUsec()) {
-			std::ostringstream bufff;
-			bufff << delta.getUsec() << " microsec";
-
-			// in some cases it might be normal for the controller to not respond,
-			// for example, whenever the command is the same as the previous command or when
-			// go on-line sent to a controller already on-line
-			LogMessage((std::string("command echo timeout after ") + bufff.str()).c_str(), false);
-			return DEVICE_ERR;
-		}
 	} // the command was echoed  entirely...
 	MM::MMTime startTime = GetCurrentMMTime();
 	// now look for a 13 - this indicates that the command has really completed!

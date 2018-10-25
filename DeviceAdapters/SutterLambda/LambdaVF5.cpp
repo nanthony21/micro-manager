@@ -27,6 +27,7 @@ int LambdaVF5::Initialize(){
 	pAct = new CPropertyAction(this, &LambdaVF5::onSequenceTriggerChannel);
 	ret = CreateProperty("Sequencing TTL Channel", "0", MM::Integer, false, pAct);
 	if (ret != DEVICE_OK) { return ret; }
+	return DEVICE_OK;
 }
 
 int LambdaVF5::onSequenceTriggerChannel(MM::PropertyBase* pProp, MM::ActionType eAct) {
@@ -143,7 +144,7 @@ int LambdaVF5::onWheelTilt(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	return DEVICE_OK;
 }
 
-int LambdaVF5::configureTTL( bool risingEdge, bool enabled, bool output, unsigned int channel){
+int LambdaVF5::configureTTL( bool risingEdge, bool enabled, bool output, unsigned char channel){
 	if (channel > 2) {
 		LogMessage("Lambda VF5: Invalid TTL Channel specified", false);
 		return DEVICE_ERR;
