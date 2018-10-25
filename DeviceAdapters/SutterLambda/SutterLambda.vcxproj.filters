@@ -21,9 +21,6 @@
     <ClCompile Include="Shutter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Wheel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="SutterHub.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

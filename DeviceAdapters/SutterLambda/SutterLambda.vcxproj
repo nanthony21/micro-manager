@@ -165,7 +165,6 @@
     <ClCompile Include="LambdaVF5.cpp" />
     <ClCompile Include="SutterHub.cpp" />
     <ClCompile Include="SutterLambda.cpp" />
-    <ClCompile Include="Wheel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SutterLambda.h" />
