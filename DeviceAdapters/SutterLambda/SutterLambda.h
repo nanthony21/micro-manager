@@ -28,16 +28,13 @@
 
 #include "../../MMDevice/MMDevice.h"
 #include "../../MMDevice/DeviceBase.h"
+#include "WheelBase.h"
 #include <string>
 #include <map>
 
 //////////////////////////////////////////////////////////////////////////////
 // Error codes
 //
-#define ERR_UNKNOWN_POSITION         10002
-#define ERR_INVALID_SPEED            10003
-#define ERR_PORT_CHANGE_FORBIDDEN    10004
-#define ERR_SET_POSITION_FAILED      10005
 #define ERR_UNKNOWN_SHUTTER_MODE     10006
 #define ERR_UNKNOWN_SHUTTER_ND       10007
 #define ERR_NO_ANSWER                10008
@@ -89,51 +86,14 @@ private:
 
 };
 
-template <class U>
-class WheelBase : public CStateDeviceBase<U>
-{
-public:
-   WheelBase(const char* name, unsigned id, bool evenPositionsOnly, const char* description);
-   ~WheelBase();
-  
-   // MMDevice API
-   // ------------
-   int Initialize();
-   int Shutdown();
-  
-   void GetName(char* pszName) const;
-   bool Busy();
-   unsigned long GetNumberOfPositions()const {return numPos_;}
 
-   // action interface
-   // ----------------
-   int OnState(MM::PropertyBase* pProp, MM::ActionType eAct);
-   int OnSpeed(MM::PropertyBase* pProp, MM::ActionType eAct);
-   int OnDelay(MM::PropertyBase* pProp, MM::ActionType eAct);
-   int OnBusy(MM::PropertyBase* pProp, MM::ActionType eAct);
-
-
-protected:
-	unsigned speed_;
-	SutterHub* hub_;
-private:
-   bool SetWheelPosition(unsigned pos);
-   bool initialized_;
-   unsigned numPos_;
-   bool evenPositionsOnly_;
-   const char* description_;
-   const unsigned id_;
-   std::string name_;
-   unsigned curPos_;
-   bool open_;  
-   Wheel& operator=(Wheel& /*rhs*/) {assert(false); return *this;}
-};
 
 class Wheel: public WheelBase<Wheel>{
+public:
 	Wheel(const char* name, unsigned id):
 		WheelBase(name, id, false,  "Sutter Lambda Filter Wheel")
 	{};
-}
+};
 
 class Shutter : public CShutterBase<Shutter>
 {

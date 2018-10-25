@@ -35,5 +35,8 @@
     <ClInclude Include="SutterLambda.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="WheelBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
