@@ -202,6 +202,17 @@ MM::DeviceDetectionStatus VarispecLCTF::DetectDevice(void)
 
 int VarispecLCTF::Initialize()
 {
+	SetErrorText(97, "The VarispecLCTF reports that it is not exercised.");
+	SetErrorText(98, "The VarispecLCTF reports that it is not initialized.");
+
+	//Configure the com port.
+	GetCoreCallback()->SetSerialProperties(port_.c_str(),
+		"600.0",
+		baud_.c_str(),
+		"0.0",
+		"Off",
+		"None",
+		"1");
 
 	// empty the Rx serial buffer before sending command
 	int ret = PurgeComPort(port_.c_str());
@@ -223,6 +234,30 @@ int VarispecLCTF::Initialize()
 	ret = sendCmd("B0",getFromVarispecLCTF_);
 	if (ret != DEVICE_OK)
 		return ret;
+
+	while (true){
+		ret = getStatus();
+		if (ret == 98) { //Needs initialization
+			LogMessage("VarispecLCTF: Running initialization");
+			sendCmd("I1");
+			while (reportsBusy()){
+				CDeviceUtils::SleepMs(100);
+			}
+		}
+		else if (ret == 97) { //needs exercising
+			LogMessage("VarispecLCTF: Running exercise");
+			sendCmd("E1");
+			while (reportsBusy()){
+				CDeviceUtils::SleepMs(100);
+			}
+		}
+		else if (ret != DEVICE_OK) {
+			return ret;
+		}
+		else { //Device is ok
+			break;
+		}
+	}
 
 	// Wavelength
 	std::string ans;
@@ -308,7 +343,7 @@ int VarispecLCTF::OnBaud(MM::PropertyBase* pProp, MM::ActionType eAct)
 	 if (eAct == MM::BeforeGet)
 	 {
 		 int ret = sendCmd("V?", serialnum_);
-		 if (ret != DEVICE_OK)return DEVICE_SERIAL_COMMAND_FAILED;
+		 if (ret != DEVICE_OK) { return ret; }
 		 pProp->Set(serialnum_.c_str());
 	 }
 	 return DEVICE_OK;
@@ -321,13 +356,15 @@ int VarispecLCTF::OnBaud(MM::PropertyBase* pProp, MM::ActionType eAct)
 	 case (MM::BeforeGet):{
 		 std::string ans;
 		 ret = sendCmd("W?", ans);
-		 if (ret != DEVICE_OK)return DEVICE_SERIAL_COMMAND_FAILED;
+		 if (ret != DEVICE_OK) { return ret; }
 		 vector<double> numbers = getNumbersFromMessage(ans);
 		 if (numbers.size() == 0) { //The device must have returned "W*" meaning that an invalid wavelength was sent
 			 SetErrorText(99, "The Varispec device was commanded to tune to an out of range wavelength.");
 			 return 99;
 		 }
 		 pProp->Set(numbers[0]);
+		 ret = getStatus();
+		 if (ret != DEVICE_OK) { return ret; }
 		 break;
 	 }
 	 case (MM::AfterSet): {
@@ -337,11 +374,12 @@ int VarispecLCTF::OnBaud(MM::PropertyBase* pProp, MM::ActionType eAct)
 		 pProp->Get(wavelength);
 		 // write wavelength out to device....
 		 ostringstream cmd;
+		 cmd.setf(ios::fixed,ios::floatfield);
 		 cmd.precision(3);
 		 cmd << "W " << wavelength;
 		 ret = sendCmd(cmd.str());
 		 if (ret != DEVICE_OK)
-			 return DEVICE_SERIAL_COMMAND_FAILED;
+			 return ret;
 		 changedTime_ = GetCurrentMMTime();
 		 wavelength_ = wavelength;
 		 break;
@@ -386,7 +424,10 @@ int VarispecLCTF::OnBaud(MM::PropertyBase* pProp, MM::ActionType eAct)
 	 if (eAct == MM::AfterSet) {
 		 // read value from property
 		 pProp->Get(sendToVarispecLCTF_);
-		 return sendCmd(sendToVarispecLCTF_, getFromVarispecLCTF_);
+		 int ret = sendCmd(sendToVarispecLCTF_, getFromVarispecLCTF_);
+		 if (ret != DEVICE_OK) { return ret; }
+		 ret = getStatus();
+		 if (ret != DEVICE_OK) { return ret; }
 	 }
 	 return DEVICE_OK;
  }
@@ -437,7 +478,7 @@ bool VarispecLCTF::Busy()
 int VarispecLCTF::sendCmd(std::string cmd, std::string& out) {
 	int ret = sendCmd(cmd);
 	if (ret != DEVICE_OK) {
-		return DEVICE_SERIAL_COMMAND_FAILED;
+		return ret;
 	}
 	GetSerialAnswer(port_.c_str(), "\r", out); //Try returning any extra response from the device.
 	return DEVICE_OK;
@@ -457,3 +498,68 @@ int VarispecLCTF::sendCmd(std::string cmd) {
 	return DEVICE_OK;
 }
 
+int VarispecLCTF::getStatus() {
+	std::string statuscmd = "@";
+	int ret = WriteToComPort(port_.c_str(), (const unsigned char*) statuscmd.c_str(), 1);
+	unsigned char ans[2];
+	unsigned char tempAns[1];
+	unsigned long numRead = 0;
+	unsigned long numReadThisTime;
+	while (numRead < 2) {
+		ret = ReadFromComPort(port_.c_str(), tempAns, 1, numReadThisTime); //This function returns even if nothing is available. Causes problems.
+		if (ret != DEVICE_OK) { return ret; }
+		if (numReadThisTime > 0) {
+			ans[numRead] = tempAns[0];
+			numRead += numReadThisTime;
+		}
+	}
+	if (ans[0] != '@') {
+		SetErrorText(99, "Varispec LCTF: Did not receive '@' in response to a request for status");
+		return 99;
+	}
+	if (ans[1] & 0x20) { //An error has occurred.
+		std::string answer;
+		ret = sendCmd("R?", answer);
+		if (ret != DEVICE_OK) { return ret; }
+		ret = sendCmd("R1"); //clear the error
+		if (ret != DEVICE_OK) { return ret; }
+		std::string err =  "The VarispecLCTF reports error number: " + answer;
+		SetErrorText(99, err.c_str());
+		return 99;
+	}
+	if (!(ans[1] & 0x02)) {
+		return 97;
+	}
+	if (!(ans[1] & 0x01)) {
+		return 98;
+	}
+	return DEVICE_OK;
+}
+
+bool VarispecLCTF::reportsBusy() {
+	std::string statuscmd = "!";
+	int ret = WriteToComPort(port_.c_str(), (const unsigned char*) statuscmd.c_str(), 1);
+	unsigned char ans[2];
+	unsigned long numRead = 0;
+	unsigned char tempAns[1];
+	unsigned long numReadThisTime;
+	while (numRead < 2) {
+		ret = ReadFromComPort(port_.c_str(), tempAns, 1, numReadThisTime); //This function returns even if nothing is available. Causes problems.
+		if (ret != DEVICE_OK) { return ret; }
+		if (numReadThisTime > 0) {
+			ans[numRead] = tempAns[0];
+			numRead += numReadThisTime;
+		}
+	}
+	ret = ReadFromComPort(port_.c_str(), ans, 2, numRead);
+	if (ans[1] == '>') {
+		return false;
+	}
+	else if (ans[1] == '<') {
+		return true;
+	}
+	else {
+		LogMessage("Error: VarispecLCTF received invalid character in response to busy request");
+		return false;
+	}
+}

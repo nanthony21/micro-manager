@@ -75,6 +75,8 @@ private:
 
 	int sendCmd(std::string cmd, std::string& out);	//Send a command and save the response in `out`.
 	int sendCmd(std::string cmd);	//Send a command that does not repond with any extra information.
+	int getStatus();
+	bool reportsBusy();
 };
 
 
