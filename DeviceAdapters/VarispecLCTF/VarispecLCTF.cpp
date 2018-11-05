@@ -407,11 +407,15 @@ int VarispecLCTF::OnBaud(MM::PropertyBase* pProp, MM::ActionType eAct)
 		ret = sendCmd("C1"); //Clear the devices pallete memory
 		if (ret != DEVICE_OK) { return ret; }
 		std::vector<std::string> sequence =  pProp->GetSequence();
-		ostringstream cmd;
 		for (unsigned int i = 0; i < sequence.size(); i++) {
+			ostringstream cmd;
+			cmd.setf(ios::fixed,ios::floatfield);
+			cmd.precision(3);
 			cmd << "D" << sequence.at(i) << "," << i;
+			ret = sendCmd(cmd.str());	//Send the sequence over serial.
+			if (ret != DEVICE_OK) { return ret; }
 		}
-		ret = sendCmd(cmd.str());	//Send the sequence over serial.
+		ret = getStatus();
 		if (ret != DEVICE_OK) { return ret; }
 		break;
     }
