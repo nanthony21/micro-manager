@@ -408,6 +408,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IsmatecMCP", "DeviceAdapter
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "JAI", "DeviceAdapters\JAI\JAI.vcxproj", "{43564119-6C0F-4589-9BF5-0C6C653FF9F1}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VarispecLCTF", "DeviceAdapters\VarispecLCTF\VarispecLCTF.vcxproj", "{DFA5AB7B-A917-44BB-AB76-6AB1AECFADC8}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Toptica_iBeamSmartCW", "DeviceAdapters\Toptica_iBeamSmartCW\Toptica_iBeamSmartCW.vcxproj", "{C374EE7D-242E-483E-AB16-C455EA9AF9E3}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OxxiusCombiner", "DeviceAdapters\OxxiusCombiner\OxxiusCombiner.vcxproj", "{71ADDFBC-1246-482E-A326-51A156C3B8A7}"
