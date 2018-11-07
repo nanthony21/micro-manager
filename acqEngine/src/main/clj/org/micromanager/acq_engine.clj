@@ -359,10 +359,6 @@
           0
           true)))
 
-(defn pop-tagged-image []
-  (try (. mmc popNextTaggedImage)
-       (catch Exception e nil)))
-
 (defn pop-tagged-image-timeout
   [timeout-ms]
   (log "waiting for burst image with timeout" timeout-ms "ms")
@@ -371,7 +367,10 @@
       (when (@state :stop)
         (log "halting image collection due to engine stop")
         (throw (EOFException. "(Aborted)")))
-      (if-let [image (pop-tagged-image)]
+      (if-let
+        [image
+         (try (. mmc popNextTaggedImage)
+           (catch Exception e nil))]
         image
         (if (< deadline (System/currentTimeMillis))
           (do
@@ -410,10 +409,6 @@
               (catch Throwable t nil)))
     queue))
 
-(defn pop-burst-images
-  [n timeout-ms]
-  (queuify n 10 #(pop-burst-image timeout-ms)))
-
 (defn make-multicamera-channel [raw-channel-index camera-channel num-camera-channels]
   (+ camera-channel (* num-camera-channels (or raw-channel-index 0))))
 
@@ -436,20 +431,10 @@
    (map #(assoc %1 :slice %2) burst-events slices)
    burst-events))
 
-(defn burst-cleanup []
-  (log "burst-cleanup")
-  (core stopSequenceAcquisition)
-  (while (and (not (@state :stop)) (. mmc isSequenceRunning))
-    (Thread/sleep 5)))
-
 (defn assoc-if-nil [m k v]
   (if (nil? (m k))
     (assoc m k v)
     m))
-
-(defn show [x]
-  (do (prn x)
-      x))
 
 (defn tag-burst-image [image burst-events camera-channel-names camera-index-tag
                        image-number-offset]
@@ -493,7 +478,7 @@
                  (count camera-channel-names))
         camera-index-tag (str (. mmc getCameraDevice) "-CameraChannelIndex")
         image-number-offset (if (first-trigger-missing?) -1 0)
-        image-queue (pop-burst-images total timeout-ms)]
+        image-queue (queuify total 10 #(pop-burst-image timeout-ms))]
     (try
       (doseq [i (range total)]
         (send-tagged-image
@@ -508,7 +493,11 @@
               (tag-burst-image burst-events camera-channel-names camera-index-tag
                                image-number-offset)
               make-TaggedImage))))
-      (finally (burst-cleanup)))))
+      (finally (
+                (log "burst-cleanup")
+                (core stopSequenceAcquisition)
+                (while (and (not (@state :stop)) (. mmc isSequenceRunning))
+                  (Thread/sleep 5)))))))
 
 (defn collect-burst-images [event out-queue settings]
   (let [pop-timeout-ms (+ (:camera-timeout settings) (* 10 (:exposure event)))]
@@ -578,18 +567,6 @@
 
 ;; higher level
 
-(defn expose [event]
-  (let [shutter-states
-         (if (core getAutoShutter)
-           [true (:close-shutter event)]
-           [false false])]
-    (swap! state assoc :system-state (map-config (core getSystemStateCache)))
-    (condp = (:task event)
-      :snap (apply snap-image shutter-states)
-      :burst (init-burst (count (:burst-data event))
-                         (:trigger-sequence event)
-                         (:relative-z event))
-      nil)))
 
 (defn collect [event out-queue settings]
   (log "collecting image(s)")
@@ -762,16 +739,22 @@
                 #(do
                    (wait-for-pending-devices)
                    (log "BEGIN acquire")
-                   (expose event)
+                   ;;expose
+                   (let [shutter-states
+                         (if (core getAutoShutter)
+                           [true (:close-shutter event)]
+                           [false false])]
+                     (swap! state assoc :system-state (map-config (core getSystemStateCache)))
+                     (condp = (:task event)
+                       :snap (apply snap-image shutter-states)
+                       :burst (init-burst (count (:burst-data event))
+                                          (:trigger-sequence event)
+                                          (:relative-z event))
+                       nil)))
                    (collect event out-queue settings)
                    (stop-triggering)
                    (log "END acquire"))
                 #(log "#####" "END acquisition event"))))))
-
-(defn execute [event-fns]
-  (doseq [event-fn event-fns :while (not (:stop @state))]
-    (event-fn)
-    (await-resume)))
 
 (defn run-acquisition [settings out-queue cleanup? position-list autofocus-device]
     (try
@@ -784,7 +767,10 @@
       (def last-state state) ; for debugging
       (let [acq-seq (generate-acq-sequence settings @attached-runnables)]
         (def acq-sequence acq-seq) ; for debugging
-        (execute (mapcat #(make-event-fns % out-queue settings) acq-seq)))
+        (let  [event-fns (mapcat #(make-event-fns % out-queue settings) acq-seq)]
+          (doseq [event-fn event-fns :while (not (:stop @state))]
+            (event-fn)
+            (await-resume))))
       (catch Throwable t
              (def acq-error t) ; for debugging
              ; XXX There ought to be a way to get errors programmatically...
@@ -842,9 +828,6 @@
                    :custom-intervals-ms (vec (.customIntervalsMs settings)))
             ))))
 
-(defn get-IJ-type [depth]
-  (get {1 ImagePlus/GRAY8 2 ImagePlus/GRAY16 4 ImagePlus/COLOR_RGB 8 64} depth))
-
 (defn get-z-step-um [slices]
   (if (and slices (< 1 (count slices)))
     (- (second slices) (first slices))
@@ -867,9 +850,6 @@
       (map #(update-in simple-channel [:name] super-channel-name % n)
            camera-channel-names)
       simple-channel)))
-
-(defn all-super-channels [simple-channels camera-channel-names]
-  (flatten (map #(super-channels % camera-channel-names) simple-channels)))
 
 ; Generate a list of colors to use.
 ; Best understanding of input parameters: simple-channels are the channels
@@ -922,8 +902,9 @@
         simple-channels (if-not (empty? channels)
                           channels
                           [{:name "Default" :color java.awt.Color/WHITE}])
-        super-channels (all-super-channels simple-channels 
-                                           (get-camera-channel-names))
+        (let [camera-channel-names get-camera-channel-names]
+          super-channels (flatten (map #(super-channels % camera-channel-names) simple-channels)))
+
         ch-names (vec (map :name super-channels))
         computer (try (.. InetAddress getLocalHost getHostName) (catch UnknownHostException e ""))]
      (JSONObject. {
@@ -945,7 +926,7 @@
       "InitialPositionList" (when (:use-position-list settings) (summarize-position-list position-list))
       "Interval_ms" (:interval-ms settings)
       "CustomIntervals_ms" (JSONArray. (or (:custom-intervals-ms settings) []))
-      "IJType" (get-IJ-type depth)
+      "IJType" ((get {1 ImagePlus/GRAY8 2 ImagePlus/GRAY16 4 ImagePlus/COLOR_RGB 8 64} depth))
       "KeepShutterOpenChannels" (:keep-shutter-open-channels settings)
       "KeepShutterOpenSlices" (:keep-shutter-open-slices settings)
       "MicroManagerVersion" (if gui (.getVersion gui) "N/A")
