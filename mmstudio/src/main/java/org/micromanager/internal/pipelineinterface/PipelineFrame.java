@@ -353,6 +353,24 @@ final public class PipelineFrame extends MMFrame
       getTableModel().clearPipeline();
    }
 
+   /*
+   Set the enabled state of a plugin.
+   `position` is the location of the plugin in the list of plugins.
+   */
+   public void setPluginEnabled(boolean enabled, int position) {
+        PipelineTableModel model = getTableModel();
+        if ((position >= 0) && (position < model.getPipelineConfigurators().size())) {
+            model.setValueAt(enabled, position, model.ENABLED_COLUMN);
+        }
+   }
+   
+   public void setPluginEnabledLive(boolean enabled, int position) {
+        PipelineTableModel model = getTableModel();
+        if ((position >= 0) && (position < model.getPipelineConfigurators().size())) {
+            model.setValueAt(enabled, position, model.ENABLED_LIVE_COLUMN);
+        }
+   }
+   
    @Override
    public void dispose() {
       super.dispose();
