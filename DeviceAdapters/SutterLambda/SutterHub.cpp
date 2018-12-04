@@ -247,13 +247,17 @@ int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::v
 		int status = ReadFromComPort(port_.c_str(), &answer, 1, read);
 		if (DEVICE_OK != status) {return status;} // give up - somebody pulled the serial hardware out of the computer
 		if (read > 0){
-			if (answer == *irep) {
+			if (answer == *irep) { //What is this for
+				int a = 1; //This is just here so there's something to debug.
 			}
-			else if (alternateEcho.end() != allowedResponse) {
+			else if (alternateEcho.end() != allowedResponse) { //This is supposed to determine if we are at the end of the response. it's shaky though.
 				if (answer == *allowedResponse) {
 					LogMessage(("command " + CDeviceUtils::HexRep(command) +
 						" was echoed as alternate " + CDeviceUtils::HexRep(response)).c_str(), true);
 					++allowedResponse;
+				}
+				else{ 
+					//Need to handle this case
 				}
 			}
 			else {
