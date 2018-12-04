@@ -37,12 +37,10 @@ SutterHub::~SutterHub()
 }
 
 int SutterHub::Initialize() {
-	int ret = CreateProperty(MM::g_Keyword_Name, g_HubName, MM::String, true);
-	if (ret != DEVICE_OK) { return ret; }
 
 	MMThreadGuard myLock(GetLock());	//We are creating an object named MyLock. the constructor locks access to lock_. when myLock is destroyed it is released.
 	PurgeComPort(port_.c_str());
-	ret = GoOnline(); //Check that we're connected
+	int ret = GoOnline(); //Check that we're connected
 	if (ret != DEVICE_OK) { return ret; }
 
 	initialized_ = true;
