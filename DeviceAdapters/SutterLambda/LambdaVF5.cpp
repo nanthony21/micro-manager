@@ -112,7 +112,7 @@ int LambdaVF5::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		
 	}
 	else if (eAct == MM::IsSequenceable) {
-		pProp->SetSequenceable(100);
+		pProp->SetSequenceable(80);
 		return DEVICE_OK;
 	}
 	else if (eAct == MM::StartSequence) {
@@ -129,8 +129,8 @@ int LambdaVF5::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		std::vector<std::string> seq = pProp->GetSequence();
 		for (int i=0; i<seq.size(); i++){
 			int wv = std::stoi(seq.at(i));
-			cmd.push_back((unsigned char) (wv << 8));
-			cmd.push_back((unsigned char) wv);
+			cmd.push_back((unsigned char) (wv));
+			cmd.push_back((unsigned char) wv>>8);
 		}
 		cmd.push_back(0);	//Terminate the sequence loading command.
 		cmd.push_back(0);
@@ -162,7 +162,9 @@ int LambdaVF5::onWheelTilt(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		std::vector<unsigned char> cmd;
 		std::vector<unsigned char> response;
 		cmd.push_back(0xDE);
-		cmd.push_back((unsigned char) uSteps);
+		cmd.push_back(0x01);
+		cmd.push_back((unsigned char) (uSteps));
+		cmd.push_back((unsigned char) uSteps>>8);
 		int ret = hub_->SetCommand(cmd);
 		if (ret != DEVICE_OK) { return ret;}
 		uSteps_ = uSteps;
