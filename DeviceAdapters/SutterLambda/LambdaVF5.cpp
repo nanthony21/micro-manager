@@ -21,36 +21,26 @@ int LambdaVF5::Initialize(){
 	ret = CreateProperty("Wheel Tilt (uSteps)", "100", MM::Integer, false, pAct);
 	SetPropertyLimits("Wheel Tilt (uSteps)", 1, 267);
 	if (ret != DEVICE_OK) { return ret; }
-
-	pAct = new CPropertyAction(this, &LambdaVF5::onSequenceTriggerChannel);
-	ret = CreateProperty("Sequencing TTL Channel", "0", MM::Integer, false, pAct);
-	SetPropertyLimits("Sequencing TTL Channel", 0, 2);
-	if (ret != DEVICE_OK) { return ret; }
 	
 	pAct = new CPropertyAction(this, &LambdaVF5::onTiltSpeed);
 	ret = CreateProperty("Tilt Speed", "3", MM::Integer, false, pAct);
 	SetPropertyLimits("Tilt Speed", 0, 3);
 	if (ret != DEVICE_OK) { return ret; }
 
-	return DEVICE_OK;
-}
+	pAct = new CPropertyAction(this, &LambdaVF5::onTTLOut);
+	ret = CreateProperty("TTL Out", "Disabled", MM::String, false, pAct);
+	AddAllowedValue("TTL Out","Disabled");
+	AddAllowedValue("TTL Out","Rising Edge");
+	AddAllowedValue("TTL Out","Falling Edge");
+	if (ret != DEVICE_OK) { return ret; }
 
-int LambdaVF5::onSequenceTriggerChannel(MM::PropertyBase* pProp, MM::ActionType eAct) {
-	if (eAct == MM::BeforeGet){
-		pProp->Set((long)sequenceTriggerTTL_);
-	}
-	else if (eAct == MM::AfterSet) {
-		long newChannel;
-		pProp->Get(newChannel);
-		if ((newChannel < 0) || (newChannel > 2)){
-			LogMessage("Lambda VF5: Invalid TTL channel was specified.");
-			return DEVICE_ERR;
-		}
-		else{
-			sequenceTriggerTTL_ = newChannel;
-			return DEVICE_OK;
-		}
-	}
+	pAct = new CPropertyAction(this, &LambdaVF5::onTTLIn);
+	ret = CreateProperty("TTL In", "Disabled", MM::String, false, pAct);
+	AddAllowedValue("TTL In","Disabled");
+	AddAllowedValue("TTL In","Rising Edge");
+	AddAllowedValue("TTL In","Falling Edge");
+	if (ret != DEVICE_OK) { return ret; }
+
 	return DEVICE_OK;
 }
 
@@ -91,16 +81,16 @@ int LambdaVF5::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		return DEVICE_OK;
 	}
 	else if (eAct == MM::StartSequence) {
-		return configureTTL(true, true, false, sequenceTriggerTTL_);
+		return configureTTL(true, true, false, 1);
 	}
 	else if (eAct == MM::StopSequence) {
-		return configureTTL(true,false,false, sequenceTriggerTTL_);
+		return configureTTL(true,false,false, 1);
 	}
 	else if (eAct == MM::AfterLoadSequence) {
 		std::vector<unsigned char> cmd;
 		cmd.push_back(0xFA);
 		cmd.push_back(0xF2);
-		cmd.push_back(sequenceTriggerTTL_);
+		cmd.push_back(1);
 		std::vector<std::string> seq = pProp->GetSequence();
 		for (int i=0; i<seq.size(); i++){
 			int wv = std::stoi(seq.at(i));
@@ -135,7 +125,6 @@ int LambdaVF5::onWheelTilt(MM::PropertyBase* pProp, MM::ActionType eAct) {
 			return DEVICE_ERR;
 		}
 		std::vector<unsigned char> cmd;
-		std::vector<unsigned char> response;
 		cmd.push_back(0xDE);
 		cmd.push_back(0x01);
 		cmd.push_back((unsigned char) (uSteps));
@@ -163,4 +152,76 @@ int LambdaVF5::configureTTL( bool risingEdge, bool enabled, bool output, unsigne
 	cmd.push_back(action);
 	cmd.push_back(channel);
 	return hub_->SetCommand(cmd);
+}
+
+int LambdaVF5::onTTLOut(MM::PropertyBase* pProp, MM::ActionType eAct) {
+	if (eAct == MM::BeforeGet) {
+		std::string setting;
+		if (ttlOutEnabled_) {
+			if (ttlOutRisingEdge_){
+				setting = "Rising Edge";
+			}
+			else {
+				setting = "Falling Edge";
+			}
+		} else {
+			setting = "Disabled";
+		}
+		pProp->Set(setting.c_str());
+	}
+	if (eAct == MM::AfterSet) {
+		std::string setting;
+		pProp->Get(setting);
+		if (setting.compare("Disabled")==0) {
+			ttlOutEnabled_ = false;
+		}
+		else if (setting.compare("Rising Edge")==0) {
+			ttlOutEnabled_ = true;
+			ttlOutRisingEdge_ = true;
+		}
+		else if (setting.compare("Falling Edge")==0) {
+			ttlOutEnabled_ = true;
+			ttlOutRisingEdge_ = false;
+		}
+		else { //The setting wasn't valid for some reason
+			return DEVICE_ERR;
+		}
+		return configureTTL(ttlOutRisingEdge_, ttlOutEnabled_, true, 1);
+	}
+}
+
+int LambdaVF5::onTTLIn(MM::PropertyBase* pProp, MM::ActionType eAct) {
+	if (eAct == MM::BeforeGet) {
+		std::string setting;
+		if (ttlInEnabled_) {
+			if (ttlInRisingEdge_){
+				setting = "Rising Edge";
+			}
+			else {
+				setting = "Falling Edge";
+			}
+		} else {
+			setting = "Disabled";
+		}
+		pProp->Set(setting.c_str());
+	}
+	if (eAct == MM::AfterSet) {
+		std::string setting;
+		pProp->Get(setting);
+		if (setting.compare("Disabled")==0) {
+			ttlInEnabled_ = false;
+		}
+		else if (setting.compare("Rising Edge")==0) {
+			ttlInEnabled_ = true;
+			ttlInRisingEdge_ = true;
+		}
+		else if (setting.compare("Falling Edge")==0) {
+			ttlInEnabled_ = true;
+			ttlInRisingEdge_ = false;
+		}
+		else { //The setting wasn't valid for some reason
+			return DEVICE_ERR;
+		}
+		return configureTTL(ttlInRisingEdge_, ttlInEnabled_, false, 1);
+	}
 }

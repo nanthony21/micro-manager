@@ -144,14 +144,18 @@ public:
 	//VF-5 special commands
 	int onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct);//(unsigned int wavelength);
 	int onWheelTilt(MM::PropertyBase* pProp, MM::ActionType eAct);
-	int onSequenceTriggerChannel(MM::PropertyBase* pProp, MM::ActionType eAct); //The channel number for the TTL we want to use for sequence triggering. 0, 1, or 2
 	int onTiltSpeed(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int onTTLOut(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int onTTLIn(MM::PropertyBase* pProp, MM::ActionType eAct);
 private:
 	int configureTTL( bool risingEdge, bool enabled, bool output, unsigned char channel);
 	long wv_;
 	long uSteps_;
 	bool mEnabled_;
 	long tiltSpeed_;
-	int sequenceTriggerTTL_;
+	bool ttlOutEnabled_;
+	bool ttlOutRisingEdge_;
+	bool ttlInEnabled_;
+	bool ttlInRisingEdge_;
 };
 #endif //_SUTTER_LAMBDA_H_
