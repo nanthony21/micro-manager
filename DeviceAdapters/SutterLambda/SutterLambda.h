@@ -79,7 +79,6 @@ private:
 	bool busy_;
 	bool initialized_;
 	MMThreadLock lock_;
-	unsigned long timeout_;
 	//Make comms thread safe
 	MMThreadLock& GetLock() { return lock_; };
 	int GoOnline(); //Transfer control to serial.
