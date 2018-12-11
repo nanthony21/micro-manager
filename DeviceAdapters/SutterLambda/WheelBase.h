@@ -121,7 +121,7 @@ int WheelBase<U>::Initialize() {
 	// Speed
 	// -----
 	pAct = new CPropertyAction(dynamic_cast<U *const>(this), &WheelBase::OnSpeed);
-	ret = CreateProperty(MM::g_Keyword_Speed, "3", MM::Integer, false, pAct);
+	ret = CreateProperty("State Change Speed", "3", MM::Integer, false, pAct);
 	if (ret != DEVICE_OK)
 		return ret;
 	for (int i = 0; i < 8; i++) {
