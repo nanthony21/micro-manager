@@ -151,7 +151,7 @@ int WheelBase<U>::Initialize() {
 	// NOTE: in the lack of better status checking scheme,
 	// this is a kludge to allow resetting the busy flag.  
 	pAct = new CPropertyAction(dynamic_cast<U *const>(this), &WheelBase::OnBusy);
-	ret = CreateProperty("Busy", "0", MM::Integer, false, pAct);
+	ret = CreateProperty("Busy", "0", MM::Integer, true, pAct);
 	if (ret != DEVICE_OK)
 		return ret;
 
