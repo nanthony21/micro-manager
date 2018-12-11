@@ -276,7 +276,6 @@ int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::v
 	read = 0;
 	bool commandTerminated=false;
 	while (true) {
-
 		unsigned long readThisTime;
 		unsigned char tempResponse[1024];
 		ret = ReadFromComPort(port_.c_str(), tempResponse, 100, readThisTime);
@@ -286,7 +285,7 @@ int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::v
 				commandTerminated = true;
 				break;
 			}
-			response[read+i] = tempResponse[i];
+			response[read] = tempResponse[i];
 			read++;
 		}
 		if (commandTerminated) {
