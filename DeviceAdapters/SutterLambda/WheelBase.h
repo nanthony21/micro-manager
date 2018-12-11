@@ -21,7 +21,7 @@ public:
   
    void GetName(char* pszName) const;
    bool Busy();
-   unsigned long GetNumberOfPositions()const {return numPos_;}
+   unsigned long GetNumberOfPositions()const {return evenPositionsOnly_? numPos_/2 : numPos_;}
 
    // action interface
    // ----------------
@@ -159,13 +159,16 @@ int WheelBase<U>::Initialize() {
 	const int bufSize = 1024;
 	char buf[bufSize];
 	int _ = evenPositionsOnly_ ? 2 : 1;
+	int position=0;
 	for (unsigned i = 0; i < numPos_; i+=_)
 	{
 		snprintf(buf, bufSize, "Filter-%d", i);
-		SetPositionLabel(i, buf);
+		ret = SetPositionLabel(position, buf);
+		if (ret != DEVICE_OK){return ret;}
 		// Also give values for Closed-Position state while we are at it
 		snprintf(buf, bufSize, "%d", i);
 		AddAllowedValue(MM::g_Keyword_Closed_Position, buf);
+		position++;
 	}
 
 	GetGateOpen(open_);
