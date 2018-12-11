@@ -221,10 +221,9 @@ int SutterHub::OnMotorsEnabled(MM::PropertyBase* pProp, MM::ActionType eAct) {
 // write 1, 2, or 3 char. command to equipment
 // ensure the command completed by waiting for \r
 // pass response back in argument
-int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::vector<unsigned char> alternateEcho, std::vector<unsigned char>& response) {
-	bool responseReceived = false;
+int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::vector<unsigned char> alternateEcho, std::vector<unsigned char>& Response) {
 	MMThreadGuard myLock(GetLock());
-
+	PurgeComPort(port_.c_str());
 	// start time of entire transaction
 	MM::MMTime commandStartTime = GetCurrentMMTime();
 	// write command to the port
@@ -232,78 +231,76 @@ int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::v
 	if (ret != DEVICE_OK) {return ret;}
 
 	// now ensure that command is echoed from controller
-	std::vector<unsigned char>::const_iterator allowedResponse = alternateEcho.begin();
-	for (std::vector<unsigned char>::const_iterator irep = command.begin(); irep != command.end(); ++irep) {
-		// block/wait for acknowledge, or until we time out;
-		unsigned char answer = 0;
-		unsigned long read;
-		MM::MMTime responseStartTime = GetCurrentMMTime();
-		// read the response
-		int status = ReadFromComPort(port_.c_str(), &answer, 1, read);
-		if (DEVICE_OK != status) {return status;} // give up - somebody pulled the serial hardware out of the computer
-		if (read > 0){
-			if (answer == *irep) { //What is this for
-				int a = 1; //This is just here so there's something to debug.
-			}
-			else if (alternateEcho.end() != allowedResponse) { //This is supposed to determine if we are at the end of the response. it's shaky though.
-				if (answer == *allowedResponse) {
-					LogMessage(("command " + CDeviceUtils::HexRep(command) +
-						" was echoed as alternate " + CDeviceUtils::HexRep(response)).c_str(), true);
-					++allowedResponse;
-				}
-				else{ 
-					//Need to handle this case
-				}
-			}
-			else {
-				//We got an unexpected response
-				std::ostringstream bufff;
-				bufff.flags(std::ios::hex | std::ios::showbase);
-				bufff << (unsigned int)answer;
-				LogMessage((std::string("unexpected response: ") + bufff.str()).c_str(), false);
-			}
-			continue;
-		}
-		else {
-			LogMessage("SutterHub Serial timed out", false);
-			return DEVICE_ERR;
-		}
-	} // the command was echoed  entirely...
-	MM::MMTime startTime = GetCurrentMMTime();
-	// now look for a 13 - this indicates that the command has really completed!
-	unsigned char answer = 0;
-	unsigned long read;
+	MM::MMTime responseStartTime = GetCurrentMMTime();
+	char timeoutChar[1024];
+	ret = GetCoreCallback()->GetDeviceProperty(port_.c_str(), "AnswerTimeout", timeoutChar);
+	if (ret != DEVICE_OK) {return ret;}
+	long timeout = atoi(timeoutChar) * 1000; //Microseconds
+	int read = 0;
+	unsigned char response[1024];
 	while (true) {
-		answer = 0;
-		int status = ReadFromComPort(port_.c_str(), &answer, 1, read);
-		if (DEVICE_OK != status) {return status;}
-		if (0 < read) {
-			response.push_back(answer);
-			if (answer == 13) { // CR  - sometimes the SC sends a 1 before the 13....
-				responseReceived = true;
-				return DEVICE_OK;
-			}
-			else {
-				std::ostringstream bufff;
-				bufff.flags(std::ios::hex | std::ios::showbase);
-				bufff << (unsigned int)answer;
-				LogMessage(("error, extraneous response  " + bufff.str()).c_str(), false);
-			}
+		unsigned long readThisTime;
+		unsigned char tempResponse[1024];
+		ret = ReadFromComPort(port_.c_str(), tempResponse, 1, readThisTime);
+		if (ret != DEVICE_OK) {return ret;}
+		for (int i=0; i<readThisTime; i++) {
+			response[read+i] = tempResponse[i];
 		}
-		else {
-			LogMessage("Sutter Serial Timed Out", false);
-			return DEVICE_ERR;
+		read += readThisTime;
+		if (read >= command.size()){
+			break;
 		}
-
-		MM::MMTime del2 = GetCurrentMMTime() - startTime;
-		if (timeout_ < del2.getUsec()) {
-			std::ostringstream bufff;
-			MM::MMTime del3 = GetCurrentMMTime() - commandStartTime;
-			bufff << "command completion timeout after " << del3.getUsec() << " microsec";
-			LogMessage(bufff.str().c_str(), false);
-			return DEVICE_ERR;
+		MM::MMTime delta = GetCurrentMMTime() - responseStartTime;
+		if (timeout < delta.getUsec()) {
+			return DEVICE_SERIAL_TIMEOUT;
 		}
 	}
+	for (int i=0; i<command.size(); i++) {
+		if (response[i] == command.at(i)) { //We have a match so far.
+			int a = 1; //This is just here so there's something to debug.
+		}
+		else if (response[i] == alternateEcho.at(i)) {
+			LogMessage(("command " + CDeviceUtils::HexRep(command) +
+				" was echoed as alternate "), true);
+		}
+		else {
+			//We got an unexpected response
+			std::ostringstream bufff;
+			bufff.flags(std::ios::hex | std::ios::showbase);
+			bufff << (unsigned int)response[i];
+			LogMessage((std::string("unexpected response: ") + bufff.str()).c_str(), false);
+			return DEVICE_ERR;
+		}
+		continue;
+	} // the command was echoed  entirely...
+	read = 0;
+	bool commandTerminated=false;
+	while (true) {
+
+		unsigned long readThisTime;
+		unsigned char tempResponse[1024];
+		ret = ReadFromComPort(port_.c_str(), tempResponse, 100, readThisTime);
+		if (ret != DEVICE_OK) {return ret;}
+		for (int i=0; i<readThisTime; i++) {
+			if (tempResponse[i] == '\r') {
+				commandTerminated = true;
+				break;
+			}
+			response[read+i] = tempResponse[i];
+			read++;
+		}
+		if (commandTerminated) {
+			break;
+		}
+		MM::MMTime delta = GetCurrentMMTime() - responseStartTime;
+		if (timeout < delta.getUsec()) {
+			return DEVICE_SERIAL_TIMEOUT;
+		}
+	}
+	for (int i=0; i<read; i++) {
+		Response.push_back(response[i]);
+	}
+	return DEVICE_OK;
 }
 
 int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::vector<unsigned char> altEcho){
