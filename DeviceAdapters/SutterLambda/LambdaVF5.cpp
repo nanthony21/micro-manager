@@ -81,10 +81,11 @@ int LambdaVF5::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		cmd.push_back(0xDB);
 		int ret = hub_->SetCommand(cmd, cmd, response);
 		if (ret != DEVICE_OK) { return ret;}
-		if (response.at(0) != 0x01) {
+		if (response.at(0) != 0x01) { //The first byte indicates which channel the response is for. if it isn't 0x01 (channel A) we have a problem.
 			return DEVICE_ERR;
 		}
-		long wv = ((response.at(1) << 8) | (response.at(2)));
+		long wv = ((response.at(2) << 8) | (response.at(1)));
+		wv = wv & 0x3fff; //The first two bits indicate the current tilt speed of the vf5.
 		pProp->Set(wv);
 		wv_ = wv;
 		return DEVICE_OK;
@@ -99,8 +100,8 @@ int LambdaVF5::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		std::vector<unsigned char> response;
 		cmd.push_back(0xDA);
 		cmd.push_back(0x01);
-		cmd.push_back((unsigned char) ((wv << 8) | (speed_ << 6)));
-		cmd.push_back((unsigned char)wv);
+		cmd.push_back((unsigned char) (wv << 8));
+		cmd.push_back(((unsigned char)wv | (tiltSpeed_ << 6)));
 		wv_ = wv;
 		return hub_->SetCommand(cmd);
 		
