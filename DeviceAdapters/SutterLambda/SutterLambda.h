@@ -146,12 +146,14 @@ public:
 	int onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct);//(unsigned int wavelength);
 	int onWheelTilt(MM::PropertyBase* pProp, MM::ActionType eAct);
 	int onSequenceTriggerChannel(MM::PropertyBase* pProp, MM::ActionType eAct); //The channel number for the TTL we want to use for sequence triggering. 0, 1, or 2
+	int onTiltSpeed(MM::PropertyBase* pProp, MM::ActionType eAct);
 private:
 	int configureTTL( bool risingEdge, bool enabled, bool output, unsigned char channel);
 	long wv_;
 	bool whiteLightMode_;
 	long uSteps_;
 	bool mEnabled_;
+	long tiltSpeed_;
 	int sequenceTriggerTTL_;
 };
 #endif //_SUTTER_LAMBDA_H_

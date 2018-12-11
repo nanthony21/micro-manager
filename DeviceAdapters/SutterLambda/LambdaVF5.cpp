@@ -1,11 +1,11 @@
 #include "SutterLambda.h"
 
 LambdaVF5::LambdaVF5(const char* name):
-	WheelBase(name, 0, true, "Lambda VF-5 Tunable Filter"),
+	WheelBase(name, 0, true, "Lambda VF-5 Tunable Filter (Channel A)"),
 	whiteLightMode_(false), 
 	mEnabled_(true), 
 	wv_(500),
-	uSteps_(100)
+	uSteps_(1)
 {};
 
 int LambdaVF5::Initialize(){
@@ -27,6 +27,11 @@ int LambdaVF5::Initialize(){
 	pAct = new CPropertyAction(this, &LambdaVF5::onSequenceTriggerChannel);
 	ret = CreateProperty("Sequencing TTL Channel", "0", MM::Integer, false, pAct);
 	if (ret != DEVICE_OK) { return ret; }
+	
+	pAct = new CPropertyAction(this, &LambdaVF5::onTiltSpeed);
+	ret = CreateProperty("Tilt Speed", "3", MM::Integer, false, pAct);
+	if (ret != DEVICE_OK) { return ret; }
+
 	return DEVICE_OK;
 }
 
@@ -125,10 +130,22 @@ int LambdaVF5::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		cmd.push_back(0);
 		return hub_->SetCommand(cmd);
 	}
+}
+
+int LambdaVF5::onTiltSpeed(MM::PropertyBase* pProp, MM::ActionType eAct) {
+	if (eAct == MM::BeforeGet) {
+		pProp->Set(tiltSpeed_);
+	}
+	else if (eAct == MM::AfterSet) {
+		pProp->Get(tiltSpeed_);
+	}
 	return DEVICE_OK;
 }
 
 int LambdaVF5::onWheelTilt(MM::PropertyBase* pProp, MM::ActionType eAct) {
+	if (eAct == MM::BeforeGet) {
+		pProp->Set(uSteps_);
+	}
 	if (eAct == MM::AfterSet)
 	{
 		long uSteps;
