@@ -18,18 +18,22 @@ int LambdaVF5::Initialize(){
 
 	pAct = new CPropertyAction(this, &LambdaVF5::onWavelength);
 	ret = CreateProperty("Wavelength", "500", MM::Integer, false, pAct);
+	SetPropertyLimits("Wavelength", 338, 900);
 	if (ret != DEVICE_OK) { return ret; }
 	
 	pAct = new CPropertyAction(this, &LambdaVF5::onWheelTilt);
 	ret = CreateProperty("Wheel Tilt (uSteps)", "100", MM::Integer, false, pAct);
+	SetPropertyLimits("Wheel Tilt (uSteps)", 1, 267);
 	if (ret != DEVICE_OK) { return ret; }
 
 	pAct = new CPropertyAction(this, &LambdaVF5::onSequenceTriggerChannel);
 	ret = CreateProperty("Sequencing TTL Channel", "0", MM::Integer, false, pAct);
+	SetPropertyLimits("Sequencing TTL Channel", 0, 2);
 	if (ret != DEVICE_OK) { return ret; }
 	
 	pAct = new CPropertyAction(this, &LambdaVF5::onTiltSpeed);
 	ret = CreateProperty("Tilt Speed", "3", MM::Integer, false, pAct);
+	SetPropertyLimits("Tilt Speed", 0, 3);
 	if (ret != DEVICE_OK) { return ret; }
 
 	return DEVICE_OK;
