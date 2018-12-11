@@ -127,7 +127,7 @@ int WheelBase<U>::Initialize() {
 	for (int i = 0; i < 8; i++) {
 		std::ostringstream os;
 		os << i;
-		AddAllowedValue(MM::g_Keyword_Speed, os.str().c_str());
+		AddAllowedValue("State Change Speed", os.str().c_str());
 	}
 
 	// Label

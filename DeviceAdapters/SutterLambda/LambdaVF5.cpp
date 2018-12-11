@@ -5,7 +5,9 @@ LambdaVF5::LambdaVF5(const char* name):
 	mEnabled_(true), 
 	wv_(500),
 	uSteps_(1),
-	tiltSpeed_(3)
+	tiltSpeed_(3),
+	ttlInEnabled_(false),
+	ttlOutEnabled_(false)
 {};
 
 int LambdaVF5::Initialize(){
@@ -117,7 +119,7 @@ int LambdaVF5::onWheelTilt(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	if (eAct == MM::BeforeGet) {
 		pProp->Set(uSteps_);
 	}
-	if (eAct == MM::AfterSet)
+	else if (eAct == MM::AfterSet)
 	{
 		long uSteps;
 		pProp->Get(uSteps);
@@ -169,7 +171,7 @@ int LambdaVF5::onTTLOut(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		}
 		pProp->Set(setting.c_str());
 	}
-	if (eAct == MM::AfterSet) {
+	else if (eAct == MM::AfterSet) {
 		std::string setting;
 		pProp->Get(setting);
 		if (setting.compare("Disabled")==0) {
@@ -205,7 +207,7 @@ int LambdaVF5::onTTLIn(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		}
 		pProp->Set(setting.c_str());
 	}
-	if (eAct == MM::AfterSet) {
+	else if (eAct == MM::AfterSet) {
 		std::string setting;
 		pProp->Get(setting);
 		if (setting.compare("Disabled")==0) {
