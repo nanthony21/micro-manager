@@ -137,16 +137,6 @@ int SutterHub::OnPort(MM::PropertyBase* pProp, MM::ActionType pAct) {
 	return DEVICE_OK;
 }
 
-int SutterHub::OnAnswerTimeout(MM::PropertyBase* pProp, MM::ActionType eAct) {
-	if (eAct == MM::BeforeGet) {
-		pProp->Set((long)timeout_);
-	}
-	else if (eAct == MM::AfterSet) {
-		pProp->Get((long&)timeout_);
-	}
-	return DEVICE_OK;
-}
-
 int SutterHub::GoOnline() {
 	// Transfer to On Line
 	std::vector<unsigned char> cmd;
