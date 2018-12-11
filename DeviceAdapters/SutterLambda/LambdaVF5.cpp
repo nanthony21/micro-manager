@@ -5,7 +5,8 @@ LambdaVF5::LambdaVF5(const char* name):
 	whiteLightMode_(false), 
 	mEnabled_(true), 
 	wv_(500),
-	uSteps_(1)
+	uSteps_(1),
+	tiltSpeed_(3)
 {};
 
 int LambdaVF5::Initialize(){
@@ -104,8 +105,8 @@ int LambdaVF5::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		std::vector<unsigned char> response;
 		cmd.push_back(0xDA);
 		cmd.push_back(0x01);
-		cmd.push_back((unsigned char) (wv << 8));
-		cmd.push_back(((unsigned char)wv | (tiltSpeed_ << 6)));
+		cmd.push_back((unsigned char) (wv));
+		cmd.push_back(((unsigned char)(wv>>8) | (tiltSpeed_ << 6)));
 		wv_ = wv;
 		return hub_->SetCommand(cmd);
 		
