@@ -2,7 +2,6 @@
 
 LambdaVF5::LambdaVF5(const char* name):
 	WheelBase(name, 0, true, "Lambda VF-5 Tunable Filter (Channel A)"),
-	whiteLightMode_(false), 
 	mEnabled_(true), 
 	wv_(500),
 	uSteps_(1),
@@ -13,11 +12,7 @@ int LambdaVF5::Initialize(){
 	int ret = WheelBase::Initialize();
 	if (ret != DEVICE_OK) { return ret;}
 
-	CPropertyAction* pAct = new CPropertyAction(this, &LambdaVF5::onWhiteLightMode);
-	ret = CreateProperty("White Light Mode", "0", MM::Integer, false, pAct);
-	if (ret != DEVICE_OK) { return ret; }
-
-	pAct = new CPropertyAction(this, &LambdaVF5::onWavelength);
+	CPropertyAction* pAct = new CPropertyAction(this, &LambdaVF5::onWavelength);
 	ret = CreateProperty("Wavelength", "500", MM::Integer, false, pAct);
 	SetPropertyLimits("Wavelength", 338, 900);
 	if (ret != DEVICE_OK) { return ret; }
@@ -55,26 +50,6 @@ int LambdaVF5::onSequenceTriggerChannel(MM::PropertyBase* pProp, MM::ActionType 
 			sequenceTriggerTTL_ = newChannel;
 			return DEVICE_OK;
 		}
-	}
-	return DEVICE_OK;
-}
-
-int LambdaVF5::onWhiteLightMode(MM::PropertyBase* pProp, MM::ActionType eAct) {
-	if (eAct == MM::BeforeGet)
-	{
-		pProp->Set((long)whiteLightMode_);
-	}
-	else if (eAct == MM::AfterSet)
-	{
-		long whiteLightMode;
-		pProp->Get(whiteLightMode);
-		std::vector<unsigned char> cmd;
-		std::vector<unsigned char> response ;
-		unsigned char _ = whiteLightMode ? 0xAA : 0xAC;
-		cmd.push_back(_);
-		int ret = hub_->SetCommand(cmd);
-		if (ret != DEVICE_OK) { return ret;}
-		whiteLightMode_ = (bool) whiteLightMode;
 	}
 	return DEVICE_OK;
 }

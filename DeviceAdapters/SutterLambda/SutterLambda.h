@@ -142,7 +142,6 @@ public:
 	int Initialize();
 
 	//VF-5 special commands
-	int onWhiteLightMode(MM::PropertyBase* pProp, MM::ActionType eAct);// (bool enabled);
 	int onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct);//(unsigned int wavelength);
 	int onWheelTilt(MM::PropertyBase* pProp, MM::ActionType eAct);
 	int onSequenceTriggerChannel(MM::PropertyBase* pProp, MM::ActionType eAct); //The channel number for the TTL we want to use for sequence triggering. 0, 1, or 2
@@ -150,7 +149,6 @@ public:
 private:
 	int configureTTL( bool risingEdge, bool enabled, bool output, unsigned char channel);
 	long wv_;
-	bool whiteLightMode_;
 	long uSteps_;
 	bool mEnabled_;
 	long tiltSpeed_;
