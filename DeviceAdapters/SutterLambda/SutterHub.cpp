@@ -13,13 +13,18 @@ extern const char* g_LambdaVF5Name;
 
 SutterHub::SutterHub(const char* name): busy_(false), initialized_(false), name_(name)
 {
+	InitializeDefaultErrorMessages();
+	SetErrorText(DEVICE_SERIAL_TIMEOUT, "Serial port timed out without receiving a response.");
+
 	CPropertyAction* pAct = new CPropertyAction(this, &SutterHub::OnPort);
 	CreateProperty(MM::g_Keyword_Port, "Undefined", MM::String, false, pAct, true);
+	
 
+	/*
 	// Answertimeout
 	pAct = new CPropertyAction(this, &SutterHub::OnAnswerTimeout);
 	CreateProperty("Timeout(ms)", "500", MM::Integer, false, pAct, true);
-
+	*/
 	//Motors Enabled
 	pAct = new CPropertyAction(this, &SutterHub::OnMotorsEnabled);
 	CreateProperty("Motors Enabled", "1", MM::Integer, false, pAct, false);
@@ -78,7 +83,7 @@ MM::DeviceDetectionStatus SutterHub::DetectDevice() {
 				// device specific default communication parameters
 				GetCoreCallback()->SetSerialProperties(port_.c_str(),
 														  "50.0",
-														  "9600",
+														  "128000",
 														  "0.0",
 														  "Off",
 														  "None",
