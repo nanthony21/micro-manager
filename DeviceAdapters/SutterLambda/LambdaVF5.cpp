@@ -170,6 +170,7 @@ int LambdaVF5::onTTLOut(MM::PropertyBase* pProp, MM::ActionType eAct) {
 			setting = "Disabled";
 		}
 		pProp->Set(setting.c_str());
+		return DEVICE_OK;
 	}
 	else if (eAct == MM::AfterSet) {
 		std::string setting;
@@ -206,6 +207,7 @@ int LambdaVF5::onTTLIn(MM::PropertyBase* pProp, MM::ActionType eAct) {
 			setting = "Disabled";
 		}
 		pProp->Set(setting.c_str());
+		return DEVICE_OK;
 	}
 	else if (eAct == MM::AfterSet) {
 		std::string setting;
