@@ -27,7 +27,9 @@ SutterHub::SutterHub(const char* name): busy_(false), initialized_(false), name_
 	*/
 	//Motors Enabled
 	pAct = new CPropertyAction(this, &SutterHub::OnMotorsEnabled);
-	CreateProperty("Motors Enabled", "1", MM::Integer, false, pAct, false);
+	CreateProperty("Motors Enabled", "True", MM::String, false, pAct, false);
+	AddAllowedValue("Motors Enabled", "True");
+	AddAllowedValue("Motors Enabled", "False");
 
 	// Name
 	CreateProperty(MM::g_Keyword_Name, name_.c_str(), MM::String, true);
@@ -203,16 +205,25 @@ int SutterHub::GetStatus(std::vector<unsigned char>& status) {
 
 int SutterHub::OnMotorsEnabled(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	if (eAct == MM::AfterSet) {
-		long mEnabled;
+		std::string mEnabled;
 		pProp->Get(mEnabled);
 		std::vector<unsigned char> cmd;
 		std::vector<unsigned char> response;
-		cmd.push_back(0xCE | (unsigned char) mEnabled);
-		SetCommand(cmd);
-		mEnabled_ = (bool) mEnabled;
+		unsigned char val = 0xCE;
+		if (mEnabled=="True") {
+			val |= 0x01;
+			mEnabled_ = true;
+		} else {
+			mEnabled_ = false;
+		}
+		cmd.push_back(val);
+		int ret = SetCommand(cmd);
+		if (ret!=DEVICE_OK){return ret;}
 	}
-	if (eAct == MM::BeforeGet){
-		pProp->Set((long) mEnabled_);
+	else if (eAct == MM::BeforeGet){
+		std::string enabled;
+		enabled = mEnabled_? "True" : "False";
+		pProp->Set(enabled.c_str());
 	}
 	return DEVICE_OK;
 }
