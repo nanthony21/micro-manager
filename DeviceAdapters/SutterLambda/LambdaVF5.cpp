@@ -43,6 +43,12 @@ int LambdaVF5::Initialize(){
 	AddAllowedValue("TTL In","Falling Edge");
 	if (ret != DEVICE_OK) { return ret; }
 
+	pAct = new CPropertyAction(this, &LambdaVF5::onSequenceType);
+	ret = CreateProperty("Wavelength Sequence Type", "Arbitrary", MM::String, false, pAct);
+	AddAllowedValue("Wavelength Sequence Type","Arbitrary");
+	AddAllowedValue("Wavelength Sequence Type","Evenly Spaced");
+	if (ret != DEVICE_OK) { return ret; }
+
 	return DEVICE_OK;
 }
 
@@ -79,28 +85,44 @@ int LambdaVF5::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		
 	}
 	else if (eAct == MM::IsSequenceable) {
-		pProp->SetSequenceable(80);
+		int max;
+		if (sequenceEvenlySpaced_) { max = 3;} //in this case the "sequence" is actually the start, stop, and step of wavelengths
+		else { max = 100;}
+		pProp->SetSequenceable(max);
 		return DEVICE_OK;
 	}
 	else if (eAct == MM::StartSequence) {
-		return configureTTL(true, true, false, 1);
+		ttlInEnabled_ = true;
+		return configureTTL(ttlInRisingEdge_, ttlInEnabled_, false, 1);
 	}
 	else if (eAct == MM::StopSequence) {
-		return configureTTL(true,false,false, 1);
+		ttlInEnabled_ = false;
+		return configureTTL(ttlInRisingEdge_, ttlInEnabled_, false, 1);
 	}
 	else if (eAct == MM::AfterLoadSequence) {
 		std::vector<unsigned char> cmd;
 		cmd.push_back(0xFA);
-		cmd.push_back(0xF2);
-		cmd.push_back(1);
-		std::vector<std::string> seq = pProp->GetSequence();
-		for (int i=0; i<seq.size(); i++){
-			int wv = std::stoi(seq.at(i));
-			cmd.push_back((unsigned char) (wv));
-			cmd.push_back((unsigned char) wv>>8);
+		if (sequenceEvenlySpaced_) {
+			cmd.push_back(0xF1);
+			cmd.push_back(1);
+			std::vector<std::string> seq = pProp->GetSequence();
+			for (int i=0; i<3; i++) {
+				int wv = std::stoi(seq.at(0));
+				cmd.push_back((unsigned char) (wv));
+				cmd.push_back((unsigned char) wv>>8);
+			}
+		} else {
+			cmd.push_back(0xF2);
+			cmd.push_back(1);
+			std::vector<std::string> seq = pProp->GetSequence();
+			for (int i=0; i<seq.size(); i++){
+				int wv = std::stoi(seq.at(i));
+				cmd.push_back((unsigned char) (wv));
+				cmd.push_back((unsigned char) wv>>8);
+			}
+			cmd.push_back(0);	//Terminate the sequence loading command.
+			cmd.push_back(0);
 		}
-		cmd.push_back(0);	//Terminate the sequence loading command.
-		cmd.push_back(0);
 		return hub_->SetCommand(cmd);
 	}
 }
@@ -227,5 +249,31 @@ int LambdaVF5::onTTLIn(MM::PropertyBase* pProp, MM::ActionType eAct) {
 			return DEVICE_ERR;
 		}
 		return configureTTL(ttlInRisingEdge_, ttlInEnabled_, false, 1);
+	}
+}
+
+int LambdaVF5::onSequenceType(MM::PropertyBase* pProp, MM::ActionType eAct) {
+	if (eAct == MM::BeforeGet) {
+		std::string setting;
+		if (sequenceEvenlySpaced_) {
+			setting = "Evenly Spaced";
+		} else {
+			setting = "Arbitrary";
+		}
+		pProp->Set(setting.c_str());
+		return DEVICE_OK;
+	}
+	else if (eAct == MM::AfterSet) {
+		std::string setting;
+		pProp->Get(setting);
+		if (setting=="Arbitrary") {
+			sequenceEvenlySpaced_ = false;
+		}
+		else if (setting=="EvenlySpaced") {
+			sequenceEvenlySpaced_ = true;
+		}
+		else { //The setting wasn't valid for some reason
+			return DEVICE_ERR;
+		}
 	}
 }

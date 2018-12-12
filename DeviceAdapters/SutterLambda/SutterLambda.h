@@ -147,6 +147,7 @@ public:
 	int onTiltSpeed(MM::PropertyBase* pProp, MM::ActionType eAct);
 	int onTTLOut(MM::PropertyBase* pProp, MM::ActionType eAct);
 	int onTTLIn(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int onSequenceType(MM::PropertyBase* pProp, MM::ActionType eAct);
 private:
 	int configureTTL( bool risingEdge, bool enabled, bool output, unsigned char channel);
 	long wv_;
@@ -157,5 +158,6 @@ private:
 	bool ttlOutRisingEdge_;
 	bool ttlInEnabled_;
 	bool ttlInRisingEdge_;
+	bool sequenceEvenlySpaced_;
 };
 #endif //_SUTTER_LAMBDA_H_
