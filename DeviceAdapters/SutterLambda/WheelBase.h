@@ -44,6 +44,8 @@ private:
    std::string name_;
    unsigned curPos_;
    bool open_;  
+   MM::MMTime delay_;
+   MM::MMTime changedTime_;
    WheelBase& operator=(WheelBase& /*rhs*/) {assert(false); return *this;}
 };
 
@@ -78,6 +80,7 @@ WheelBase<U>::WheelBase(const char* name, unsigned id, bool evenPositionsOnly, c
 	// Description
 	CreateProperty(MM::g_Keyword_Description, description_, MM::String, true);
 
+	EnableDelay();
 	UpdateStatus();
 }
 
@@ -93,13 +96,19 @@ void WheelBase<U>::GetName(char* name) const
 	CDeviceUtils::CopyLimitedString(name, name_.c_str());
 }
 
-/**
-* Kludgey implementation of the status check
-*
-*/
+
 template<class U>
 bool WheelBase<U>::Busy() {
-	return hub_->Busy();
+	if (delay_.getMsec() > 0.0) {
+		MM::MMTime interval = GetCurrentMMTime() - changedTime_;
+		if (interval.getMsec() < delay_.getMsec()) {
+			return true;
+		} else {
+			return false;
+		}
+	} else {
+		return hub_->Busy();
+	}
 }
 
 template<class U>
@@ -227,6 +236,7 @@ bool WheelBase<U>::SetWheelPosition(unsigned pos)
 	}
 
 	int ret2 = hub_->SetCommand(command, alternateEcho);
+	initializeDelayTimer();
 	return (DEVICE_OK == ret2) ? true : false;
 
 }
@@ -318,15 +328,15 @@ int WheelBase<U>::OnDelay(MM::PropertyBase* pProp, MM::ActionType eAct)
 {
 	if (eAct == MM::BeforeGet)
 	{
-		pProp->Set(this->GetDelayMs());
+		pProp->Set(GetDelayMs());
 	}
 	else if (eAct == MM::AfterSet)
 	{
 		double delay;
 		pProp->Get(delay);
-		this->SetDelayMs(delay);
+		SetDelayMs(delay);
+		delay_ = delay * 1000;
 	}
-
 	return DEVICE_OK;
 }
 
@@ -338,3 +348,7 @@ int WheelBase<U>::OnBusy(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	return DEVICE_OK;
 }
 
+template<class U>
+void WheelBase<U>::initializeDelayTimer() {
+	changedTime_ = GetCurrentMMTime();
+}
