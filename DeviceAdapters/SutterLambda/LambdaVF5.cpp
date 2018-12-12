@@ -212,14 +212,14 @@ int LambdaVF5::onTTLIn(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	else if (eAct == MM::AfterSet) {
 		std::string setting;
 		pProp->Get(setting);
-		if (setting.compare("Disabled")==0) {
+		if (setting=="Disabled") {
 			ttlInEnabled_ = false;
 		}
-		else if (setting.compare("Rising Edge")==0) {
+		else if (setting=="Rising Edge") {
 			ttlInEnabled_ = true;
 			ttlInRisingEdge_ = true;
 		}
-		else if (setting.compare("Falling Edge")==0) {
+		else if (setting=="Falling Edge") {
 			ttlInEnabled_ = true;
 			ttlInRisingEdge_ = false;
 		}
