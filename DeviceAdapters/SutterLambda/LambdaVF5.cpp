@@ -81,7 +81,9 @@ int LambdaVF5::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		cmd.push_back((unsigned char) (wv));
 		cmd.push_back(((unsigned char)(wv>>8) | (tiltSpeed_ << 6)));
 		wv_ = wv;
-		return hub_->SetCommand(cmd);
+		int ret = hub_->SetCommand(cmd);
+		initializeDelayTimer();
+		return ret;
 		
 	}
 	else if (eAct == MM::IsSequenceable) {
@@ -155,6 +157,7 @@ int LambdaVF5::onWheelTilt(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		cmd.push_back((unsigned char) uSteps>>8);
 		int ret = hub_->SetCommand(cmd);
 		if (ret != DEVICE_OK) { return ret;}
+		initializeDelayTimer();
 		uSteps_ = uSteps;
 	}
 	return DEVICE_OK;
@@ -269,11 +272,12 @@ int LambdaVF5::onSequenceType(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		if (setting=="Arbitrary") {
 			sequenceEvenlySpaced_ = false;
 		}
-		else if (setting=="EvenlySpaced") {
+		else if (setting=="Evenly Spaced") {
 			sequenceEvenlySpaced_ = true;
 		}
 		else { //The setting wasn't valid for some reason
 			return DEVICE_ERR;
 		}
+		return DEVICE_OK;
 	}
 }

@@ -233,6 +233,7 @@ int SutterHub::OnMotorsEnabled(MM::PropertyBase* pProp, MM::ActionType eAct) {
 // ensure the command completed by waiting for \r
 // pass response back in argument
 int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::vector<unsigned char> alternateEcho, std::vector<unsigned char>& Response) {
+	busy_ = true;
 	MMThreadGuard myLock(GetLock());
 	PurgeComPort(port_.c_str());
 	// start time of entire transaction
@@ -310,6 +311,7 @@ int SutterHub::SetCommand(const std::vector<unsigned char> command, const std::v
 	for (int i=0; i<read; i++) {
 		Response.push_back(response[i]);
 	}
+	busy_ = false;
 	return DEVICE_OK;
 }
 
