@@ -34,6 +34,7 @@ public:
 protected:
 	unsigned speed_;
 	SutterHub* hub_;
+	void initializeDelayTimer();
 private:
    bool SetWheelPosition(unsigned pos);
    bool initialized_;
@@ -124,15 +125,14 @@ int WheelBase<U>::Initialize() {
 	// -----
 	CPropertyAction* pAct = new CPropertyAction(dynamic_cast<U *const>(this), &U::OnState);
 	ret = CreateProperty(MM::g_Keyword_State, "0", MM::Integer, false, pAct);
-	if (ret != DEVICE_OK)
-		return ret;
+	if (ret != DEVICE_OK) {return ret;}
+	SetPropertyLimits(MM::g_Keyword_State, 0, evenPositionsOnly_? numPos_/2-1:numPos_-1);
 
 	// Speed
 	// -----
 	pAct = new CPropertyAction(dynamic_cast<U *const>(this), &WheelBase::OnSpeed);
 	ret = CreateProperty("State Change Speed", "3", MM::Integer, false, pAct);
-	if (ret != DEVICE_OK)
-		return ret;
+	if (ret != DEVICE_OK) {return ret;}
 	for (int i = 0; i < 8; i++) {
 		std::ostringstream os;
 		os << i;
@@ -143,15 +143,14 @@ int WheelBase<U>::Initialize() {
 	// -----
 	pAct = new CPropertyAction(dynamic_cast<U *const>(this), &CStateBase::OnLabel);
 	ret = CreateProperty(MM::g_Keyword_Label, "Undefined", MM::String, false, pAct);
-	if (ret != DEVICE_OK)
-		return ret;
+	if (ret != DEVICE_OK) {return ret;}
 
 	// Delay
 	// -----
 	pAct = new CPropertyAction(dynamic_cast<U *const>(this), &WheelBase::OnDelay);
 	ret = CreateProperty(MM::g_Keyword_Delay, "0.0", MM::Float, false, pAct);
-	if (ret != DEVICE_OK)
-		return ret;
+	if (ret != DEVICE_OK) {return ret;}
+	SetPropertyLimits(MM::g_Keyword_Delay, 0.0, 500.0);
 
 
 
@@ -160,9 +159,8 @@ int WheelBase<U>::Initialize() {
 	// NOTE: in the lack of better status checking scheme,
 	// this is a kludge to allow resetting the busy flag.  
 	pAct = new CPropertyAction(dynamic_cast<U *const>(this), &WheelBase::OnBusy);
-	ret = CreateProperty("Busy", "0", MM::Integer, true, pAct);
-	if (ret != DEVICE_OK)
-		return ret;
+	ret = CreateProperty("Busy", "0", MM::Integer, false, pAct);
+	if (ret != DEVICE_OK) {return ret;}
 
 	// create default positions and labels
 	const int bufSize = 1024;
