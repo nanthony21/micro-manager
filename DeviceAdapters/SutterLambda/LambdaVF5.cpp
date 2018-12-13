@@ -24,7 +24,7 @@ int LambdaVF5::Initialize(){
 	
 	pAct = new CPropertyAction(this, &LambdaVF5::onWheelTilt);
 	ret = CreateProperty("Wheel Tilt (uSteps)", "100", MM::Integer, false, pAct);
-	SetPropertyLimits("Wheel Tilt (uSteps)", 1, 267);
+	SetPropertyLimits("Wheel Tilt (uSteps)", 0, 267);
 	if (ret != DEVICE_OK) { return ret; }
 	
 	pAct = new CPropertyAction(this, &LambdaVF5::onTiltSpeed);
@@ -150,14 +150,14 @@ int LambdaVF5::onWheelTilt(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	{
 		long uSteps;
 		pProp->Get(uSteps);
-		if ((uSteps > 273) || (uSteps < 0)) {
+		if ((uSteps > 267) || (uSteps < 0)) {
 			return DEVICE_ERR;
 		}
 		std::vector<unsigned char> cmd;
 		cmd.push_back(0xDE);
 		cmd.push_back(0x01);
 		cmd.push_back((unsigned char) (uSteps));
-		cmd.push_back((unsigned char) uSteps>>8);
+		cmd.push_back((unsigned char) (uSteps>>8));
 		int ret = hub_->SetCommand(cmd);
 		if (ret != DEVICE_OK) { return ret;}
 		initializeDelayTimer();
