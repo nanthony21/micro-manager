@@ -186,12 +186,6 @@ int LambdaVF5::configureTTL( bool risingEdge, bool enabled, bool output, unsigne
 			else { action |= 0x04; }
 		}
 	}
-	unsigned char action = 0xA0;
-	
-	if (enabled) {
-		if (risingEdge) { action |= 0x03; }
-		else { action |= 0x04; }
-	}
 	cmd.push_back(action);
 	cmd.push_back(channel);
 	return hub_->SetCommand(cmd);
