@@ -13,6 +13,9 @@ LambdaVF5::LambdaVF5(const char* name):
 int LambdaVF5::Initialize(){
 	int ret = WheelBase::Initialize();
 	if (ret != DEVICE_OK) { return ret;}
+	
+	configureTTL( true, false, true, 1); //We get some freezes if these aren't explicitly disabled. If ttl in was left on and then the pin goes high but no sequence was loaded then it's going to totally freeze.
+	configureTTL( true, false, false, 1);
 
 	CPropertyAction* pAct = new CPropertyAction(this, &LambdaVF5::onWavelength);
 	ret = CreateProperty("Wavelength", "500", MM::Integer, false, pAct);
@@ -164,7 +167,7 @@ int LambdaVF5::onWheelTilt(MM::PropertyBase* pProp, MM::ActionType eAct) {
 }
 
 int LambdaVF5::configureTTL( bool risingEdge, bool enabled, bool output, unsigned char channel){
-	if (channel > 2) {
+	if ((channel > 3) || (channel < 1)) {
 		LogMessage("Lambda VF5: Invalid TTL Channel specified", false);
 		return DEVICE_ERR;
 	}
