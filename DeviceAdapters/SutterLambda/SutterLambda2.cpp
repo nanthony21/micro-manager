@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-// FILE:          SutterLambda.cpp
+// FILE:          SutterLambda2.cpp
 // PROJECT:       Micro-Manager
 // SUBSYSTEM:     DeviceAdapters
 //-----------------------------------------------------------------------------
@@ -24,7 +24,7 @@
 #define snprintf _snprintf 
 #endif
 
-#include "SutterLambda.h"
+#include "SutterLambda2.h"
 #include <vector>
 #include <memory>
 #include <cstdio>

@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="SutterLambda.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Shutter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -27,12 +24,15 @@
     <ClCompile Include="LambdaVF5.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SutterLambda2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="SutterLambda.h">
+    <ClInclude Include="WheelBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="WheelBase.h">
+    <ClInclude Include="SutterLambda2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

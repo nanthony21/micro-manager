@@ -1,4 +1,4 @@
-#include "SutterLambda.h"
+#include "SutterLambda2.h"
 
 const char* g_ShutterModeProperty = "Mode";
 const char* g_FastMode = "Fast";

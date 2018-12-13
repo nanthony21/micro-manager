@@ -23,6 +23,7 @@
     <RootNamespace>SutterLambda</RootNamespace>
     <Keyword>Win32Proj</Keyword>
     <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+    <ProjectName>SutterLambda2</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -164,10 +165,10 @@
     <ClCompile Include="Shutter.cpp" />
     <ClCompile Include="LambdaVF5.cpp" />
     <ClCompile Include="SutterHub.cpp" />
-    <ClCompile Include="SutterLambda.cpp" />
+    <ClCompile Include="SutterLambda2.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="SutterLambda.h" />
+    <ClInclude Include="SutterLambda2.h" />
     <ClInclude Include="WheelBase.h" />
   </ItemGroup>
   <ItemGroup>

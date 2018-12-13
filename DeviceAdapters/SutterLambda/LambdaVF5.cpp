@@ -1,4 +1,4 @@
-#include "SutterLambda.h"
+#include "SutterLambda2.h"
 
 LambdaVF5::LambdaVF5(const char* name):
 	WheelBase(name, 0, true, "Lambda VF-5 Tunable Filter (Channel A)"),
