@@ -174,7 +174,20 @@ int LambdaVF5::configureTTL( bool risingEdge, bool enabled, bool output, unsigne
 	std::vector<unsigned char> cmd;
 	cmd.push_back(0xFA);
 	unsigned char action = 0xA0;
-	action |= (output << 4);
+	if (output) { //We're configuring the TTL Out
+		action |= (output << 4); // we now have 0xB0
+		if (enabled) {
+			if (risingEdge) { action |= 0x01; }
+			else { action |= 0x02; }
+		}
+	} else { //We're configuring the TTL In
+		if (enabled) {
+			if (risingEdge) { action |= 0x03; }
+			else { action |= 0x04; }
+		}
+	}
+	unsigned char action = 0xA0;
+	
 	if (enabled) {
 		if (risingEdge) { action |= 0x03; }
 		else { action |= 0x04; }
