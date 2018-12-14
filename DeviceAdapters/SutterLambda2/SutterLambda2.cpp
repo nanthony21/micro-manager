@@ -16,6 +16,8 @@
 //                CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
 //                INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES.
 //
+// AUTHOR:        Nick Anthony, Oct. 2018
+//
 // CVS:           $Id$
 //
 

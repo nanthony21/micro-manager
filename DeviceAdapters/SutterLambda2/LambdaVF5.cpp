@@ -1,3 +1,26 @@
+///////////////////////////////////////////////////////////////////////////////
+// FILE:          LambdaVF5.cpp
+// PROJECT:       Micro-Manager
+// SUBSYSTEM:     DeviceAdapters
+//-----------------------------------------------------------------------------
+// DESCRIPTION:   Sutter Lambda controller adapter
+// COPYRIGHT:     Northwestern University, 2018
+// LICENSE:       This file is distributed under the BSD license.
+//                License text is included with the source distribution.
+//
+//                This file is distributed in the hope that it will be useful,
+//                but WITHOUT ANY WARRANTY; without even the implied warranty
+//                of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+//
+//                IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+//                CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+//                INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES.
+//
+// AUTHOR:        Nick Anthony, Oct. 2018
+//
+// CVS:           $Id$
+//
+
 #include "SutterLambda2.h"
 
 LambdaVF5::LambdaVF5(const char* name):
