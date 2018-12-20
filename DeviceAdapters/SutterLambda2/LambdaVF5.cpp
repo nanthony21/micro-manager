@@ -146,7 +146,7 @@ int LambdaVF5::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) {
 			for (int i=0; i<3; i++) {
 				int wv = std::stoi(seq.at(0));
 				cmd.push_back((unsigned char) (wv));
-				cmd.push_back((unsigned char) wv>>8);
+				cmd.push_back((unsigned char) (wv>>8));
 			}
 		} else {
 			cmd.push_back(0xF2);
@@ -155,7 +155,7 @@ int LambdaVF5::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) {
 			for (int i=0; i<seq.size(); i++){
 				int wv = std::stoi(seq.at(i));
 				cmd.push_back((unsigned char) (wv));
-				cmd.push_back((unsigned char) wv>>8);
+				cmd.push_back((unsigned char) (wv>>8));
 			}
 			cmd.push_back(0);	//Terminate the sequence loading command.
 			cmd.push_back(0);
