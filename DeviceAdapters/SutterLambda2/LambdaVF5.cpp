@@ -58,6 +58,11 @@ int LambdaVF5::Initialize(){
 	pAct = new CPropertyAction(this, &LambdaVF5::onTTLOut);
 	ret = CreateProperty("TTL Out", "Disabled", MM::String, false, pAct);
 	AddAllowedValue("TTL Out","Disabled");
+	AddAllowedValue("TTL Out","Enabled");
+	if (ret != DEVICE_OK) { return ret; }
+
+	pAct = new CPropertyAction(this, &LambdaVF5::onTTLOutPolarity);
+	ret = CreateProperty("TTL Out Polarity", "Rising Edge", MM::String, false, pAct);
 	AddAllowedValue("TTL Out","Rising Edge");
 	AddAllowedValue("TTL Out","Falling Edge");
 	if (ret != DEVICE_OK) { return ret; }
@@ -65,6 +70,11 @@ int LambdaVF5::Initialize(){
 	pAct = new CPropertyAction(this, &LambdaVF5::onTTLIn);
 	ret = CreateProperty("TTL In", "Disabled", MM::String, false, pAct);
 	AddAllowedValue("TTL In","Disabled");
+	AddAllowedValue("TTL In","Enabled");
+	if (ret != DEVICE_OK) { return ret; }
+
+	pAct = new CPropertyAction(this, &LambdaVF5::onTTLInPolarity);
+	ret = CreateProperty("TTL In Polarity", "Rising Edge", MM::String, false, pAct);
 	AddAllowedValue("TTL In","Rising Edge");
 	AddAllowedValue("TTL In","Falling Edge");
 	if (ret != DEVICE_OK) { return ret; }
@@ -120,12 +130,11 @@ int LambdaVF5::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		return DEVICE_OK;
 	}
 	else if (eAct == MM::StartSequence) {
-		ttlInEnabled_ = true;
-		return configureTTL(ttlInRisingEdge_, ttlInEnabled_, false, 1);
+		return SetProperty("TTL In", "Enabled");
+	
 	}
 	else if (eAct == MM::StopSequence) {
-		ttlInEnabled_ = false;
-		return configureTTL(ttlInRisingEdge_, ttlInEnabled_, false, 1);
+		return SetProperty("TTL In", "Disabled");
 	}
 	else if (eAct == MM::AfterLoadSequence) {
 		std::vector<unsigned char> cmd;
@@ -218,12 +227,7 @@ int LambdaVF5::onTTLOut(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	if (eAct == MM::BeforeGet) {
 		std::string setting;
 		if (ttlOutEnabled_) {
-			if (ttlOutRisingEdge_){
-				setting = "Rising Edge";
-			}
-			else {
-				setting = "Falling Edge";
-			}
+			setting = "Enabled";
 		} else {
 			setting = "Disabled";
 		}
@@ -236,13 +240,8 @@ int LambdaVF5::onTTLOut(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		if (setting.compare("Disabled")==0) {
 			ttlOutEnabled_ = false;
 		}
-		else if (setting.compare("Rising Edge")==0) {
+		else if (setting.compare("Enabled")==0) {
 			ttlOutEnabled_ = true;
-			ttlOutRisingEdge_ = true;
-		}
-		else if (setting.compare("Falling Edge")==0) {
-			ttlOutEnabled_ = true;
-			ttlOutRisingEdge_ = false;
 		}
 		else { //The setting wasn't valid for some reason
 			return DEVICE_ERR;
@@ -255,12 +254,7 @@ int LambdaVF5::onTTLIn(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	if (eAct == MM::BeforeGet) {
 		std::string setting;
 		if (ttlInEnabled_) {
-			if (ttlInRisingEdge_){
-				setting = "Rising Edge";
-			}
-			else {
-				setting = "Falling Edge";
-			}
+			setting = "Enabled";
 		} else {
 			setting = "Disabled";
 		}
@@ -273,12 +267,34 @@ int LambdaVF5::onTTLIn(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		if (setting=="Disabled") {
 			ttlInEnabled_ = false;
 		}
-		else if (setting=="Rising Edge") {
+		else if (setting=="Enabled") {
 			ttlInEnabled_ = true;
+		}
+		else { //The setting wasn't valid for some reason
+			return DEVICE_ERR;
+		}
+		return configureTTL(ttlInRisingEdge_, ttlInEnabled_, false, 1);
+	}
+}
+
+int LambdaVF5::onTTLInPolarity(MM::PropertyBase* pProp, MM::ActionType eAct) {
+	if (eAct == MM::BeforeGet) {
+		std::string setting;
+		if (ttlInRisingEdge_) {
+			setting = "Rising Edge";
+		} else {
+			setting = "Falling Edge";
+		}
+		pProp->Set(setting.c_str());
+		return DEVICE_OK;
+	}
+	else if (eAct == MM::AfterSet) {
+		std::string setting;
+		pProp->Get(setting);
+		if (setting=="Rising Edge") {
 			ttlInRisingEdge_ = true;
 		}
 		else if (setting=="Falling Edge") {
-			ttlInEnabled_ = true;
 			ttlInRisingEdge_ = false;
 		}
 		else { //The setting wasn't valid for some reason
@@ -287,6 +303,34 @@ int LambdaVF5::onTTLIn(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		return configureTTL(ttlInRisingEdge_, ttlInEnabled_, false, 1);
 	}
 }
+
+int LambdaVF5::onTTLOutPolarity(MM::PropertyBase* pProp, MM::ActionType eAct) {
+	if (eAct == MM::BeforeGet) {
+		std::string setting;
+		if (ttlOutRisingEdge_) {
+			setting = "Rising Edge";
+		} else {
+			setting = "Falling Edge";
+		}
+		pProp->Set(setting.c_str());
+		return DEVICE_OK;
+	}
+	else if (eAct == MM::AfterSet) {
+		std::string setting;
+		pProp->Get(setting);
+		if (setting=="Rising Edge") {
+			ttlOutRisingEdge_ = true;
+		}
+		else if (setting=="Falling Edge") {
+			ttlOutRisingEdge_ = false;
+		}
+		else { //The setting wasn't valid for some reason
+			return DEVICE_ERR;
+		}
+		return configureTTL(ttlOutRisingEdge_, ttlOutEnabled_, true, 1);
+	}
+}
+
 
 int LambdaVF5::onSequenceType(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	if (eAct == MM::BeforeGet) {

@@ -148,6 +148,8 @@ public:
 	int onTTLOut(MM::PropertyBase* pProp, MM::ActionType eAct);
 	int onTTLIn(MM::PropertyBase* pProp, MM::ActionType eAct);
 	int onSequenceType(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int onTTLOutPolarity(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int onTTLInPolarity(MM::PropertyBase* pProp, MM::ActionType eAct);
 private:
 	int configureTTL( bool risingEdge, bool enabled, bool output, unsigned char channel);
 	long wv_;
