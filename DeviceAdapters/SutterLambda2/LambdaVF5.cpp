@@ -63,8 +63,8 @@ int LambdaVF5::Initialize(){
 
 	pAct = new CPropertyAction(this, &LambdaVF5::onTTLOutPolarity);
 	ret = CreateProperty("TTL Out Polarity", "Rising Edge", MM::String, false, pAct);
-	AddAllowedValue("TTL Out","Rising Edge");
-	AddAllowedValue("TTL Out","Falling Edge");
+	AddAllowedValue("TTL Out Polarity","Rising Edge");
+	AddAllowedValue("TTL Out Polarity","Falling Edge");
 	if (ret != DEVICE_OK) { return ret; }
 
 	pAct = new CPropertyAction(this, &LambdaVF5::onTTLIn);
@@ -75,8 +75,8 @@ int LambdaVF5::Initialize(){
 
 	pAct = new CPropertyAction(this, &LambdaVF5::onTTLInPolarity);
 	ret = CreateProperty("TTL In Polarity", "Rising Edge", MM::String, false, pAct);
-	AddAllowedValue("TTL In","Rising Edge");
-	AddAllowedValue("TTL In","Falling Edge");
+	AddAllowedValue("TTL In Polarity","Rising Edge");
+	AddAllowedValue("TTL In Polarity","Falling Edge");
 	if (ret != DEVICE_OK) { return ret; }
 
 	pAct = new CPropertyAction(this, &LambdaVF5::onSequenceType);
