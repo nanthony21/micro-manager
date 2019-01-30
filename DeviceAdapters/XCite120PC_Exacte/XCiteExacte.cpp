@@ -684,7 +684,6 @@ int XCiteExacte::OnGetPowerFactor(MM::PropertyBase* pProp, MM::ActionType eAct)
       if (0 != atoi(buff.c_str()))
          powerFactor_ = buff;
       LogMessage("XCiteExacte: Get Power Factor: " + powerFactor_);
-      SetProperty("Power-Factor", powerFactor_.c_str());
       pProp->Set(powerFactor_.c_str());
    }
    return DEVICE_OK;
@@ -697,7 +696,6 @@ int XCiteExacte::OnGetLampHours(MM::PropertyBase* pProp, MM::ActionType eAct)
       string buff;
       ExecuteCommand(cmdGetLampHours, NULL, 0, &buff);
       pProp->Set(buff.c_str());
-      SetProperty("Lamp-Hours", buff.c_str());
       LogMessage("XCiteExacte: Get Lamp Hours: " + buff);
    }
    return DEVICE_OK;
