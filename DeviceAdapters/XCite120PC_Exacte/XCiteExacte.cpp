@@ -703,12 +703,14 @@ int XCiteExacte::OnGetLampHours(MM::PropertyBase* pProp, MM::ActionType eAct)
 
 int XCiteExacte::OnGetOnTime(MM::PropertyBase* pProp, MM::ActionType eAct)
 {
-   if (eAct == MM:BeforeGet)
+   if (eAct == MM::BeforeGet)
    {
       string buff;
-	  if enable
+	  bool on;
+	  GetOpen(on);
+	  if (on)
 	  {
-         sprintf(buff, "%d", (int) (GetCurrentMMTime - lastShutterTime_).getMsec() / 1000);
+         buff = to_string(static_cast<long long> ((GetCurrentMMTime() - lastShutterTime_).getMsec() / 1000));
   	  }
 	  else
 	  {
