@@ -130,6 +130,8 @@ int LambdaVF5::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		return DEVICE_OK;
 	}
 	else if (eAct == MM::StartSequence) {
+		int ret = resetSequenceIndex(1); //Start from the beginning of the sequence
+		if (ret != DEVICE_OK) { return ret; }
 		return SetProperty("TTL In", "Enabled");
 	
 	}
@@ -363,4 +365,13 @@ int LambdaVF5::onSequenceType(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		return DEVICE_OK;
 	}
    return MM_CODE_ERR;
+}
+
+int LambdaVF5::resetSequenceIndex(unsigned char channel) {
+	//This function resets the current index in the TTL sequence that the Lambda 10 is at. This is the only reliable way to go back to the beginning of a sequence.
+	std::vector<unsigned char> cmd;
+	cmd.push_back(0xFA);
+	cmd.push_back(0xC0);
+	cmd.push_back(channel);
+	return hub_->SetCommand(cmd);
 }
