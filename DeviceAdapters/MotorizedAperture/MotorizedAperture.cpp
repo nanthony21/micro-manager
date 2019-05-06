@@ -3,12 +3,12 @@
 // PROJECT:       Micro-Manager
 // SUBSYSTEM:     DeviceAdapters
 //-----------------------------------------------------------------------------
-// DESCRIPTION:   VarispecLCTF 
+// DESCRIPTION:   MotorizedAperture 
 //
 // AUTHOR:        Nick Anthony, BPL, 2019 driver for lab-build motorized aperture for nikon TI microscope.
 
 
-#include "VarispecLCTF.h"
+#include "MotorizedAperture.h"
 #include <cstdio>
 #include <cctype>
 #include <string>
@@ -25,8 +25,6 @@ const char* g_Term            = "\r"; //unique termination
 const char* g_BaudRate_key        = "Baud Rate";
 const char* g_Baud9600            = "9600";
 
-
-
 using namespace std;
 
 //Local utility functions.
@@ -36,8 +34,8 @@ std::string DoubleToString(double N) {
    return ss.str();
 }
 
-std::vector<double> getNumbersFromMessage(std::string VarispecLCTFmessage) {
-   std::istringstream variStream(VarispecLCTFmessage);
+std::vector<double> getNumbersFromMessage(std::string MotorizedAperturemessage) {
+   std::istringstream variStream(MotorizedAperturemessage);
    std::string prefix;
    double val;
    std::vector<double> values;
@@ -67,7 +65,7 @@ MODULE_API MM::Device* CreateDevice(const char* deviceName)
    if (deviceName == 0) return 0;
    if (strcmp(deviceName, g_ControllerName) == 0) 
    {
-      return new VarispecLCTF();
+      return new MotorizedAperture();
    }
    return 0;
 }
@@ -78,28 +76,24 @@ MODULE_API void DeleteDevice(MM::Device* pDevice)
 }
 
 
-
-
-
 ///////////////////////////////////////////////////////////////////////////////
-// VarispecLCTF Hub
+// MotorizedAperture Hub
 ///////////////////////////////////////////////////////////////////////////////
 
-VarispecLCTF::VarispecLCTF() :
+MotorizedAperture::MotorizedAperture() :
    baud_(g_Baud9600),
    initialized_(false),
    initializedDelay_(false),
-   answerTimeoutMs_(1000),
-  wavelength_(546)
+   answerTimeoutMs_(1000)
 {
    InitializeDefaultErrorMessages();
    // pre-initialization properties
    // Port:
-   CPropertyAction* pAct = new CPropertyAction(this, &VarispecLCTF::OnPort);
+   CPropertyAction* pAct = new CPropertyAction(this, &MotorizedAperture::OnPort);
    CreateProperty(MM::g_Keyword_Port, "Undefined", MM::String, false, pAct, true);
    SetProperty(MM::g_Keyword_Port, port_.c_str());
    
-   pAct = new CPropertyAction(this, &VarispecLCTF::OnBaud);
+   pAct = new CPropertyAction(this, &MotorizedAperture::OnBaud);
    CreateProperty(g_BaudRate_key, "Undefined", MM::String, false, pAct, true);
 
    AddAllowedValue(g_BaudRate_key, g_Baud115200, (long)115200);
@@ -109,23 +103,23 @@ VarispecLCTF::VarispecLCTF() :
 }
 
 
-VarispecLCTF::~VarispecLCTF()
+MotorizedAperture::~MotorizedAperture()
 {
    Shutdown();
 }
 
-void VarispecLCTF::GetName(char* name) const
+void MotorizedAperture::GetName(char* name) const
 {
    CDeviceUtils::CopyLimitedString(name, g_ControllerName);
 }
 
 
-bool VarispecLCTF::SupportsDeviceDetection(void)
+bool MotorizedAperture::SupportsDeviceDetection(void)
 {
    return true;
 }
 
-MM::DeviceDetectionStatus VarispecLCTF::DetectDevice(void)
+MM::DeviceDetectionStatus MotorizedAperture::DetectDevice(void)
 {
    // all conditions must be satisfied...
    MM::DeviceDetectionStatus result = MM::Misconfigured;
@@ -165,8 +159,8 @@ MM::DeviceDetectionStatus VarispecLCTF::DetectDevice(void)
          if (ret != DEVICE_OK || serialnum_.length() < 5)
          {
             LogMessageCode(ret, true);
-            LogMessage(std::string("VarispecLCTF not found on ") + port_.c_str(), true);
-            LogMessage(std::string("VarispecLCTF serial no:") + serialnum_, true);
+            LogMessage(std::string("MotorizedAperture not found on ") + port_.c_str(), true);
+            LogMessage(std::string("MotorizedAperture serial no:") + serialnum_, true);
             ret = 1;
             serialnum_ = "0";
             pS->Shutdown();
@@ -174,8 +168,8 @@ MM::DeviceDetectionStatus VarispecLCTF::DetectDevice(void)
          else
          {
             // to succeed must reach here....
-            LogMessage(std::string("VarispecLCTF found on ") + port_.c_str(), true);
-            LogMessage(std::string("VarispecLCTF serial no:") + serialnum_, true);
+            LogMessage(std::string("MotorizedAperture found on ") + port_.c_str(), true);
+            LogMessage(std::string("MotorizedAperture serial no:") + serialnum_, true);
             result = MM::CanCommunicate;
             GetCoreCallback()->SetSerialProperties(port_.c_str(),
                "600.0",
@@ -198,10 +192,10 @@ MM::DeviceDetectionStatus VarispecLCTF::DetectDevice(void)
    return result;
 }
 
-int VarispecLCTF::Initialize()
+int MotorizedAperture::Initialize()
 {
-   SetErrorText(97, "The VarispecLCTF reports that it is not exercised.");
-   SetErrorText(98, "The VarispecLCTF reports that it is not initialized.");
+   SetErrorText(97, "The MotorizedAperture reports that it is not exercised.");
+   SetErrorText(98, "The MotorizedAperture reports that it is not initialized.");
 
    //Configure the com port.
    GetCoreCallback()->SetSerialProperties(port_.c_str(),
@@ -223,13 +217,13 @@ int VarispecLCTF::Initialize()
       return ret;
 
    // Version number
-   CPropertyAction* pAct = new CPropertyAction(this, &VarispecLCTF::OnSerialNumber);
+   CPropertyAction* pAct = new CPropertyAction(this, &MotorizedAperture::OnSerialNumber);
    ret = CreateProperty("Version Number", "Version Number Not Found", MM::String, true, pAct);
    if (ret != DEVICE_OK)
       return ret;
 
-   //Set VarispecLCTF to Standard Comms mode
-   ret = sendCmd("B0",getFromVarispecLCTF_);
+   //Set MotorizedAperture to Standard Comms mode
+   ret = sendCmd("B0",getFromMotorizedAperture_);
    if (ret != DEVICE_OK) {return ret;}
    ret = sendCmd("G0"); //disable the TTL port
    if (ret != DEVICE_OK) {return ret;}
@@ -237,14 +231,14 @@ int VarispecLCTF::Initialize()
    while (true){
       ret = getStatus();
       if (ret == 98) { //Needs initialization
-         LogMessage("VarispecLCTF: Running initialization");
+         LogMessage("MotorizedAperture: Running initialization");
          sendCmd("I1");
          while (reportsBusy()){
             CDeviceUtils::SleepMs(100);
          }
       }
       else if (ret == 97) { //needs exercising
-         LogMessage("VarispecLCTF: Running exercise");
+         LogMessage("MotorizedAperture: Running exercise");
          sendCmd("E1");
          while (reportsBusy()){
             CDeviceUtils::SleepMs(100);
@@ -264,26 +258,26 @@ int VarispecLCTF::Initialize()
    std::vector<double> nums = getNumbersFromMessage(ans);   //This will be in the format (revision level, shortest wavelength, longest wavelength, serial number).
    if (ret != DEVICE_OK)
       return ret;
-   pAct = new CPropertyAction(this, &VarispecLCTF::OnWavelength);
+   pAct = new CPropertyAction(this, &MotorizedAperture::OnWavelength);
    ret = CreateProperty("Wavelength", DoubleToString(wavelength_).c_str(), MM::Float, false, pAct);
    if (ret != DEVICE_OK)
       return ret;
    SetPropertyLimits("Wavelength", nums.at(1), nums.at(2));
 
    // Delay
-   pAct = new CPropertyAction(this, &VarispecLCTF::OnDelay);
+   pAct = new CPropertyAction(this, &MotorizedAperture::OnDelay);
    ret = CreateProperty("Device Delay (ms.)", "200.0", MM::Float, false, pAct);
    if (ret != DEVICE_OK)
       return ret;
    SetPropertyLimits("Device Delay (ms.)", 0.0, 200.0);
 
-   pAct = new CPropertyAction(this, &VarispecLCTF::OnSendToVarispecLCTF);
-   ret = CreateProperty("String send to VarispecLCTF", "", MM::String, false, pAct);
+   pAct = new CPropertyAction(this, &MotorizedAperture::OnSendToMotorizedAperture);
+   ret = CreateProperty("String send to MotorizedAperture", "", MM::String, false, pAct);
    if (ret != DEVICE_OK) {
       return ret;
    }
-   pAct = new CPropertyAction(this, &VarispecLCTF::OnGetFromVarispecLCTF);
-   ret = CreateProperty("String from VarispecLCTF", "", MM::String, true, pAct);
+   pAct = new CPropertyAction(this, &MotorizedAperture::OnGetFromMotorizedAperture);
+   ret = CreateProperty("String from MotorizedAperture", "", MM::String, true, pAct);
    if (ret != DEVICE_OK) {
       return ret;
    }
@@ -291,14 +285,14 @@ int VarispecLCTF::Initialize()
    return DEVICE_OK;
 }
 
-int VarispecLCTF::Shutdown() {
+int MotorizedAperture::Shutdown() {
    initialized_ = false;
    return DEVICE_OK;
 }
 
-//////////////// Action Handlers (VarispecLCTF) /////////////////
+//////////////// Action Handlers (MotorizedAperture) /////////////////
 
-int VarispecLCTF::OnPort(MM::PropertyBase* pProp, MM::ActionType pAct)
+int MotorizedAperture::OnPort(MM::PropertyBase* pProp, MM::ActionType pAct)
 {
    if (pAct == MM::BeforeGet)
    {
@@ -317,186 +311,92 @@ int VarispecLCTF::OnPort(MM::PropertyBase* pProp, MM::ActionType pAct)
    return DEVICE_OK;
 }
 
-int VarispecLCTF::OnBaud(MM::PropertyBase* pProp, MM::ActionType eAct)
-{
-   if (eAct == MM::BeforeGet)
-   {
+int MotorizedAperture::OnBaud(MM::PropertyBase* pProp, MM::ActionType eAct) {
+   if (eAct == MM::BeforeGet) {
       pProp->Set(baud_.c_str());
    }
-   else if (eAct == MM::AfterSet)
-   {
-      if (initialized_)
-      {
+   else if (eAct == MM::AfterSet) {
+      if (initialized_) {
          pProp->Set(baud_.c_str());
          return DEVICE_INVALID_INPUT_PARAM;
       }
       pProp->Get(baud_);
    }
-
    return DEVICE_OK;
 }
 
-
- int VarispecLCTF::OnSerialNumber(MM::PropertyBase* pProp, MM::ActionType eAct)
- {
-    if (eAct == MM::BeforeGet)
-    {
-       int ret = sendCmd("V?", serialnum_);
-       if (ret != DEVICE_OK) { return ret; }
-       pProp->Set(serialnum_.c_str());
-    }
-    return DEVICE_OK;
- }
-
- int VarispecLCTF::OnWavelength(MM::PropertyBase* pProp, MM::ActionType eAct)
- {
+ int MotorizedAperture::OnSpeed(MM::PropertyBase* pProp, MM::ActionType eAct) {
     int ret;
     switch (eAct) {
-
-       case (MM::BeforeGet):
-       {
+       case (MM::BeforeGet): {
           std::string ans;
-          ret = sendCmd("W?", ans);
+          ret = sendCmd("S?", ans);
           if (ret != DEVICE_OK) { return ret; }
           vector<double> numbers = getNumbersFromMessage(ans);
-          if (numbers.size() == 0) 
-          { //The device must have returned "W*" meaning that an invalid wavelength was sent
-             SetErrorText(99, "The Varispec device was commanded to tune to an out of range wavelength.");
-             return 99;
-          }
           pProp->Set(numbers[0]);
-          ret = getStatus();
           if (ret != DEVICE_OK) { return ret; }
           break;
        }
-
-       case (MM::AfterSet): 
-       {
-          double wavelength;
+       case (MM::AfterSet): {
+          double speed;
           // read value from property
-          pProp->Get(wavelength);
-          // write wavelength out to device....
+          pProp->Get(speed);
+          // write speed out to device....
           ostringstream cmd;
           cmd.setf(ios::fixed,ios::floatfield);
           cmd.precision(3);
-          cmd << "W " << wavelength;
+          cmd << "S" << speed;
           ret = sendCmd(cmd.str());
           if (ret != DEVICE_OK)
              return ret;
-          changedTime_ = GetCurrentMMTime();
-          wavelength_ = wavelength;
-          break;
-       }
-
-       case (MM::IsSequenceable): 
-       {
-          pProp->SetSequenceable(128);   //We are using the palette functionality as this is slightly faster than specifying a wavelength jump. the limit of paletted is 128
-          break;
-       }
-       case (MM::StartSequence): 
-       {
-          ret = sendCmd("M0"); //Ensure we are in sequence mode 0.
-          if (ret != DEVICE_OK) {return ret;}
-          ret = sendCmd("G1"); //Enable the TTL port. wavelength will change every pulse
-          if (ret != DEVICE_OK) { return ret; }
-          ret = sendCmd("P0");   //Go to the first pallete element before sequencing begins
-          if (ret != DEVICE_OK) { return ret; }
-          break;
-       }
-
-       case (MM::StopSequence): 
-       {
-          ret = sendCmd("G0"); //disable the TTL port
-          ret |= sendCmd("P0");//Go to the first pallete element after sequencing
-          if (ret != DEVICE_OK) { return ret; }
-          break;
-       }
-       case (MM::AfterLoadSequence): 
-       {
-          ret = sendCmd("C1"); //Clear the devices pallete memory
-          if (ret != DEVICE_OK) { return ret; }
-          std::vector<std::string> sequence =  pProp->GetSequence();
-          for (unsigned int i = 0; i < sequence.size(); i++) 
-          {
-             ostringstream cmd;
-             cmd.setf(ios::fixed,ios::floatfield);
-             cmd.precision(3);
-             cmd << "D" << sequence.at(i) << "," << i;
-             ret = sendCmd(cmd.str());   //Send the sequence over serial.
-             if (ret != DEVICE_OK) { return ret; }
-          }
-          ret = getStatus();
-          if (ret != DEVICE_OK) { return ret; }
-          break;
-       }
-
-       case (MM::NoAction): 
-       {
+          speed_ = speed;
           break;
        }
    }
-
    return DEVICE_OK;
  }
 
-
- int VarispecLCTF::OnSendToVarispecLCTF(MM::PropertyBase* pProp, MM::ActionType eAct)
- {
-    if (eAct == MM::AfterSet) {
-       // read value from property
-       pProp->Get(sendToVarispecLCTF_);
-       int ret = sendCmd(sendToVarispecLCTF_, getFromVarispecLCTF_);
-       if (ret != DEVICE_OK) { return ret; }
-       ret = getStatus();
-       if (ret != DEVICE_OK) { return ret; }
-    }
-    return DEVICE_OK;
+ int MotorizedAperture::OnPosition(MM::PropertyBase* pProp, MM::ActionType eAct) {
+    int ret;
+    switch (eAct) {
+       case (MM::BeforeGet): {
+          std::string ans;
+          ret = sendCmd("A?", ans);
+          if (ret != DEVICE_OK) { return ret; }
+          vector<double> numbers = getNumbersFromMessage(ans); //TODO make this int
+          pProp->Set(numbers[0]);
+          if (ret != DEVICE_OK) { return ret; }
+          break;
+       }
+       case (MM::AfterSet): {
+          int position;
+          // read value from property
+          pProp->Get(position);
+          // write speed out to device....
+          ostringstream cmd;
+          cmd << "A" << position;
+          ret = sendCmd(cmd.str());
+          if (ret != DEVICE_OK)
+             return ret;
+          position_ = position;
+          break;
+       }
+   }
+   return DEVICE_OK;
  }
 
-int VarispecLCTF::OnGetFromVarispecLCTF(MM::PropertyBase* pProp, MM::ActionType eAct)
-{
-   if (eAct == MM::BeforeGet)
-   {
-      //   GetSerialAnswer (port_.c_str(), "\r", getFromVarispecLCTF_);
-      pProp->Set(getFromVarispecLCTF_.c_str());
-   }
-   return DEVICE_OK;
+bool MotorizedAperture::Busy() {
+	std::string ans;
+	int ret = sendCmd("B?", ans);
+	if (ret != DEVICE_OK) {return ret;}
+	if (strcmp("1", ans) == 0) {
+		return true;
+	} else {
+		return false;
+	}
 }
 
-int VarispecLCTF::OnDelay(MM::PropertyBase* pProp, MM::ActionType eAct)
-{
-   if (eAct == MM::BeforeGet)
-   {
-      double delay = GetDelayMs();
-      initializedDelay_ = true;
-      pProp->Set(delay);
-   }
-   else if (eAct == MM::AfterSet)
-   {
-      double delayT;
-      pProp->Get(delayT);
-      if (initializedDelay_) {
-         SetDelayMs(delayT);
-      }
-      delay_ = delayT * 1000;
-   }
-   return DEVICE_OK;
-}
-
-bool VarispecLCTF::Busy()
-{
-   if (delay_.getMsec() > 0.0) {
-      MM::MMTime interval = GetCurrentMMTime() - changedTime_;
-      if (interval.getMsec() < delay_.getMsec()) {
-         return true;
-      }
-   }
-   return false;
-}
-
-
-
-int VarispecLCTF::sendCmd(std::string cmd, std::string& out) {
+int MotorizedAperture::sendCmd(std::string cmd, std::string& out) {
    int ret = sendCmd(cmd);
    if (ret != DEVICE_OK) {
       return ret;
@@ -505,7 +405,7 @@ int VarispecLCTF::sendCmd(std::string cmd, std::string& out) {
    return DEVICE_OK;
 }
 
-int VarispecLCTF::sendCmd(std::string cmd) {
+int MotorizedAperture::sendCmd(std::string cmd) {
    int ret = SendSerialCommand(port_.c_str(), cmd.c_str(), "\r");
    if (ret != DEVICE_OK) {
       return DEVICE_SERIAL_COMMAND_FAILED;
@@ -513,74 +413,9 @@ int VarispecLCTF::sendCmd(std::string cmd) {
    std::string response;
    GetSerialAnswer(port_.c_str(), "\r", response);   //Read back the response and make sure it matches what we sent. If not there is an issue with communication.
    if (response != cmd) {
-      SetErrorText(99, "The VarispecLCTF did not respond.");
+      SetErrorText(99, "The MotorizedAperture did not respond.");
       return 99;
    }
    return DEVICE_OK;
 }
 
-int VarispecLCTF::getStatus() {
-   std::string statuscmd = "@";
-   int ret = WriteToComPort(port_.c_str(), (const unsigned char*) statuscmd.c_str(), 1);
-   unsigned char ans[2];
-   unsigned char tempAns[1];
-   unsigned long numRead = 0;
-   unsigned long numReadThisTime;
-   while (numRead < 2) {
-      ret = ReadFromComPort(port_.c_str(), tempAns, 1, numReadThisTime); //This function returns even if nothing is available. Causes problems.
-      if (ret != DEVICE_OK) { return ret; }
-      if (numReadThisTime > 0) {
-         ans[numRead] = tempAns[0];
-         numRead += numReadThisTime;
-      }
-   }
-   if (ans[0] != '@') {
-      SetErrorText(99, "Varispec LCTF: Did not receive '@' in response to a request for status");
-      return 99;
-   }
-   if (ans[1] & 0x20) { //An error has occurred.
-      std::string answer;
-      ret = sendCmd("R?", answer);
-      if (ret != DEVICE_OK) { return ret; }
-      ret = sendCmd("R1"); //clear the error
-      if (ret != DEVICE_OK) { return ret; }
-      std::string err =  "The VarispecLCTF reports error number: " + answer;
-      SetErrorText(99, err.c_str());
-      return 99;
-   }
-   if (!(ans[1] & 0x02)) {
-      return 97;
-   }
-   if (!(ans[1] & 0x01)) {
-      return 98;
-   }
-   return DEVICE_OK;
-}
-
-bool VarispecLCTF::reportsBusy() {
-   std::string statuscmd = "!";
-   int ret = WriteToComPort(port_.c_str(), (const unsigned char*) statuscmd.c_str(), 1);
-   unsigned char ans[2];
-   unsigned long numRead = 0;
-   unsigned char tempAns[1];
-   unsigned long numReadThisTime;
-   while (numRead < 2) {
-      ret = ReadFromComPort(port_.c_str(), tempAns, 1, numReadThisTime); //This function returns even if nothing is available. Causes problems.
-      if (ret != DEVICE_OK) { return ret; }
-      if (numReadThisTime > 0) {
-         ans[numRead] = tempAns[0];
-         numRead += numReadThisTime;
-      }
-   }
-   ret = ReadFromComPort(port_.c_str(), ans, 2, numRead);
-   if (ans[1] == '>') {
-      return false;
-   }
-   else if (ans[1] == '<') {
-      return true;
-   }
-   else {
-      LogMessage("Error: VarispecLCTF received invalid character in response to busy request");
-      return false;
-   }
-}

@@ -58,19 +58,13 @@ private:
 	std::string port_;
 	std::string baud_;
 	bool initialized_;
-	bool initializedDelay_;
 	double answerTimeoutMs_;
 	double position_; // the cached values
 	double speed_;
 	double accel_;
-	MM::MMTime changedTime_;
-	MM::MMTime delay_;
-	std::vector<double> sequence_;
 
 	int sendCmd(std::string cmd, std::string& out);	//Send a command and save the response in `out`.
 	int sendCmd(std::string cmd);	//Send a command that does not repond with any extra information.
-	int getStatus();
-	bool reportsBusy();
 };
 
 #endif //_MOTORIZED_APERTURE_
