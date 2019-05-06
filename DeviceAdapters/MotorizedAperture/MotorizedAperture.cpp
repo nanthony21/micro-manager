@@ -34,6 +34,14 @@ std::string DoubleToString(double N) {
    return ss.str();
 }
 
+//Local utility functions.
+std::string IntToString(int N) {
+   ostringstream ss("");
+   ss << N;
+   return ss.str();
+}
+
+
 std::vector<double> getNumbersFromMessage(std::string MotorizedAperturemessage) {
    std::istringstream variStream(MotorizedAperturemessage);
    std::string prefix;
@@ -83,7 +91,6 @@ MODULE_API void DeleteDevice(MM::Device* pDevice)
 MotorizedAperture::MotorizedAperture() :
    baud_(g_Baud9600),
    initialized_(false),
-   initializedDelay_(false),
    answerTimeoutMs_(1000)
 {
    InitializeDefaultErrorMessages();
@@ -96,10 +103,7 @@ MotorizedAperture::MotorizedAperture() :
    pAct = new CPropertyAction(this, &MotorizedAperture::OnBaud);
    CreateProperty(g_BaudRate_key, "Undefined", MM::String, false, pAct, true);
 
-   AddAllowedValue(g_BaudRate_key, g_Baud115200, (long)115200);
    AddAllowedValue(g_BaudRate_key, g_Baud9600, (long)9600);
-
-   EnableDelay();
 }
 
 
@@ -124,16 +128,13 @@ MM::DeviceDetectionStatus MotorizedAperture::DetectDevice(void)
       GetProperty(g_BaudRate_key, baud);
 
       std::string transformed = port_;
-      for (std::string::iterator its = transformed.begin(); its != transformed.end(); ++its)
-      {
+      for (std::string::iterator its = transformed.begin(); its != transformed.end(); ++its) { //convert port name to lower case
          *its = (char)tolower(*its);
       }
 
-      if (0 < transformed.length() && 0 != transformed.compare("undefined") && 0 != transformed.compare("unknown"))
-      {
+      if ((0 < transformed.length()) && (0 != transformed.compare("undefined")) && (0 != transformed.compare("unknown"))) { //If tyhe port name exists and is not "undefined" or "unknown"
          int ret = 0;
          MM::Device* pS;
-
 
          // the port property seems correct, so give it a try
          result = MM::CanNotCommunicate;
@@ -149,21 +150,17 @@ MM::DeviceDetectionStatus MotorizedAperture::DetectDevice(void)
          pS->Initialize();
 
          PurgeComPort(port_.c_str());
-         ret = sendCmd("V?", serialnum_);
-         if (ret != DEVICE_OK || serialnum_.length() < 5)
-         {
+		 string response;
+         ret = sendCmd("ID?", response);
+         if ((ret != DEVICE_OK) || (response.compare("I am Motorized Aperture") != 0)) {
             LogMessageCode(ret, true);
             LogMessage(std::string("MotorizedAperture not found on ") + port_.c_str(), true);
-            LogMessage(std::string("MotorizedAperture serial no:") + serialnum_, true);
+            LogMessage(std::string("Got response:") + response, true);
             ret = 1;
-            serialnum_ = "0";
             pS->Shutdown();
          }
-         else
-         {
-            // to succeed must reach here....
+         else { // to succeed must reach here....
             LogMessage(std::string("MotorizedAperture found on ") + port_.c_str(), true);
-            LogMessage(std::string("MotorizedAperture serial no:") + serialnum_, true);
             result = MM::CanCommunicate;
             GetCoreCallback()->SetSerialProperties(port_.c_str(),
                "600.0",
@@ -172,9 +169,7 @@ MM::DeviceDetectionStatus MotorizedAperture::DetectDevice(void)
                "Off",
                "None",
                "1");
-            serialnum_ = "0";
             pS->Initialize();
-            ret = sendCmd("R1");
             pS->Shutdown();
          }
       }
@@ -207,23 +202,27 @@ int MotorizedAperture::Initialize()
    if (DEVICE_OK != ret)
       return ret;
 
-   // Version number
-   CPropertyAction* pAct = new CPropertyAction(this, &MotorizedAperture::OnSerialNumber);
-   ret = CreateProperty("Version Number", "Version Number Not Found", MM::String, true, pAct);
+   // Speed
+   pAct = new CPropertyAction(this, &MotorizedAperture::OnSpeed);
+   ret = CreateProperty("Speed", DoubleToString(speed_).c_str(), MM::Float, false, pAct);
+   if (ret != DEVICE_OK)
+      return ret;
+   SetPropertyLimits("Speed", 0, 100);
+
+   //Position
+   pAct = new CPropertyAction(this, &MotorizedAperture::OnPosition);
+   ret = CreateProperty("Position", IntToString(position_).c_str(), MM::Integer, false, pAct);
    if (ret != DEVICE_OK)
       return ret;
 
-   // Wavelength
-   std::string ans;
-   ret = sendCmd("V?", ans);   //The serial number response also contains the tuning range of the device
-   std::vector<double> nums = getNumbersFromMessage(ans);   //This will be in the format (revision level, shortest wavelength, longest wavelength, serial number).
+   //Acceleration
+   pAct = new CPropertyAction(this, &MotorizedAperture::OnAccel);
+   ret = CreateProperty("Accel", DoubleToString(accel_).c_str(), MM::Float, false, pAct);
    if (ret != DEVICE_OK)
       return ret;
-   pAct = new CPropertyAction(this, &MotorizedAperture::OnWavelength);
-   ret = CreateProperty("Wavelength", DoubleToString(wavelength_).c_str(), MM::Float, false, pAct);
-   if (ret != DEVICE_OK)
-      return ret;
-   SetPropertyLimits("Wavelength", nums.at(1), nums.at(2));
+   SetPropertyLimits("Accel", 0, 100);
+
+   //Home
 
    SetErrorText(99, "Device set busy for ");
    return DEVICE_OK;
@@ -307,8 +306,9 @@ int MotorizedAperture::OnBaud(MM::PropertyBase* pProp, MM::ActionType eAct) {
           std::string ans;
           ret = sendCmd("A?", ans);
           if (ret != DEVICE_OK) { return ret; }
-          vector<double> numbers = getNumbersFromMessage(ans); //TODO make this int
-          pProp->Set(numbers[0]);
+          vector<double> numbers = getNumbersFromMessage(ans);
+		  retVal = int(numbers[0]);
+          pProp->Set(retVal);
           if (ret != DEVICE_OK) { return ret; }
           break;
        }

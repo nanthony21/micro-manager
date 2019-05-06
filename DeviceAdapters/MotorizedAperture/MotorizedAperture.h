@@ -53,6 +53,7 @@ public:
 	int OnAccel (MM::PropertyBase* pProp, MM::ActionType eAct);
 	int OnCancel (MM::PropertyBase* pProp, MM::ActionType eAct);
 	int OnEnable (MM::PropertyBase* pProp, MM::ActionType eAct);
+	int OnHome (MM::PropertyBase* pProp, MM::ActionType eAct);
 	  
 private:
 	std::string port_;
