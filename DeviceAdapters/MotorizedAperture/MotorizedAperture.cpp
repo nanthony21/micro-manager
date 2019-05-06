@@ -30,8 +30,7 @@ const char* g_Baud9600            = "9600";
 using namespace std;
 
 //Local utility functions.
-std::string DoubleToString(double N)
-{
+std::string DoubleToString(double N) {
    ostringstream ss("");
    ss << N;
    return ss.str();
@@ -42,21 +41,16 @@ std::vector<double> getNumbersFromMessage(std::string VarispecLCTFmessage) {
    std::string prefix;
    double val;
    std::vector<double> values;
-
    variStream >> prefix;
-   for (;;) 
-   {
+   while (true) {
       variStream >> val;
-      if (!variStream.fail()) 
-      {
+      if (!variStream.fail()) {
          values.push_back(val);
       }
-      else 
-      {
+      else {
          break;
       }
    }
-
    return values;
 }
 
@@ -65,7 +59,7 @@ std::vector<double> getNumbersFromMessage(std::string VarispecLCTFmessage) {
 ///////////////////////////////////////////////////////////////////////////////
 MODULE_API void InitializeModuleData()
 {
-   RegisterDevice(g_ControllerName, MM::GenericDevice, "VarispecLCTF");
+   RegisterDevice(g_ControllerName, MM::GenericDevice, "MotorizedAperture");
 }
 
 MODULE_API MM::Device* CreateDevice(const char* deviceName)

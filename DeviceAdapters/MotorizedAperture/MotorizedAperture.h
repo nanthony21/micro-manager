@@ -18,8 +18,8 @@
 #include "../../MMDevice/MMDevice.h"
 #include "../../MMDevice/DeviceBase.h"
 
-#include <string>
-#include <map>
+//#include <string>
+//#include <map>
 
 //////////////////////////////////////////////////////////////////////////////
 #define ERR_PORT_CHANGE_FORBIDDEN 109
@@ -50,7 +50,9 @@ public:
 	int OnBaud	(MM::PropertyBase* pProp, MM::ActionType eAct);
 	int OnPosition (MM::PropertyBase* pProp, MM::ActionType eAct);  
 	int OnSpeed (MM::PropertyBase* pProp, MM::ActionType eAct); 
-	int OnAccel (MM::PropertyBase* pProp, MM::ActionType eAct); 
+	int OnAccel (MM::PropertyBase* pProp, MM::ActionType eAct);
+	int OnCancel (MM::PropertyBase* pProp, MM::ActionType eAct);
+	int OnEnable (MM::PropertyBase* pProp, MM::ActionType eAct);
 	  
 private:
 	std::string port_;
