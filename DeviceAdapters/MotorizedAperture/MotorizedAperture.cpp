@@ -113,12 +113,6 @@ void MotorizedAperture::GetName(char* name) const
    CDeviceUtils::CopyLimitedString(name, g_ControllerName);
 }
 
-
-bool MotorizedAperture::SupportsDeviceDetection(void)
-{
-   return true;
-}
-
 MM::DeviceDetectionStatus MotorizedAperture::DetectDevice(void)
 {
    // all conditions must be satisfied...
@@ -194,9 +188,6 @@ MM::DeviceDetectionStatus MotorizedAperture::DetectDevice(void)
 
 int MotorizedAperture::Initialize()
 {
-   SetErrorText(97, "The MotorizedAperture reports that it is not exercised.");
-   SetErrorText(98, "The MotorizedAperture reports that it is not initialized.");
-
    //Configure the com port.
    GetCoreCallback()->SetSerialProperties(port_.c_str(),
       "600.0",
@@ -222,36 +213,6 @@ int MotorizedAperture::Initialize()
    if (ret != DEVICE_OK)
       return ret;
 
-   //Set MotorizedAperture to Standard Comms mode
-   ret = sendCmd("B0",getFromMotorizedAperture_);
-   if (ret != DEVICE_OK) {return ret;}
-   ret = sendCmd("G0"); //disable the TTL port
-   if (ret != DEVICE_OK) {return ret;}
-
-   while (true){
-      ret = getStatus();
-      if (ret == 98) { //Needs initialization
-         LogMessage("MotorizedAperture: Running initialization");
-         sendCmd("I1");
-         while (reportsBusy()){
-            CDeviceUtils::SleepMs(100);
-         }
-      }
-      else if (ret == 97) { //needs exercising
-         LogMessage("MotorizedAperture: Running exercise");
-         sendCmd("E1");
-         while (reportsBusy()){
-            CDeviceUtils::SleepMs(100);
-         }
-      }
-      else if (ret != DEVICE_OK) {
-         return ret;
-      }
-      else { //Device is ok
-         break;
-      }
-   }
-
    // Wavelength
    std::string ans;
    ret = sendCmd("V?", ans);   //The serial number response also contains the tuning range of the device
@@ -264,23 +225,6 @@ int MotorizedAperture::Initialize()
       return ret;
    SetPropertyLimits("Wavelength", nums.at(1), nums.at(2));
 
-   // Delay
-   pAct = new CPropertyAction(this, &MotorizedAperture::OnDelay);
-   ret = CreateProperty("Device Delay (ms.)", "200.0", MM::Float, false, pAct);
-   if (ret != DEVICE_OK)
-      return ret;
-   SetPropertyLimits("Device Delay (ms.)", 0.0, 200.0);
-
-   pAct = new CPropertyAction(this, &MotorizedAperture::OnSendToMotorizedAperture);
-   ret = CreateProperty("String send to MotorizedAperture", "", MM::String, false, pAct);
-   if (ret != DEVICE_OK) {
-      return ret;
-   }
-   pAct = new CPropertyAction(this, &MotorizedAperture::OnGetFromMotorizedAperture);
-   ret = CreateProperty("String from MotorizedAperture", "", MM::String, true, pAct);
-   if (ret != DEVICE_OK) {
-      return ret;
-   }
    SetErrorText(99, "Device set busy for ");
    return DEVICE_OK;
 }

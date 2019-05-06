@@ -41,7 +41,7 @@ public:
 	bool Initialized() {return initialized_;};
 	  
 	// device discovery
-	bool SupportsDeviceDetection(void);
+	bool SupportsDeviceDetection(void) { return true; };
 	MM::DeviceDetectionStatus DetectDevice(void);
 
 	// action interface
