@@ -223,6 +223,18 @@ int MotorizedAperture::Initialize()
    SetPropertyLimits("Accel", 0, 100);
 
    //Home
+   pAct = new CPropertyAction(this, &MotorizedAperture::OnHome);
+   ret = CreateProperty("Home", "", MM::String, false, pAct);
+   AddAllowedValue("Home","");
+   AddAllowedValue("Home","Run");
+   if (ret != DEVICE_OK) { return ret; }
+
+   //Cancel
+   pAct = new CPropertyAction(this, &MotorizedAperture::OnCancel);
+   ret = CreateProperty("Cancel", "", MM::String, false, pAct);
+   AddAllowedValue("Cancel","");
+   AddAllowedValue("Cancel","Run");
+   if (ret != DEVICE_OK) { return ret; }
 
    SetErrorText(99, "Device set busy for ");
    return DEVICE_OK;
@@ -328,6 +340,32 @@ int MotorizedAperture::OnBaud(MM::PropertyBase* pProp, MM::ActionType eAct) {
    }
    return DEVICE_OK;
  }
+ 
+int MotorizedAperture::OnHome(MM::PropertyBase* pProp, MM::ActionType eAct) {
+	switch (eAct) {
+	case (MM::AfterSet): {
+		std::string setting;
+		pProp->Get(setting);
+		if (setting.compare("Run")==0) {
+			//TODO
+		}
+		pProp->Set("");
+	}
+	}
+}
+
+int MotorizedAperture::OnCancel(MM::PropertyBase* pProp, MM::ActionType eAct) {
+	switch (eAct) {
+	case (MM::AfterSet): {
+		std::string setting;
+		pProp->Get(setting);
+		if (setting.compare("Run")==0) {
+			//TODO
+		}
+		pProp->Set("");
+	}
+	}
+}
 
 bool MotorizedAperture::Busy() {
 	std::string ans;
@@ -339,6 +377,7 @@ bool MotorizedAperture::Busy() {
 		return false;
 	}
 }
+
 
 int MotorizedAperture::sendCmd(std::string cmd, std::string& out) {
    int ret = sendCmd(cmd);
