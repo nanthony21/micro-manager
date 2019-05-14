@@ -56,7 +56,7 @@ private:
 	std::string baud_;
 	bool initialized_;
 	double answerTimeoutMs_;
-	double position_; // the cached values
+	int position_; // the cached values
 	double speed_;
 	double accel_;
 

@@ -12,7 +12,7 @@
 #define snprintf _snprintf 
 #endif
 
-#include "MotorizedAperture.h"
+#include "MotorizeAperture.h"
 //#include <cstdio>
 //#include <cctype>
 //#include <string>
@@ -46,8 +46,8 @@ std::string IntToString(int N) {
 }
 
 
-std::vector<double> getNumbersFromMessage(std::string MotorizedAperturemessage) {
-   std::istringstream variStream(MotorizedAperturemessage);
+std::vector<double> getNumbersFromMessage(std::string message) {
+   std::istringstream variStream(message);
    std::string prefix;
    double val;
    std::vector<double> values;
@@ -207,7 +207,7 @@ int MotorizedAperture::Initialize()
       return ret;
 
    // Speed
-   pAct = new CPropertyAction(this, &MotorizedAperture::OnSpeed);
+   CPropertyAction* pAct = new CPropertyAction(this, &MotorizedAperture::OnSpeed);
    ret = CreateProperty("Speed", DoubleToString(speed_).c_str(), MM::Float, false, pAct);
    if (ret != DEVICE_OK)
       return ret;
@@ -323,13 +323,13 @@ int MotorizedAperture::OnBaud(MM::PropertyBase* pProp, MM::ActionType eAct) {
           ret = sendCmd("A?", ans);
           if (ret != DEVICE_OK) { return ret; }
           vector<double> numbers = getNumbersFromMessage(ans);
-		  retVal = int(numbers[0]);
+		  long retVal = int(numbers[0]);
           pProp->Set(retVal);
           if (ret != DEVICE_OK) { return ret; }
           break;
        }
        case (MM::AfterSet): {
-          int position;
+          long position;
           // read value from property
           pProp->Get(position);
           // write speed out to device....
@@ -353,7 +353,7 @@ int MotorizedAperture::OnHome(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		if (setting.compare("Run")==0) {
 			ostringstream cmd;
 			cmd << "H";
-			ret = sendCmd(cmd.str());
+			int ret = sendCmd(cmd.str());
 			if (ret != DEVICE_OK)
 				return ret;
 			break;
@@ -364,6 +364,7 @@ int MotorizedAperture::OnHome(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		break;
 	}
 	}
+	return DEVICE_OK;
 }
 
 int MotorizedAperture::OnCancel(MM::PropertyBase* pProp, MM::ActionType eAct) {
@@ -374,7 +375,7 @@ int MotorizedAperture::OnCancel(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		if (setting.compare("Run")==0) {
 			ostringstream cmd;
 			cmd << "C";
-			ret = sendCmd(cmd.str());
+			int ret = sendCmd(cmd.str());
 			if (ret != DEVICE_OK)
 				return ret;
 			break;
@@ -385,13 +386,14 @@ int MotorizedAperture::OnCancel(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		break;
 	}
 	}
+	return DEVICE_OK;
 }
 
 bool MotorizedAperture::Busy() {
 	std::string ans;
 	int ret = sendCmd("B?", ans);
-	if (ret != DEVICE_OK) {return ret;}
-	if (strcmp("1", ans) == 0) {
+	if (ret != DEVICE_OK) {return true;}
+	if (strcmp("1", ans.c_str()) == 0) {
 		return true;
 	} else {
 		return false;
