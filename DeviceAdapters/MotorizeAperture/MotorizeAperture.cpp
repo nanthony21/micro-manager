@@ -29,40 +29,6 @@ const char* g_Term            = "\r"; //unique termination
 const char* g_BaudRate_key        = "Baud Rate";
 const char* g_Baud9600            = "9600";
 
-using namespace std;
-
-//Local utility functions.
-std::string DoubleToString(double N) {
-   ostringstream ss("");
-   ss << N;
-   return ss.str();
-}
-
-//Local utility functions.
-std::string IntToString(int N) {
-   ostringstream ss("");
-   ss << N;
-   return ss.str();
-}
-
-
-std::vector<double> getNumbersFromMessage(std::string message) {
-   std::istringstream variStream(message);
-   std::string prefix;
-   double val;
-   std::vector<double> values;
-   variStream >> prefix;
-   while (true) {
-      variStream >> val;
-      if (!variStream.fail()) {
-         values.push_back(val);
-      }
-      else {
-         break;
-      }
-   }
-   return values;
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Exported MMDevice API
@@ -154,7 +120,7 @@ MM::DeviceDetectionStatus MotorizedAperture::DetectDevice(void)
          pS->Initialize();
 
          PurgeComPort(port_.c_str());
-		 string response;
+		 std::string response;
          ret = sendCmd("ID?", response);
          if ((ret != DEVICE_OK) || (response.compare("I am Motorized Aperture") != 0)) {
             LogMessageCode(ret, true);
@@ -208,20 +174,20 @@ int MotorizedAperture::Initialize()
 
    // Speed
    CPropertyAction* pAct = new CPropertyAction(this, &MotorizedAperture::OnSpeed);
-   ret = CreateProperty("Speed", DoubleToString(speed_).c_str(), MM::Float, false, pAct);
+   ret = CreateProperty("Speed", std::to_string(static_cast<long double>(speed_)).c_str(), MM::Float, false, pAct);
    if (ret != DEVICE_OK)
       return ret;
    SetPropertyLimits("Speed", 0, 100);
 
    //Position
    pAct = new CPropertyAction(this, &MotorizedAperture::OnPosition);
-   ret = CreateProperty("Position", IntToString(position_).c_str(), MM::Integer, false, pAct);
+   ret = CreateProperty("Position", std::to_string(static_cast<long long>(position_)).c_str(), MM::Integer, false, pAct);
    if (ret != DEVICE_OK)
       return ret;
 
    //Acceleration
    pAct = new CPropertyAction(this, &MotorizedAperture::OnAccel);
-   ret = CreateProperty("Accel", DoubleToString(accel_).c_str(), MM::Float, false, pAct);
+   ret = CreateProperty("Accel", std::to_string(static_cast<long double>(accel_)).c_str(), MM::Float, false, pAct);
    if (ret != DEVICE_OK)
       return ret;
    SetPropertyLimits("Accel", 0, 100);
@@ -291,8 +257,8 @@ int MotorizedAperture::OnPosition(MM::PropertyBase* pProp, MM::ActionType eAct) 
           std::string ans;
           ret = sendCmd("A?", ans);
           if (ret != DEVICE_OK) { return ret; }
-          vector<double> numbers = getNumbersFromMessage(ans);
-		  long retVal = int(numbers[0]);
+          int number = std::stoi(ans);
+		  long retVal = int(number);
           pProp->Set(retVal);
           if (ret != DEVICE_OK) { return ret; }
           break;
@@ -302,7 +268,7 @@ int MotorizedAperture::OnPosition(MM::PropertyBase* pProp, MM::ActionType eAct) 
           // read value from property
           pProp->Get(position);
           // write speed out to device....
-          ostringstream cmd;
+          std::ostringstream cmd;
           cmd << "A" << position;
           ret = sendCmd(cmd.str());
           if (ret != DEVICE_OK)
@@ -321,8 +287,8 @@ int MotorizedAperture::OnPosition(MM::PropertyBase* pProp, MM::ActionType eAct) 
           std::string ans;
           ret = sendCmd("S?", ans);
           if (ret != DEVICE_OK) { return ret; }
-          vector<double> numbers = getNumbersFromMessage(ans);
-          pProp->Set(numbers[0]);
+          double number = std::stod(ans);
+          pProp->Set(number);
           if (ret != DEVICE_OK) { return ret; }
           break;
        }
@@ -331,8 +297,8 @@ int MotorizedAperture::OnPosition(MM::PropertyBase* pProp, MM::ActionType eAct) 
           // read value from property
           pProp->Get(speed);
           // write speed out to device....
-          ostringstream cmd;
-          cmd.setf(ios::fixed,ios::floatfield);
+          std::ostringstream cmd;
+          cmd.setf(std::ios::fixed, std::ios::floatfield);
           cmd.precision(3);
           cmd << "S" << speed;
           ret = sendCmd(cmd.str());
@@ -357,8 +323,8 @@ int MotorizedAperture::OnAccel(MM::PropertyBase* pProp, MM::ActionType eAct) {
           // read value from property
           pProp->Get(accel);
           // write speed out to device....
-          ostringstream cmd;
-          cmd.setf(ios::fixed,ios::floatfield);
+          std::ostringstream cmd;
+          cmd.setf(std::ios::fixed, std::ios::floatfield);
           cmd.precision(3);
           cmd << "a" << accel;
           ret = sendCmd(cmd.str());
@@ -377,7 +343,7 @@ int MotorizedAperture::OnHome(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		std::string setting;
 		pProp->Get(setting);
 		if (setting.compare("Run")==0) {
-			ostringstream cmd;
+			std::ostringstream cmd;
 			cmd << "H";
 			int ret = sendCmd(cmd.str());
 			if (ret != DEVICE_OK)
@@ -399,7 +365,7 @@ int MotorizedAperture::OnCancel(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		std::string setting;
 		pProp->Get(setting);
 		if (setting.compare("Run")==0) {
-			ostringstream cmd;
+			std::ostringstream cmd;
 			cmd << "C";
 			int ret = sendCmd(cmd.str());
 			if (ret != DEVICE_OK)
