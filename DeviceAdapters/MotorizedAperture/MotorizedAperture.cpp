@@ -347,9 +347,17 @@ int MotorizedAperture::OnHome(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		std::string setting;
 		pProp->Get(setting);
 		if (setting.compare("Run")==0) {
-			//TODO
+			ostringstream cmd;
+			cmd << "H";
+			ret = sendCmd(cmd.str());
+			if (ret != DEVICE_OK)
+				return ret;
+			break;
 		}
+	}
+	case (MM::BeforeGet): {
 		pProp->Set("");
+		break;
 	}
 	}
 }
@@ -360,9 +368,17 @@ int MotorizedAperture::OnCancel(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		std::string setting;
 		pProp->Get(setting);
 		if (setting.compare("Run")==0) {
-			//TODO
+			ostringstream cmd;
+			cmd << "C";
+			ret = sendCmd(cmd.str());
+			if (ret != DEVICE_OK)
+				return ret;
+			break;
 		}
+	}
+	case (MM::BeforeGet): {
 		pProp->Set("");
+		break;
 	}
 	}
 }
