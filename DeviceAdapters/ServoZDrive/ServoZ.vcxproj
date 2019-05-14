@@ -19,9 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{FE81C0DA-B042-4ACA-B0CF-B9ABEB687FB8}</ProjectGuid>
+    <ProjectGuid>{CE7CA6EF-439C-4CE2-BB8B-425274B5F9D5}</ProjectGuid>
     <RootNamespace>IlluminateLedArray</RootNamespace>
-    <ProjectName>IlluminateLedArray</ProjectName>
+    <ProjectName>ServoZ</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -154,10 +154,10 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="LEDArray.cpp" />
+    <ClCompile Include="ServoZ.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="LEDArray.h" />
+    <ClInclude Include="ServoZ.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\MMDevice\MMDevice-SharedRuntime.vcxproj">

@@ -10,6 +10,9 @@ endif
 if BUILD_ANDORSDK3
    ANDORSDK3 = AndorSDK3
 endif
+if BUILD_BASLER
+   BASLER = Basler
+endif
 if BUILD_DC1394
    DC1394 = dc1394
 endif
@@ -65,6 +68,7 @@ SUBDIRS = \
 	$(ANDOR) \
 	$(ANDORLASERCOMBINER) \
 	$(ANDORSDK3) \
+	$(BASLER) \
 	$(DC1394) \
 	$(FAKECAMERA) \
 	$(HIDMANAGER) \
@@ -185,6 +189,8 @@ SUBDIRS = \
 	XCiteXT600 \
 	XLight \
 	Xcite \
+	PI \
+	YodnE600 \
 	Yokogawa \
 	Zaber \
 	ZeissCAN \

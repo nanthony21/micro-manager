@@ -59,6 +59,7 @@ CPLogic::CPLogic(const char* name) :
    numCells_(16),
    currentPosition_(1),
    useAsdiSPIMShutter_(false),
+   useAs4ChShutter_(false),
    shutterOpen_(false),
    advancedPropsEnabled_(false),
    editCellUpdates_(true)
@@ -72,11 +73,13 @@ CPLogic::CPLogic(const char* name) :
    CPropertyAction* pAct;
 
    // pre-init property to say how PLogic card is used
-   // for now the only option is have shutter functionality for diSPIM (laser controls on BNCs 5-8)
+   // original option is have shutter functionality for diSPIM (laser controls on BNCs 5-8)
+   // second option to have similar function with laser controls on BNCs 5-8 but not use diSPIM beam enable
    pAct = new CPropertyAction (this, &CPLogic::OnPLogicMode);
    CreateProperty(g_PLogicModePropertyName, g_PLogicModeNone, MM::String, false, pAct, true);
    AddAllowedValue(g_PLogicModePropertyName, g_PLogicModeNone);
    AddAllowedValue(g_PLogicModePropertyName, g_PLogicModediSPIMShutter);
+   AddAllowedValue(g_PLogicModePropertyName, g_PLogicMode4ChShutter);
 }
 
 int CPLogic::Initialize()
@@ -115,6 +118,13 @@ int CPLogic::Initialize()
    pAct = new CPropertyAction (this, &CPLogic::OnPLogicOutputState);
    CreateProperty(g_PLogicOutputStatePropertyName, "0", MM::Integer, true, pAct);
    UpdateProperty(g_PLogicOutputStatePropertyName);
+
+   // reports the output state of the upper part of the logic cell array as unsigned integer
+   if (numCells_ > 16) {
+      pAct = new CPropertyAction (this, &CPLogic::OnPLogicOutputStateUpper);
+      CreateProperty(g_PLogicOutputStateUpperPropertyName, "0", MM::Integer, true, pAct);
+      UpdateProperty(g_PLogicOutputStateUpperPropertyName);
+   }
 
    // reports the output state of the BNCs as unsigned integer
    pAct = new CPropertyAction (this, &CPLogic::OnFrontpanelOutputState);
@@ -191,6 +201,9 @@ int CPLogic::Initialize()
    if (FirmwareVersionAtLeast(3.23)) {
       AddAllowedValue(g_SetCardPresetPropertyName, g_PresetCode34, 34);
       AddAllowedValue(g_SetCardPresetPropertyName, g_PresetCode35, 35);
+   }
+   if (FirmwareVersionAtLeast(3.27)) {
+      AddAllowedValue(g_SetCardPresetPropertyName, g_PresetCode36, 36);
    }
    UpdateProperty(g_SetCardPresetPropertyName);
 
@@ -272,7 +285,7 @@ int CPLogic::Initialize()
    AddAllowedValue(g_AdvancedPropertiesPropertyName, g_YesState);
    UpdateProperty(g_AdvancedPropertiesPropertyName);
 
-   if (useAsdiSPIMShutter_)
+   if (useAs4ChShutter_)
    {
       // special masked preset selector for shutter channel
       pAct = new CPropertyAction (this, &CPLogic::OnSetShutterChannel);
@@ -290,20 +303,38 @@ int CPLogic::Initialize()
          AddAllowedValue(g_SetChannelPropertyName, g_Channel5To8Alt, 31);
       }
       UpdateProperty(g_SetChannelPropertyName); // doesn't do anything right now
-      // makes sure card actually gets initialized
-      // SetProperty(g_SetChannelPropertyName, g_ChannelNone);  // done via SetProperty(g_SetCardPresetPropertyName, g_PresetCode14)
-
-      // set up card up for diSPIM shutter
-      // this sets up all 8 BNC outputs
-      // also it sets the card to be set to shutter channel "none"
-      SetProperty(g_SetCardPresetPropertyName, g_PresetCode14);
+      SetProperty(g_SetChannelPropertyName, g_ChannelNone);  // makes sure card actually gets initialized
 
       // always start shutter in closed state
       SetOpen(false);
+   }
 
-      // set to be triggered by micro-mirror card
+   if (useAsdiSPIMShutter_) {
+      // set up card up for diSPIM shutter
+      // this sets up all 8 BNC outputs including 4 lasers
+      SetProperty(g_SetCardPresetPropertyName, g_PresetCode14);
+
+      // set to be triggered by micro-mirror card for diSPIM case
       SetProperty(g_TriggerSourcePropertyName, g_TriggerSourceCode1);
    }
+
+   // things for shutter when not a diSPIM
+   if (useAs4ChShutter_ && !useAsdiSPIMShutter_) {
+      // sets up 4 lasers triggered by cell 10
+      SetProperty(g_SetCardPresetPropertyName, g_PresetCode12);
+
+      if (FirmwareVersionAtLeast(3.27)) {
+         SetProperty(g_SetCardPresetPropertyName, g_PresetCode36);
+      } else {
+         // have to replicate preset behavior ourselves: cell 10 will reflect cell 8
+         SetProperty(g_PointerPositionPropertyName, "10");
+         SetProperty(g_EditCellTypePropertyName, g_CellTypeCode5);
+         SetProperty(g_EditCellInput1PropertyName, "64");
+         SetProperty(g_EditCellInput2PropertyName, "8");
+      }
+
+   }
+
 
    initialized_ = true;
    return DEVICE_OK;
@@ -311,7 +342,7 @@ int CPLogic::Initialize()
 
 int CPLogic::SetOpen(bool open)
 {
-   if (useAsdiSPIMShutter_)
+   if (useAs4ChShutter_)
    {
       ostringstream command; command.str("");
       shutterOpen_ = open;
@@ -326,7 +357,7 @@ int CPLogic::SetOpen(bool open)
 
 int CPLogic::GetOpen(bool& open)
 {
-   open = useAsdiSPIMShutter_ && shutterOpen_;
+   open = useAs4ChShutter_ && shutterOpen_;
    return DEVICE_OK;
 }
 
@@ -340,7 +371,21 @@ int CPLogic::OnPLogicMode(MM::PropertyBase* pProp, MM::ActionType eAct)
    } else if (eAct == MM::AfterSet) {
       string tmpstr;
       pProp->Get(tmpstr);
-      useAsdiSPIMShutter_ = (tmpstr.compare(g_PLogicModediSPIMShutter) == 0);
+      if (tmpstr.compare(g_PLogicModediSPIMShutter) == 0)
+      {
+         useAsdiSPIMShutter_ = true;
+         useAs4ChShutter_ = true;
+      }
+      else if (tmpstr.compare(g_PLogicMode4ChShutter) == 0)
+      {
+         useAsdiSPIMShutter_ = false;
+         useAs4ChShutter_ = true;
+      }
+      else
+      {
+         useAsdiSPIMShutter_ = false;
+         useAs4ChShutter_ = false;
+      }
    }
    return DEVICE_OK;
 }
@@ -372,6 +417,22 @@ int CPLogic::OnPLogicOutputState(MM::PropertyBase* pProp, MM::ActionType eAct)
    {
       // always read
       command << addressChar_ << "RDADC Z?";
+      RETURN_ON_MM_ERROR ( hub_->QueryCommandVerify(command.str(), ":A") );
+      RETURN_ON_MM_ERROR ( hub_->ParseAnswerAfterPosition2(val) );
+      if (!pProp->Set((long)val))
+         return DEVICE_INVALID_PROPERTY_VALUE;
+   }
+   return DEVICE_OK;
+}
+
+int CPLogic::OnPLogicOutputStateUpper(MM::PropertyBase* pProp, MM::ActionType eAct)
+{
+   unsigned int val;
+   ostringstream command; command.str("");
+   if (eAct == MM::BeforeGet || eAct == MM::AfterSet)
+   {
+      // always read
+      command << addressChar_ << "RDADC F?";
       RETURN_ON_MM_ERROR ( hub_->QueryCommandVerify(command.str(), ":A") );
       RETURN_ON_MM_ERROR ( hub_->ParseAnswerAfterPosition2(val) );
       if (!pProp->Set((long)val))
