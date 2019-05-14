@@ -60,8 +60,7 @@ MODULE_API void DeleteDevice(MM::Device* pDevice)
 
 MotorizedAperture::MotorizedAperture() :
    baud_(g_Baud9600),
-   initialized_(false),
-   answerTimeoutMs_(1000)
+   initialized_(false)
 {
    InitializeDefaultErrorMessages();
    // pre-initialization properties
@@ -174,36 +173,30 @@ int MotorizedAperture::Initialize()
 
    // Speed
    CPropertyAction* pAct = new CPropertyAction(this, &MotorizedAperture::OnSpeed);
-   ret = CreateProperty("Speed", std::to_string(static_cast<long double>(speed_)).c_str(), MM::Float, false, pAct);
+   ret = CreateProperty("Speed", "0", MM::Float, false, pAct);
    if (ret != DEVICE_OK)
       return ret;
    SetPropertyLimits("Speed", 0, 100);
 
    //Position
    pAct = new CPropertyAction(this, &MotorizedAperture::OnPosition);
-   ret = CreateProperty("Position", std::to_string(static_cast<long long>(position_)).c_str(), MM::Integer, false, pAct);
+   ret = CreateProperty("Position", "0", MM::Integer, false, pAct);
    if (ret != DEVICE_OK)
       return ret;
+   SetPropertyLimits("Position", -100, 400);
 
    //Acceleration
    pAct = new CPropertyAction(this, &MotorizedAperture::OnAccel);
-   ret = CreateProperty("Accel", std::to_string(static_cast<long double>(accel_)).c_str(), MM::Float, false, pAct);
+   ret = CreateProperty("Accel", "0", MM::Float, false, pAct);
    if (ret != DEVICE_OK)
       return ret;
-   SetPropertyLimits("Accel", 0, 100);
+   SetPropertyLimits("Accel", 0, 500);
 
    //Home
    pAct = new CPropertyAction(this, &MotorizedAperture::OnHome);
    ret = CreateProperty("Home", "", MM::String, false, pAct);
    AddAllowedValue("Home","");
    AddAllowedValue("Home","Run");
-   if (ret != DEVICE_OK) { return ret; }
-
-   //Cancel
-   pAct = new CPropertyAction(this, &MotorizedAperture::OnCancel);
-   ret = CreateProperty("Cancel", "", MM::String, false, pAct);
-   AddAllowedValue("Cancel","");
-   AddAllowedValue("Cancel","Run");
    if (ret != DEVICE_OK) { return ret; }
 
    SetErrorText(99, "Device set busy for ");
@@ -273,7 +266,6 @@ int MotorizedAperture::OnPosition(MM::PropertyBase* pProp, MM::ActionType eAct) 
           ret = sendCmd(cmd.str());
           if (ret != DEVICE_OK)
              return ret;
-          position_ = position;
           break;
        }
    }
@@ -304,7 +296,6 @@ int MotorizedAperture::OnPosition(MM::PropertyBase* pProp, MM::ActionType eAct) 
           ret = sendCmd(cmd.str());
           if (ret != DEVICE_OK)
              return ret;
-          speed_ = speed;
           break;
        }
    }
@@ -315,7 +306,12 @@ int MotorizedAperture::OnAccel(MM::PropertyBase* pProp, MM::ActionType eAct) {
     int ret;
     switch (eAct) {
        case (MM::BeforeGet): {
-          pProp->Set(accel_); //We don't have a way of querying this
+		  std::string ans;
+          ret = sendCmd("a?", ans);
+          if (ret != DEVICE_OK) { return ret; }
+          double number = std::stod(ans);
+          pProp->Set(number);
+          if (ret != DEVICE_OK) { return ret; }
           break;
        }
        case (MM::AfterSet): {
@@ -330,7 +326,6 @@ int MotorizedAperture::OnAccel(MM::PropertyBase* pProp, MM::ActionType eAct) {
           ret = sendCmd(cmd.str());
           if (ret != DEVICE_OK)
              return ret;
-          accel_ = accel;
           break;
        }
    }
@@ -359,27 +354,6 @@ int MotorizedAperture::OnHome(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	return DEVICE_OK;
 }
 
-int MotorizedAperture::OnCancel(MM::PropertyBase* pProp, MM::ActionType eAct) {
-	switch (eAct) {
-	case (MM::AfterSet): {
-		std::string setting;
-		pProp->Get(setting);
-		if (setting.compare("Run")==0) {
-			std::ostringstream cmd;
-			cmd << "C";
-			int ret = sendCmd(cmd.str());
-			if (ret != DEVICE_OK)
-				return ret;
-			break;
-		}
-	}
-	case (MM::BeforeGet): {
-		pProp->Set("");
-		break;
-	}
-	}
-	return DEVICE_OK;
-}
 
 bool MotorizedAperture::Busy() {
 	std::string ans;
@@ -407,6 +381,7 @@ int MotorizedAperture::sendCmd(std::string cmd, std::string& out) {
 }
 
 int MotorizedAperture::sendCmd(std::string cmd) {
+	PurgeComPort(port_.c_str());
    int ret = SendSerialCommand(port_.c_str(), cmd.c_str(), "\r");
    if (ret != DEVICE_OK) {
       return DEVICE_SERIAL_COMMAND_FAILED;

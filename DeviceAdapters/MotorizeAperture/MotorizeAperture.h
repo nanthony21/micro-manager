@@ -48,17 +48,12 @@ public:
 	int OnPosition (MM::PropertyBase* pProp, MM::ActionType eAct);  
 	int OnSpeed (MM::PropertyBase* pProp, MM::ActionType eAct); 
 	int OnAccel (MM::PropertyBase* pProp, MM::ActionType eAct);
-	int OnCancel (MM::PropertyBase* pProp, MM::ActionType eAct);
 	int OnHome (MM::PropertyBase* pProp, MM::ActionType eAct);
 	  
 private:
 	std::string port_;
 	std::string baud_;
 	bool initialized_;
-	double answerTimeoutMs_;
-	int position_; // the cached values
-	double speed_;
-	double accel_;
 
 	int sendCmd(std::string cmd, std::string& out);	//Send a command and save the response in `out`.
 	int sendCmd(std::string cmd);	//Send a command that does not repond with any extra information.
