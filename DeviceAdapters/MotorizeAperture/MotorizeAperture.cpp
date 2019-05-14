@@ -284,6 +284,36 @@ int MotorizedAperture::OnBaud(MM::PropertyBase* pProp, MM::ActionType eAct) {
    return DEVICE_OK;
 }
 
+int MotorizedAperture::OnPosition(MM::PropertyBase* pProp, MM::ActionType eAct) {
+    int ret;
+    switch (eAct) {
+       case (MM::BeforeGet): {
+          std::string ans;
+          ret = sendCmd("A?", ans);
+          if (ret != DEVICE_OK) { return ret; }
+          vector<double> numbers = getNumbersFromMessage(ans);
+		  long retVal = int(numbers[0]);
+          pProp->Set(retVal);
+          if (ret != DEVICE_OK) { return ret; }
+          break;
+       }
+       case (MM::AfterSet): {
+          long position;
+          // read value from property
+          pProp->Get(position);
+          // write speed out to device....
+          ostringstream cmd;
+          cmd << "A" << position;
+          ret = sendCmd(cmd.str());
+          if (ret != DEVICE_OK)
+             return ret;
+          position_ = position;
+          break;
+       }
+   }
+   return DEVICE_OK;
+ }
+
  int MotorizedAperture::OnSpeed(MM::PropertyBase* pProp, MM::ActionType eAct) {
     int ret;
     switch (eAct) {
@@ -315,7 +345,7 @@ int MotorizedAperture::OnBaud(MM::PropertyBase* pProp, MM::ActionType eAct) {
    return DEVICE_OK;
  }
 
- int MotorizedAperture::OnPosition(MM::PropertyBase* pProp, MM::ActionType eAct) {
+int MotorizedAperture::OnAccel(MM::PropertyBase* pProp, MM::ActionType eAct) {
     int ret;
     switch (eAct) {
        case (MM::BeforeGet): {
@@ -323,22 +353,23 @@ int MotorizedAperture::OnBaud(MM::PropertyBase* pProp, MM::ActionType eAct) {
           ret = sendCmd("A?", ans);
           if (ret != DEVICE_OK) { return ret; }
           vector<double> numbers = getNumbersFromMessage(ans);
-		  long retVal = int(numbers[0]);
-          pProp->Set(retVal);
+          pProp->Set(numbers[0]);
           if (ret != DEVICE_OK) { return ret; }
           break;
        }
        case (MM::AfterSet): {
-          long position;
+          double accel;
           // read value from property
-          pProp->Get(position);
+          pProp->Get(accel);
           // write speed out to device....
           ostringstream cmd;
-          cmd << "A" << position;
+          cmd.setf(ios::fixed,ios::floatfield);
+          cmd.precision(3);
+          cmd << "A" << accel;
           ret = sendCmd(cmd.str());
           if (ret != DEVICE_OK)
              return ret;
-          position_ = position;
+          accel_ = accel;
           break;
        }
    }
