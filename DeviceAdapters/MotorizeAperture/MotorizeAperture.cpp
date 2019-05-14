@@ -349,12 +349,7 @@ int MotorizedAperture::OnAccel(MM::PropertyBase* pProp, MM::ActionType eAct) {
     int ret;
     switch (eAct) {
        case (MM::BeforeGet): {
-          std::string ans;
-          ret = sendCmd("A?", ans);
-          if (ret != DEVICE_OK) { return ret; }
-          vector<double> numbers = getNumbersFromMessage(ans);
-          pProp->Set(numbers[0]);
-          if (ret != DEVICE_OK) { return ret; }
+          pProp->Set(accel_); //We don't have a way of querying this
           break;
        }
        case (MM::AfterSet): {
@@ -365,7 +360,7 @@ int MotorizedAperture::OnAccel(MM::PropertyBase* pProp, MM::ActionType eAct) {
           ostringstream cmd;
           cmd.setf(ios::fixed,ios::floatfield);
           cmd.precision(3);
-          cmd << "A" << accel;
+          cmd << "a" << accel;
           ret = sendCmd(cmd.str());
           if (ret != DEVICE_OK)
              return ret;
@@ -438,6 +433,10 @@ int MotorizedAperture::sendCmd(std::string cmd, std::string& out) {
       return ret;
    }
    GetSerialAnswer(port_.c_str(), "\r", out); //Try returning any extra response from the device.
+   if (out.length() == 0) {
+	   SetErrorText(99, "The MotorizedAperture received confirmation of its initial command but did not receive a subsequenct response.");
+	   return 99;
+   }
    return DEVICE_OK;
 }
 
