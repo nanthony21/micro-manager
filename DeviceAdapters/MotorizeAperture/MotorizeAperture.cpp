@@ -199,6 +199,11 @@ int MotorizedAperture::Initialize()
    AddAllowedValue("Home","Run");
    if (ret != DEVICE_OK) { return ret; }
 
+    //Status
+   pAct = new CPropertyAction(this, &MotorizedAperture::OnStatus);
+   ret = CreateProperty("StatusOk", "", MM::String, true, pAct);
+   if (ret != DEVICE_OK) { return ret; }
+
    SetErrorText(99, "Device set busy for ");
    return DEVICE_OK;
 }
@@ -257,6 +262,10 @@ int MotorizedAperture::OnPosition(MM::PropertyBase* pProp, MM::ActionType eAct) 
           break;
        }
        case (MM::AfterSet): {
+		   if (!status_) {
+			   SetErrorText(99, "The MotorizedAperture firmware reports that its status is not ok. no movement will be permitted until this is fixed.");
+			   return 99;
+		   }
           long position;
           // read value from property
           pProp->Get(position);
@@ -281,7 +290,6 @@ int MotorizedAperture::OnPosition(MM::PropertyBase* pProp, MM::ActionType eAct) 
           if (ret != DEVICE_OK) { return ret; }
           double number = std::stod(ans);
           pProp->Set(number);
-          if (ret != DEVICE_OK) { return ret; }
           break;
        }
        case (MM::AfterSet): {
@@ -311,7 +319,6 @@ int MotorizedAperture::OnAccel(MM::PropertyBase* pProp, MM::ActionType eAct) {
           if (ret != DEVICE_OK) { return ret; }
           double number = std::stod(ans);
           pProp->Set(number);
-          if (ret != DEVICE_OK) { return ret; }
           break;
        }
        case (MM::AfterSet): {
@@ -354,6 +361,25 @@ int MotorizedAperture::OnHome(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	return DEVICE_OK;
 }
 
+int MotorizedAperture::OnStatus(MM::PropertyBase* pProp, MM::ActionType eAct) {
+	switch (eAct) {
+    case (MM::BeforeGet): {
+		std::string ans;
+        int ret = sendCmd("s?", ans);
+        if (ret != DEVICE_OK) { return ret; }
+        int number = std::stoi(ans);
+		if (number != 0) {
+			pProp->Set("True");
+			status_ = true;
+		} else {
+			pProp->Set("False");
+			status_ = false;
+		}
+        break;
+    }
+	}
+	return DEVICE_OK;
+}
 
 bool MotorizedAperture::Busy() {
 	std::string ans;
