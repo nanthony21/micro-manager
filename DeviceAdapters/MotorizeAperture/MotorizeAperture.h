@@ -18,9 +18,6 @@
 #include "../../MMDevice/MMDevice.h"
 #include "../../MMDevice/DeviceBase.h"
 
-//#include <string>
-//#include <map>
-
 //////////////////////////////////////////////////////////////////////////////
 #define ERR_PORT_CHANGE_FORBIDDEN 109
 

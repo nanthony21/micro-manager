@@ -7,15 +7,19 @@
 //
 // AUTHOR:        Nick Anthony, BPL, 2019 driver for lab-build motorized aperture for nikon TI microscope.
 
+#ifdef WIN32
+#include <windows.h>
+#define snprintf _snprintf 
+#endif
 
 #include "MotorizedAperture.h"
-#include <cstdio>
-#include <cctype>
-#include <string>
-#include <math.h>
+//#include <cstdio>
+//#include <cctype>
+//#include <string>
+//#include <math.h>
 #include "../../MMDevice/ModuleInterface.h"
-#include <sstream>
-#include <algorithm> 
+//#include <sstream>
+//#include <algorithm> 
 
 
 const char* g_ControllerName    = "TI Motorized Aperture";
