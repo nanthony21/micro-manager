@@ -394,20 +394,8 @@ bool MotorizedAperture::Busy() {
 
 
 int MotorizedAperture::sendCmd(std::string cmd, std::string& out) {
-   int ret = sendCmd(cmd);
-   if (ret != DEVICE_OK) {
-      return ret;
-   }
-   GetSerialAnswer(port_.c_str(), "\r", out); //Try returning any extra response from the device.
-   if (out.length() == 0) {
-	   SetErrorText(99, "The MotorizedAperture received confirmation of its initial command but did not receive a subsequenct response.");
-	   return 99;
-   }
-   return DEVICE_OK;
-}
 
-int MotorizedAperture::sendCmd(std::string cmd) {
-	PurgeComPort(port_.c_str());
+   PurgeComPort(port_.c_str());
    int ret = SendSerialCommand(port_.c_str(), cmd.c_str(), "\r");
    if (ret != DEVICE_OK) {
       return DEVICE_SERIAL_COMMAND_FAILED;
@@ -415,9 +403,15 @@ int MotorizedAperture::sendCmd(std::string cmd) {
    std::string response;
    GetSerialAnswer(port_.c_str(), "\r", response);   //Read back the response and make sure it matches what we sent. If not there is an issue with communication.
    if (response != cmd) {
-      SetErrorText(99, "The MotorizedAperture did not respond.");
+	  std::ostringstream err;
+	  err << "Motorized aperture expected response: ";
+	  err << cmd;
+	  err << ". But got: ";
+	  err << response;
+	  SetErrorText(99, err.str().c_str());
       return 99;
    }
+   GetSerialAnswer(port_.c_str(), "\r", out); //Try returning any extra response from the device. Even if there is no response we still need to read out the \r
    return DEVICE_OK;
 }
 

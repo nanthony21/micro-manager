@@ -57,8 +57,7 @@ private:
 	bool initialized_;
 	bool status_; //Whether the firmware says it is ok.
 
-	int sendCmd(std::string cmd, std::string& out);	//Send a command and save the response in `out`.
-	int sendCmd(std::string cmd);	//Send a command that does not repond with any extra information.
+	int sendCmd(std::string cmd, std::string& out = std::string());	//Send a command and save the response in `out`.
 };
 
 #endif //_MOTORIZED_APERTURE_
