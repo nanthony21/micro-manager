@@ -68,11 +68,6 @@ MotorizedAperture::MotorizedAperture() :
    CPropertyAction* pAct = new CPropertyAction(this, &MotorizedAperture::OnPort);
    CreateProperty(MM::g_Keyword_Port, "Undefined", MM::String, false, pAct, true);
    SetProperty(MM::g_Keyword_Port, port_.c_str());
-   
-   pAct = new CPropertyAction(this, &MotorizedAperture::OnBaud);
-   CreateProperty(g_BaudRate_key, "Undefined", MM::String, false, pAct, true);
-
-   AddAllowedValue(g_BaudRate_key, g_Baud9600, (long)9600);
 }
 
 
@@ -131,13 +126,6 @@ MM::DeviceDetectionStatus MotorizedAperture::DetectDevice(void)
          else { // to succeed must reach here....
             LogMessage(std::string("MotorizedAperture found on ") + port_.c_str(), true);
             result = MM::CanCommunicate;
-            GetCoreCallback()->SetSerialProperties(port_.c_str(),
-               "600.0",
-               baud_.c_str(),
-               "0.0",
-               "Off",
-               "None",
-               "1");
             pS->Initialize();
             pS->Shutdown();
          }
@@ -152,14 +140,6 @@ MM::DeviceDetectionStatus MotorizedAperture::DetectDevice(void)
 
 int MotorizedAperture::Initialize()
 {
-   //Configure the com port.
-   GetCoreCallback()->SetSerialProperties(port_.c_str(),
-      "600.0",
-      baud_.c_str(),
-      "0.0",
-      "Off",
-      "None",
-      "1");
 
    // empty the Rx serial buffer before sending command
    int ret = PurgeComPort(port_.c_str());
@@ -205,6 +185,7 @@ int MotorizedAperture::Initialize()
    if (ret != DEVICE_OK) { return ret; }
 
    SetErrorText(99, "Device set busy for ");
+   initialized_ = true;
    return DEVICE_OK;
 }
 
@@ -404,10 +385,11 @@ int MotorizedAperture::sendCmd(std::string cmd, std::string& out) {
    GetSerialAnswer(port_.c_str(), "\r", response);   //Read back the response and make sure it matches what we sent. If not there is an issue with communication.
    if (response != cmd) {
 	  std::ostringstream err;
-	  err << "Motorized aperture expected response: ";
+	  err << "Motorized aperture expected response: '";
 	  err << cmd;
-	  err << ". But got: ";
+	  err << "' But got: '";
 	  err << response;
+	  err << "'";
 	  SetErrorText(99, err.str().c_str());
       return 99;
    }
