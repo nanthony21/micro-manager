@@ -183,7 +183,7 @@ int MotorizedAperture::Initialize()
    ret = CreateProperty("Position", "0", MM::Integer, false, pAct);
    if (ret != DEVICE_OK)
       return ret;
-   SetPropertyLimits("Position", -100, 400);
+   SetPropertyLimits("Position", 0, 510);
 
    //Acceleration
    pAct = new CPropertyAction(this, &MotorizedAperture::OnAccel);
