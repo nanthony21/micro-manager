@@ -397,3 +397,30 @@ int MotorizedAperture::sendCmd(std::string cmd, std::string& out) {
    return DEVICE_OK;
 }
 
+
+/* *********Steps to NA conversion******************
+Note: ~= is used here to denote proportionality
+Initial formulas:
+	Magnification = TubeFocalLength / ObjectionFocalLength ---- M = F / f
+	ApertureDiameter = 2 * NA * f ------- D = 2 * NA * f
+	Put this together to get: NA = (D * M) / (2 * F)
+
+Geometry of motorized aperture:
+	x - x_0 = xPerSteps * (steps - steps_0)
+	x = r * cos(theta) //r = radius from center of aperture to rotator knob. theta angle of rotation from horizontal.
+	theta_0 is the angle at which the aperture is closed, NA=0. there is a corresponding x_0 = r * cos(theta_0).
+	theta > theta_0, x > x_0
+
+	Assume:
+	D ~= theta - theta_0
+
+	put this together to get:
+	theta = r*arcos(x)
+	theta_0 = r*arcos(x_0)
+	D = r * (arcos(x) - arcos(x_0))
+	
+	Final Equation:
+		NA ~= (arcos(C*(steps-steps_0)) - arcos(C*steps_0)) * M
+
+
+
