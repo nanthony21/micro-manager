@@ -151,6 +151,9 @@ int LambdaVF5::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) {
 				cmd.push_back((unsigned char) (wv>>8));
 			}
 		} else {
+			//Any misteps here will cause weirdness and require a hardware restart.
+			//Commands with less than 100 wavelengths must be followed by a 16bit 0 to terminate the sequence (0x00 0x00)
+			//If a command has 100 wavelengths then it must not have any termination character following it.
 			cmd.push_back(0xF2);
 			cmd.push_back(1);
 			std::vector<std::string> seq = pProp->GetSequence();
@@ -159,8 +162,10 @@ int LambdaVF5::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) {
 				cmd.push_back((unsigned char) (wv));
 				cmd.push_back((unsigned char) (wv>>8));
 			}
-			cmd.push_back(0);	//Terminate the sequence loading command.
-			cmd.push_back(0);
+			if (seq.size() < 100) {
+				cmd.push_back(0);	//Terminate the sequence loading command.
+				cmd.push_back(0);
+			}
 		}
 		return hub_->SetCommand(cmd);
 	}
