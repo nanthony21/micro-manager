@@ -93,7 +93,7 @@ int LambdaVF5::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		std::vector<unsigned char> cmd;
 		std::vector<unsigned char> response;
 		cmd.push_back(0xDB);
-		int ret = hub_->SetCommand(cmd, cmd, response);
+		int ret = hub_->SetCommand(cmd, cmd, response, 9); // The expected response is `1xx2xx3xx` where the numbers indicate the channel number and the x's are bytes indicating the wavelength for that channel. Sometimes the x's can be a carriage return which would cause the function to think that the response is terminated. For this reason we much tell the function that there is a minimum response length of 9 bytes.
 		if (ret != DEVICE_OK) { return ret;}
 		if (response.at(0) != 0x01) { //The first byte indicates which channel the response is for. if it isn't 0x01 (channel A) we have a problem.
 			return DEVICE_ERR;
