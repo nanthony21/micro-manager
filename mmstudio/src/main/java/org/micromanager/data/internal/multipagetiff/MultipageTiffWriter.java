@@ -190,6 +190,134 @@ public final class MultipageTiffWriter {
       writeMMHeaderAndSummaryMD(summaryPmap);
    }
 
+   public MultipageTiffReader getReader() {
+      return reader_;
+   }
+   
+   public HashMap<Coords, Long> getIndexMap() {
+      return coordsToOffset_;
+   }
+   
+      
+   /**
+    * Called when there is no more data to be written. Write null offset after
+    * last image in accordance with TIFF specification and set number of index
+    * map entries for backwards reading capability. A file that has been
+    * finished should have everything it needs to be properly reopened in MM or
+    * by a basic TIFF reader
+    * @throws java.io.IOException
+    */
+   public void finish() throws IOException {
+      writeNullOffsetAfterLastImage();
+      // go back to the index map header and change the number of entries from
+      // the max value allotted early to the actual number written The
+      // MultipageTiffReader no longer needs this because it interperets 0's as
+      // the the end of the index map. It is added here for backwards
+      // compatibility of reading using versions of MM before 6-6-2014. Without
+      // it, old versions wouldn't correctly read image 0_0_0_0
+      int numImages = (int) ((indexMapPosition_ - indexMapFirstEntry_) / 20);
+      ByteBuffer indexMapNumEntries = allocateByteBuffer(4);
+      indexMapNumEntries.putInt(0, numImages);
+      fileChannelWrite(indexMapNumEntries, indexMapFirstEntry_ - 4);
+   }
+
+   /**
+    * Called when entire set of files (i.e. acquisition) is finished. Adds in
+    * all the extra (but nonessential) stuff--comments, display settings,
+    * OME/IJ metadata, and truncates the file to a reasonable length
+    * @param omeXML
+    * @param ijDescriptionString Info used by ImageJ/Fiji to know what to do with the data
+    * @throws java.io.IOException
+    */
+   public void close(String omeXML, String ijDescriptionString) throws IOException {
+      String summaryComment = CommentsHelper.getSummaryComment(
+            masterStorage_.getDatastore());
+      writeImageJMetadata(numChannels_, summaryComment);
+
+      try {
+         writeImageDescription(omeXML, omeDescriptionTagPosition_);
+      } catch (IOException ex) {
+         ReportingUtils.showError("Error writing OME metadata");
+      }
+      writeImageDescription(ijDescriptionString, ijDescriptionTagPosition_); 
+      
+      writeDisplaySettings();
+      writeComments();
+
+      executeWritingTask(new Runnable() {
+         @Override
+         public void run() {
+            try {
+               // extra byte of space, just to make sure nothing gets cut off
+               raFile_.setLength(filePosition_ + 8);
+            } catch (IOException ex) {
+               ReportingUtils.logError(ex);
+            }
+            // Dont close file channel and random access file becase Tiff
+            // reader still using them
+            fileChannel_ = null;
+            raFile_ = null;
+         }
+      });
+   }
+   
+   public boolean hasSpaceForFullOMEMetadata(int length) {
+      //5 MB extra padding..just to be safe
+      int extraPadding = 5000000; 
+      long size = length + SPACE_FOR_COMMENTS + numChannels_ * 
+              DISPLAY_SETTINGS_BYTES_PER_CHANNEL + extraPadding + filePosition_;
+      return size < MAX_FILE_SIZE;
+   }
+   
+   public boolean hasSpaceToWrite(Image img, int omeMDLength) {
+      PropertyMap mdPmap = ((DefaultMetadata) img.getMetadata()).toPropertyMap();
+      int mdLength = NonPropertyMapJSONFormats.metadata().toJSON(mdPmap).length();
+      int IFDSize = ENTRIES_PER_IFD*12 + 4 + 16;
+      //5 MB extra padding...just to be safe...
+      int extraPadding = 5000000; 
+      long size = mdLength+IFDSize+bytesPerImagePixels_+SPACE_FOR_COMMENTS+
+      numChannels_ * DISPLAY_SETTINGS_BYTES_PER_CHANNEL + extraPadding + filePosition_;
+      size += omeMDLength;
+      
+      return size < MAX_FILE_SIZE;
+   }
+   
+   public boolean isClosed() {
+      return raFile_ == null;
+   }
+   
+   public void writeBlankImage() throws IOException {
+      writeBlankIFD();
+      writeBuffers();
+   }
+
+   public void writeImage(Image img) throws IOException {
+      if (writingExecutor_ != null) {
+         int queueSize = writingExecutor_.getQueue().size();
+         int attemptCount = 0;
+         while (queueSize > 20) {
+            if (attemptCount == 0) {
+               ReportingUtils.logMessage("Warning: writing queue behind by " + queueSize + " images.");
+            }
+            ++attemptCount;
+            try {
+               Thread.sleep(5);
+               queueSize = writingExecutor_.getQueue().size();
+            } catch (InterruptedException ex) {
+               ReportingUtils.logError(ex);
+            }
+         }
+      }
+      long offset = filePosition_;
+      writeIFD(img);
+      addToIndexMap(img.getCoords(), offset);
+      writeBuffers();
+   }
+   
+   public void setAbortedNumFrames(int n) {
+      numFrames_ = n;
+   }
+   
    /**
     * Insert certain fields into the provided JSONObject that are stored in
     * the Image or its Metadata.
@@ -326,14 +454,6 @@ public final class MultipageTiffWriter {
          }
       });
    }
-
-   public MultipageTiffReader getReader() {
-      return reader_;
-   }
-   
-   public HashMap<Coords, Long> getIndexMap() {
-      return coordsToOffset_;
-   }
    
    private void writeMMHeaderAndSummaryMD(PropertyMap summaryMD) throws IOException {
       String summaryJSON = NonPropertyMapJSONFormats.summaryMetadata().toJSON(summaryMD);
@@ -377,121 +497,6 @@ public final class MultipageTiffWriter {
       
       fileChannelWrite(buffers);
       filePosition_ += headerBuffer.capacity() + mdLength +indexMapSpace;
-   }
-   
-   /**
-    * Called when there is no more data to be written. Write null offset after
-    * last image in accordance with TIFF specification and set number of index
-    * map entries for backwards reading capability. A file that has been
-    * finished should have everything it needs to be properly reopened in MM or
-    * by a basic TIFF reader
-    * @throws java.io.IOException
-    */
-   public void finish() throws IOException {
-      writeNullOffsetAfterLastImage();
-      // go back to the index map header and change the number of entries from
-      // the max value allotted early to the actual number written The
-      // MultipageTiffReader no longer needs this because it interperets 0's as
-      // the the end of the index map. It is added here for backwards
-      // compatibility of reading using versions of MM before 6-6-2014. Without
-      // it, old versions wouldn't correctly read image 0_0_0_0
-      int numImages = (int) ((indexMapPosition_ - indexMapFirstEntry_) / 20);
-      ByteBuffer indexMapNumEntries = allocateByteBuffer(4);
-      indexMapNumEntries.putInt(0, numImages);
-      fileChannelWrite(indexMapNumEntries, indexMapFirstEntry_ - 4);
-   }
-
-   /**
-    * Called when entire set of files (i.e. acquisition) is finished. Adds in
-    * all the extra (but nonessential) stuff--comments, display settings,
-    * OME/IJ metadata, and truncates the file to a reasonable length
-    * @param omeXML
-    * @param ijDescriptionString Info used by ImageJ/Fiji to know what to do with the data
-    * @throws java.io.IOException
-    */
-   public void close(String omeXML, String ijDescriptionString) throws IOException {
-      String summaryComment = CommentsHelper.getSummaryComment(
-            masterStorage_.getDatastore());
-      writeImageJMetadata(numChannels_, summaryComment);
-
-      try {
-         writeImageDescription(omeXML, omeDescriptionTagPosition_);
-      } catch (IOException ex) {
-         ReportingUtils.showError("Error writing OME metadata");
-      }
-      writeImageDescription(ijDescriptionString, ijDescriptionTagPosition_); 
-      
-      writeDisplaySettings();
-      writeComments();
-
-      executeWritingTask(new Runnable() {
-         @Override
-         public void run() {
-            try {
-               // extra byte of space, just to make sure nothing gets cut off
-               raFile_.setLength(filePosition_ + 8);
-            } catch (IOException ex) {
-               ReportingUtils.logError(ex);
-            }
-            // Dont close file channel and random access file becase Tiff
-            // reader still using them
-            fileChannel_ = null;
-            raFile_ = null;
-         }
-      });
-   }
-   
-   public boolean hasSpaceForFullOMEMetadata(int length) {
-      //5 MB extra padding..just to be safe
-      int extraPadding = 5000000; 
-      long size = length + SPACE_FOR_COMMENTS + numChannels_ * 
-              DISPLAY_SETTINGS_BYTES_PER_CHANNEL + extraPadding + filePosition_;
-      return size < MAX_FILE_SIZE;
-   }
-   
-   public boolean hasSpaceToWrite(Image img, int omeMDLength) {
-      PropertyMap mdPmap = ((DefaultMetadata) img.getMetadata()).toPropertyMap();
-      int mdLength = NonPropertyMapJSONFormats.metadata().toJSON(mdPmap).length();
-      int IFDSize = ENTRIES_PER_IFD*12 + 4 + 16;
-      //5 MB extra padding...just to be safe...
-      int extraPadding = 5000000; 
-      long size = mdLength+IFDSize+bytesPerImagePixels_+SPACE_FOR_COMMENTS+
-      numChannels_ * DISPLAY_SETTINGS_BYTES_PER_CHANNEL + extraPadding + filePosition_;
-      size += omeMDLength;
-      
-      return size < MAX_FILE_SIZE;
-   }
-   
-   public boolean isClosed() {
-      return raFile_ == null;
-   }
-   
-   public void writeBlankImage() throws IOException {
-      writeBlankIFD();
-      writeBuffers();
-   }
-
-   public void writeImage(Image img) throws IOException {
-      if (writingExecutor_ != null) {
-         int queueSize = writingExecutor_.getQueue().size();
-         int attemptCount = 0;
-         while (queueSize > 20) {
-            if (attemptCount == 0) {
-               ReportingUtils.logMessage("Warning: writing queue behind by " + queueSize + " images.");
-            }
-            ++attemptCount;
-            try {
-               Thread.sleep(5);
-               queueSize = writingExecutor_.getQueue().size();
-            } catch (InterruptedException ex) {
-               ReportingUtils.logError(ex);
-            }
-         }
-      }
-      long offset = filePosition_;
-      writeIFD(img);
-      addToIndexMap(img.getCoords(), offset);
-      writeBuffers();
    }
  
    private void addToIndexMap(Coords coords, long offset) {
@@ -637,10 +642,6 @@ public final class MultipageTiffWriter {
       buffer.putInt(8,(int)resNumerator_);
       buffer.putInt(12,(int)resDenomenator_);
       return buffer;
-   }
-
-   public void setAbortedNumFrames(int n) {
-      numFrames_ = n;
    }
 
    private ByteBuffer getPixelBuffer(Object pixels) throws IOException {
