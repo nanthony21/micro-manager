@@ -2,6 +2,15 @@
 
 extern std::map<uint8_t, const char*> g_devices;
 
+
+SuperKHub::SuperKHub() {
+	InitializeDefaultErrorMessages();
+	SetErrorText(DEVICE_SERIAL_TIMEOUT, "Serial port timed out without receiving a response.");
+
+	CPropertyAction* pAct = new CPropertyAction(this, &SuperKHub::onPort);
+	CreateProperty(MM::g_Keyword_Port, "Undefined", MM::String, false, pAct, true);
+}
+
 //******Device API******//
 MM::DeviceDetectionStatus SuperKHub::DetectDevice() { //Micromanager sets the port_ variable and then tests by running this function.
 	if (initialized_) {
@@ -11,13 +20,13 @@ MM::DeviceDetectionStatus SuperKHub::DetectDevice() { //Micromanager sets the po
 		MM::DeviceDetectionStatus result = MM::Misconfigured;
 		try {
 			result = MM::CanNotCommunicate;
-			const unsigned short maxLen = 255;
-			char ports[maxLen];
-			NKTPDLL::getAllPorts(ports, maxLen);
-			int ret =  NKTPDLL::openPorts(ports*, 1, 1); //Scan all available ports and open the ones that are recognized as NKT devices
+			unsigned short maxLen = 255;
+			char ports[255];
+			NKTPDLL::getAllPorts(ports, &maxLen);
+			int ret =  NKTPDLL::openPorts(ports, 1, 1); //Scan all available ports and open the ones that are recognized as NKT devices
 			//if (ret!=0){return ret;}
-			char detectedPorts[maxLen];
-			NKTPDLL::getOpenPorts(detectedPorts, maxLen&); //string of comma separated port names
+			char detectedPorts[255];
+			NKTPDLL::getOpenPorts(detectedPorts, &maxLen); //string of comma separated port names
 			if (strcmp(port_.c_str(), detectedPorts) == 0) {//We make the dangerous assumption here that there is only one port found and therefore no commas
 				result = MM::CanCommunicate;
 			}

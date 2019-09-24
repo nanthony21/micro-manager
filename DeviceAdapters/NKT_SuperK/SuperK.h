@@ -26,7 +26,7 @@ private:
 };
 
 class SuperKExtreme: public CShutterBase<SuperKExtreme> {
-	SuperKExtreme(uint8_t address);
+	SuperKExtreme();
 
 	//Device API
 	int Initialize();
@@ -45,6 +45,8 @@ class SuperKExtreme: public CShutterBase<SuperKExtreme> {
 	int onInletTemperature(MM::PropertyBase* pProp, MM::ActionType eAct);
 private:
 	uint8_t address_;
+	bool initialized_;
+	std::string name_;
 };
 
 /*
