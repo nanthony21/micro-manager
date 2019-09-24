@@ -85,3 +85,4 @@ test-reports/
 /DeviceAdapters/DirectElectron/src/DEMessaging/DEServer.pb.cc
 /DeviceAdapters/DirectElectron/src/DEMessaging/DEServer.pb.h
 NKT_SuperK/Debug/
+DeviceAdapters/NKT_SuperK/Debug/
