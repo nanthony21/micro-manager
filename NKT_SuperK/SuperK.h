@@ -1,10 +1,12 @@
 // NKT_SuperK.h
 
 #pragma once
+
 #include "../../MMDevice/MMDevice.h"
 #include "../../MMDevice/DeviceBase.h"
 #include <string>
 #include <map>
+#include <stdint.h>
 
 class SuperKHub: public HubBase<SuperKHub> {
 	SuperKHub();
@@ -21,7 +23,7 @@ class SuperKHub: public HubBase<SuperKHub> {
 
 class SuperKExtreme: public ShutterBase<SuperKExtreme>
 {
-	SuperKExtreme(uint8 address);
+	SuperKExtreme(uint8_t address);
 
 	//Device API
 	int Initialize();

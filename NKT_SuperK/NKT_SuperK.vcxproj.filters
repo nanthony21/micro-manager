@@ -22,7 +22,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="SuperKExtreme.h">
+    <ClInclude Include="SuperK.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

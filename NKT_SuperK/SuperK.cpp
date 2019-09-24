@@ -3,6 +3,8 @@
 #define snprintf _snprintf 
 #endif
 
+#include <map>
+#include <stdint.h>
 
 // Device Names
 const char* g_HubName = "SuperK Hub";
@@ -11,7 +13,7 @@ const char* g_VariaName = "Varia";
 const char* g_BoosterName = "Booster_2011";
 const char* g_FrontPanelName = "Front_Panel_2011";
 
-const std::map<uint8, const char*> g_devices //A map of device names keyed by the integer used by NKTDLL to identify them.
+const std::map<uint8_t, const char*> g_devices //A map of device names keyed by the integer used by NKTDLL to identify them.
 g_devices[0x60] = g_ExtremeName;
 g_devices[0x61] = g_FrontPanelName;
 g_devices[0x65] = g_BoosterName;

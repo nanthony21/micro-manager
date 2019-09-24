@@ -1,5 +1,5 @@
 
-#include "NKT_SuperK.h"
+#include "SuperK.h"
 
 
 SuperKExtreme::SuperKExtreme(const char* name): name_(name)

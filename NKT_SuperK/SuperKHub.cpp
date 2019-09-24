@@ -1,4 +1,6 @@
-extern std::map<uint8, const char*> g_devices;
+#include "SuperK.h"
+
+extern std::map<uint8_t, const char*> g_devices;
 
 //******Device API******//
 MM::DeviceDetectionStatus SuperKExtreme::DetectDevice() { //Micromanager sets the port_ variable and then tests by running this function.
