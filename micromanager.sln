@@ -438,7 +438,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpinnakerCamera", "DeviceAd
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "89North_LDI", "DeviceAdapters\89NorthLDI\89North_LDI.vcxproj", "{986A17F0-C03C-41E5-B27F-5D46CC3361A2}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NKT_SuperK", "NKT_SuperK\NKT_SuperK.vcxproj", "{7801FECB-1F4C-4D54-B1ED-197725AA067F}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NKT_SuperK", "DeviceAdapters\NKT_SuperK\NKT_SuperK.vcxproj", "{7801FECB-1F4C-4D54-B1ED-197725AA067F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

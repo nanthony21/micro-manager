@@ -3,8 +3,7 @@
 #define snprintf _snprintf 
 #endif
 
-#include <map>
-#include <stdint.h>
+#include "SuperK.h"
 
 // Device Names
 const char* g_HubName = "SuperK Hub";
@@ -35,7 +34,7 @@ MODULE_API void DeleteDevice(MM::Device* pDevice)
    delete pDevice;
 }
 
-MODULE_API MM::Device* CreateDevice(const char* deviceName, uint8 address)
+MODULE_API MM::Device* CreateDevice(const char* deviceName, uint8_t address)
 {
    if (deviceName == 0) {
       return 0;
@@ -44,10 +43,10 @@ MODULE_API MM::Device* CreateDevice(const char* deviceName, uint8 address)
 	   SuperKHub* pHub = new SuperKHub();
 	   return pHub;
    }
-   else if (strcmp(deviceName, g_ShutterAName) == 0) {
+   else if (strcmp(deviceName, g_ExtremeName) == 0) {
 		return new SuperKExtreme(address); 
    }
-   else if (strcmp(deviceName, g_LambdaVF5Name) == 0) {
+   else if (strcmp(deviceName, g_VariaName) == 0) {
 	   return new SuperKVaria(address);
    }
    else {

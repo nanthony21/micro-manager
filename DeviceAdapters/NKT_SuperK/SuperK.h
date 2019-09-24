@@ -19,10 +19,12 @@ class SuperKHub: public HubBase<SuperKHub> {
 	int DetectInstalledDevices();
 	//Properties
 	int onPort(MM::PropertyBase* pProp, MM::ActionType eAct);
-}
+private:
+	bool initialized_;
+	std::string port_;
+};
 
-class SuperKExtreme: public ShutterBase<SuperKExtreme>
-{
+class SuperKExtreme: public CShutterBase<SuperKExtreme> {
 	SuperKExtreme(uint8_t address);
 
 	//Device API
@@ -41,7 +43,7 @@ class SuperKExtreme: public ShutterBase<SuperKExtreme>
 	int onPower(MM::PropertyBase* pProp, MM::ActionType eAct);
 	int onInletTemperature(MM::PropertyBase* pProp, MM::ActionType eAct);
 private:
-	std::string port_;
+	uint8_t address_;
 };
 
 /*
@@ -57,4 +59,4 @@ class SuperKVaria {
 private:
 	void updateFilters();
 	checkStatus();
-}*/
+};*/

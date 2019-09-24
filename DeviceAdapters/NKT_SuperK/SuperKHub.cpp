@@ -3,14 +3,14 @@
 extern std::map<uint8_t, const char*> g_devices;
 
 //******Device API******//
-MM::DeviceDetectionStatus SuperKExtreme::DetectDevice() { //Micromanager sets the port_ variable and then tests by running this function.
+MM::DeviceDetectionStatus SuperKHub::DetectDevice() { //Micromanager sets the port_ variable and then tests by running this function.
 	if (initialized_) {
 		return MM::CanCommunicate;
 	}
 	else {
 		MM::DeviceDetectionStatus result = MM::Misconfigured;
 		try {
-			result = MM:CanNotCommunicate
+			result = MM::CanNotCommunicate;
 			int ret = openPorts(getAllPorts(), 1, 1); //Scan all available ports and open the ones that are recognized as NKT devices
 			if (ret!=0){return ret;}
 			std::string detectedPorts = getOpenPorts(); //string of comma separated port names
@@ -28,7 +28,7 @@ MM::DeviceDetectionStatus SuperKExtreme::DetectDevice() { //Micromanager sets th
 
 //*******Hub API*********//
 int SuperKHub::DetectInstalledDevices() {
-	uint8 maxTypes = 255;
+	const uint8_t maxTypes = 255;
 	unsigned char types[maxTypes]; 
 	int ret = deviceGetAllTypes(port_, types*, maxTypes);
 	if (ret!=0) { return ret;}
