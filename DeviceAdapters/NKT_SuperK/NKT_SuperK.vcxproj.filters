@@ -25,5 +25,8 @@
     <ClInclude Include="SuperK.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="x64NKTSDK\NKTPDLL.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

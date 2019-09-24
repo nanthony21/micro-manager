@@ -4,6 +4,7 @@
 
 #include "../../MMDevice/MMDevice.h"
 #include "../../MMDevice/DeviceBase.h"
+#include "x64NKTSDK\NKTPDLL.h"
 #include <string>
 #include <map>
 #include <stdint.h>

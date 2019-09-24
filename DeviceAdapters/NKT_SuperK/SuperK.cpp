@@ -34,7 +34,7 @@ MODULE_API void DeleteDevice(MM::Device* pDevice)
    delete pDevice;
 }
 
-MODULE_API MM::Device* CreateDevice(const char* deviceName, uint8_t address)
+MODULE_API MM::Device* CreateDevice(const char* deviceName)
 {
    if (deviceName == 0) {
       return 0;
