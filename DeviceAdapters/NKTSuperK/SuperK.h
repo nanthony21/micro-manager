@@ -26,7 +26,6 @@ public:
 	int onPort(MM::PropertyBase* pProp, MM::ActionType eAct);
 	std::string getPort();
 private:
-	bool initialized_;
 	std::string port_;
 };
 
@@ -38,7 +37,6 @@ public:
 	int Initialize();
 	int Shutdown();
 	void GetName(char* pName) const;
-	//bool Busy();
 	
 	//Shutter API
 	//int SetOpen(bool open = true);

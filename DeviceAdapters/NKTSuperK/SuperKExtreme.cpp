@@ -21,7 +21,7 @@ SuperKExtreme::SuperKExtreme(): name_(g_ExtremeName) {
 
 	//Get InletTemperature
 	pAct = new CPropertyAction(this, &SuperKExtreme::onInletTemperature);
-	CreateProperty("Inlet Temperature", "0", MM::Float, true, pAct, false); 
+	CreateProperty("Inlet Temperature (C)", "0", MM::Float, true, pAct, false); 
 
 	// Name
 	CreateProperty(MM::g_Keyword_Name, name_.c_str(), MM::String, true);
@@ -51,11 +51,11 @@ void SuperKExtreme::GetName(char* pName) const {
 //******Properties*******//
 int SuperKExtreme::onEmission(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	if (eAct == MM::BeforeGet) {
-		uint8_t val;
-		int ret = NKTPDLL::registerReadU8(hub_->getPort().c_str(), address_, 0x30, &val, -1); //TODO where does this get read to.
-		if (val==3){
+		unsigned long statusBits;
+		NKTPDLL::deviceGetStatusBits(hub_->getPort().c_str(), address_, &statusBits);
+		if (statusBits & 0x0001){ //Bit 0 of statusBits indicates if emission is on.
 			pProp->Set("True");
-		} else { //Val should be 0
+		} else {
 			pProp->Set("False");
 		}
 	}
@@ -76,9 +76,24 @@ int SuperKExtreme::onEmission(MM::PropertyBase* pProp, MM::ActionType eAct) {
 }
 
 int SuperKExtreme::onPower(MM::PropertyBase* pProp, MM::ActionType eAct) {
+	if (eAct == MM::BeforeGet) {
+		uint16_t val;
+		NKTPDLL::registerReadU16(hub_->getPort().c_str(), address_, 0x37, &val, -1);
+		pProp -> Set(((float) val) / 10); //Convert for units of 0.1C to 1C
+	} else if (eAct == MM::AfterSet) {
+		double power;
+		pProp->Get(power);
+		uint16_t val = (uint16_t)(power * 10); //Convert for units of C to 0.1C
+		NKTPDLL::registerWriteU16(hub_->getPort().c_str(), address_, 0x37, val, -1);
+	}
 	return DEVICE_OK;
 }
 
 int SuperKExtreme::onInletTemperature(MM::PropertyBase* pProp, MM::ActionType eAct) {
+	if (eAct == MM::BeforeGet) {
+		int16_t val;
+		NKTPDLL::registerReadS16(hub_->getPort().c_str(), address_, 0x11, &val, -1);
+		pProp -> Set(((float) val) / 10); //Convert for units of 0.1C to 1C
+	}
 	return DEVICE_OK;
 }

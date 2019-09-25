@@ -17,39 +17,34 @@ SuperKHub::~SuperKHub() {
 
 //******Device API******//
 MM::DeviceDetectionStatus SuperKHub::DetectDevice() { //Micromanager sets the port_ variable and then tests by running this function.
-	if (initialized_) {
-		return MM::CanCommunicate;
-	}
-	else {
-		MM::DeviceDetectionStatus result = MM::Misconfigured;
-		try {
-			result = MM::CanNotCommunicate;
-			unsigned short maxLen = 255;
-			char ports[255];
-			NKTPDLL::getAllPorts(ports, &maxLen);
-			int ret =  NKTPDLL::openPorts(ports, 1, 1); //Scan all available ports and open the ones that are recognized as NKT devices
-			if (ret!=0){return result;}
-			char detectedPorts[255];
-			NKTPDLL::getOpenPorts(detectedPorts, &maxLen); //string of comma separated port names
-			if (strcmp(port_.c_str(), detectedPorts) == 0) {//We make the dangerous assumption here that there is only one port found and therefore no commas
-				result = MM::CanCommunicate;
-			}
+	MM::DeviceDetectionStatus result = MM::Misconfigured;
+	try {
+		result = MM::CanNotCommunicate;
+		unsigned short maxLen = 255;
+		char ports[255];
+		NKTPDLL::getAllPorts(ports, &maxLen);
+		int ret =  NKTPDLL::openPorts(ports, 1, 1); //Scan all available ports and open the ones that are recognized as NKT devices
+		if (ret!=0){return result;}
+		char detectedPorts[255];
+		NKTPDLL::getOpenPorts(detectedPorts, &maxLen); //string of comma separated port names
+		if (strcmp(port_.c_str(), detectedPorts) == 0) {//We make the dangerous assumption here that there is only one port found and therefore no commas
+			result = MM::CanCommunicate;
 		}
-		catch (...) {
-			LogMessage("Exception in SuperKHub::DetectDevice");
-		}
-		return result;
+		NKTPDLL::closePorts("");//Make sure to close the ports or micromanager won't be able ot open it's own port.
 	}
+	catch (...) {
+		LogMessage("Exception in SuperKHub::DetectDevice");
+	}
+	return result;
 }
 
 //********Device API*********//
 int SuperKHub::Initialize() {
-	initialized_ = true;
+	//TODO need to actually do a check here.
 	return DEVICE_OK;
 }
 
 int SuperKHub::Shutdown() {
-	initialized_ = false;
 	return DEVICE_OK;
 }
 
