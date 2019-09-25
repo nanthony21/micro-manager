@@ -10,34 +10,40 @@
 #include <stdint.h>
 
 class SuperKHub: public HubBase<SuperKHub> {
+public:
 	SuperKHub();
+	~SuperKHub();
 	//Device API
 	int Initialize();
 	int Shutdown();
+	void GetName(char* pName) const {}; //TODO implement
+	bool Busy() {return true;}; //TODO implement
 	bool SupportsDeviceDetection() { return true; };
 	MM::DeviceDetectionStatus DetectDevice();
 	//Hub API
 	int DetectInstalledDevices();
 	//Properties
 	int onPort(MM::PropertyBase* pProp, MM::ActionType eAct);
+	std::string getPort();
 private:
 	bool initialized_;
 	std::string port_;
 };
 
 class SuperKExtreme: public CShutterBase<SuperKExtreme> {
+public:
 	SuperKExtreme();
 
 	//Device API
 	int Initialize();
 	int Shutdown();
 	void GetName(char* pName) const;
-	bool Busy();
+	//bool Busy();
 	
 	//Shutter API
-	int SetOpen(bool open = true);
-	int GetOpen(bool& open);
-	int Fire(double deltaT);
+	//int SetOpen(bool open = true);
+	//int GetOpen(bool& open);
+	//int Fire(double deltaT);
 
 	//Properties
 	int onEmission(MM::PropertyBase* pProp, MM::ActionType eAct);
@@ -47,10 +53,12 @@ private:
 	uint8_t address_;
 	bool initialized_;
 	std::string name_;
+	SuperKHub* hub_;
 };
 
 /*
 class SuperKVaria {
+public:
 	SuperKVaria(uint8 address);
 
 	//Properties
@@ -62,4 +70,5 @@ class SuperKVaria {
 private:
 	void updateFilters();
 	checkStatus();
+	SuperKHub hub_;
 };*/

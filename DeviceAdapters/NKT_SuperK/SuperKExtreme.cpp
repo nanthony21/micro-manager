@@ -32,6 +32,7 @@ SuperKExtreme::SuperKExtreme(): name_(g_ExtremeName) {
 
 //********Device API*********//
 int SuperKExtreme::Initialize() {
+	hub_ = dynamic_cast<SuperKHub*>(GetParentHub());
 	initialized_ = true;
 	return DEVICE_OK;
 }
@@ -46,22 +47,26 @@ void SuperKExtreme::GetName(char* pName) const {
 	CDeviceUtils::CopyLimitedString(pName, name_.c_str());
 }
 
-bool SuperKExtreme::Busy();
-
 
 //******Properties*******//
 int SuperKExtreme::onEmission(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	if (eAct == MM::BeforeGet) {
-		int ret = NKTPDLL::registerReadU8(port_, address_, 0x30, -1); //TODO where does this get read to.
+		uint8_t val;
+		int ret = NKTPDLL::registerReadU8(hub_->getPort().c_str(), address_, 0x30, &val, -1); //TODO where does this get read to.
+		if (val==3){
+			pProp->Set("True");
+		} else { //Val should be 0
+			pProp->Set("False");
+		}
 	}
 	else if (eAct == MM::AfterSet) {
 		std::string enabled;
 		pProp->Get(enabled);
 		if (enabled.compare("True") == 0) {
-			int ret = NKTPDLL::registerWriteU8(port_, address_, 0x30, 3, -1);
+			int ret = NKTPDLL::registerWriteU8(hub_->getPort().c_str(), address_, 0x30, 3, -1);
 			if (ret!=0) { return ret;}
 		} else if (enabled.compare("False") == 0) {
-			int ret = NKTPDLL::registerWriteU8(port_, address_, 0x30, 0, -1);
+			int ret = NKTPDLL::registerWriteU8(hub_->getPort().c_str(), address_, 0x30, 0, -1);
 			if (ret!=0) { return ret;}
 		} else {
 			return 666;
@@ -71,9 +76,9 @@ int SuperKExtreme::onEmission(MM::PropertyBase* pProp, MM::ActionType eAct) {
 }
 
 int SuperKExtreme::onPower(MM::PropertyBase* pProp, MM::ActionType eAct) {
-
+	return DEVICE_OK;
 }
 
 int SuperKExtreme::onInletTemperature(MM::PropertyBase* pProp, MM::ActionType eAct) {
-
+	return DEVICE_OK;
 }

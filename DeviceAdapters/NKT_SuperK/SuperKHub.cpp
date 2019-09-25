@@ -11,6 +11,10 @@ SuperKHub::SuperKHub() {
 	CreateProperty(MM::g_Keyword_Port, "Undefined", MM::String, false, pAct, true);
 }
 
+SuperKHub::~SuperKHub() {
+	Shutdown();
+}
+
 //******Device API******//
 MM::DeviceDetectionStatus SuperKHub::DetectDevice() { //Micromanager sets the port_ variable and then tests by running this function.
 	if (initialized_) {
@@ -24,7 +28,7 @@ MM::DeviceDetectionStatus SuperKHub::DetectDevice() { //Micromanager sets the po
 			char ports[255];
 			NKTPDLL::getAllPorts(ports, &maxLen);
 			int ret =  NKTPDLL::openPorts(ports, 1, 1); //Scan all available ports and open the ones that are recognized as NKT devices
-			//if (ret!=0){return ret;}
+			if (ret!=0){return result;}
 			char detectedPorts[255];
 			NKTPDLL::getOpenPorts(detectedPorts, &maxLen); //string of comma separated port names
 			if (strcmp(port_.c_str(), detectedPorts) == 0) {//We make the dangerous assumption here that there is only one port found and therefore no commas
@@ -38,6 +42,16 @@ MM::DeviceDetectionStatus SuperKHub::DetectDevice() { //Micromanager sets the po
 	}
 }
 
+//********Device API*********//
+int SuperKHub::Initialize() {
+	initialized_ = true;
+	return DEVICE_OK;
+}
+
+int SuperKHub::Shutdown() {
+	initialized_ = false;
+	return DEVICE_OK;
+}
 
 //*******Hub API*********//
 int SuperKHub::DetectInstalledDevices() {
@@ -49,12 +63,13 @@ int SuperKHub::DetectInstalledDevices() {
 		if (types[i] == 0) { continue; } //No device detected at address `i`
 		else {
 			const char* devName = g_devices.at(types[i]);
-			MM::Device* pDev = CreateDevice(devName, i);
+			MM::Device* pDev = CreateDevice(devName);
 			if (pDev) {
 				AddInstalledDevice(pDev);
 			}
 		}
 	}
+	return DEVICE_OK;
 }
 
 //******Properties*******//
@@ -66,4 +81,8 @@ int SuperKHub::onPort(MM::PropertyBase* pProp, MM::ActionType pAct) {
 		pProp->Get(port_);
 	}
 	return DEVICE_OK;
+}
+
+std::string SuperKHub::getPort() {
+	return port_;
 }
