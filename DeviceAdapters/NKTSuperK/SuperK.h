@@ -18,8 +18,8 @@ public:
 	int Shutdown();
 	void GetName(char* pName) const {}; //TODO implement
 	bool Busy() {return true;}; //TODO implement
-	bool SupportsDeviceDetection() { return true; };
-	MM::DeviceDetectionStatus DetectDevice();
+	bool SupportsDeviceDetection() { return false; };
+	//MM::DeviceDetectionStatus DetectDevice();
 	//Hub API
 	int DetectInstalledDevices();
 	//Properties
