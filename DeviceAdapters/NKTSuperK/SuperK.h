@@ -55,7 +55,7 @@ public:
 	void GetName(char* pName) const;
 	bool Busy(){return false;};
 	
-	//Shutter API
+	//Shutter API TODO implement
 	//int SetOpen(bool open = true);
 	//int GetOpen(bool& open);
 	//int Fire(double deltaT);
@@ -69,10 +69,17 @@ private:
 	SuperKHub* hub_;
 };
 
-/*
-class SuperKVaria: public SuperKDevice {
+
+class SuperKVaria: public CGenericBase<SuperKVaria>, public SuperKDevice {
 public:
-	SuperKVaria(uint8 address);
+	SuperKVaria();
+	~SuperKVaria();
+
+	//Device API
+	int Initialize();
+	int Shutdown();
+	void GetName(char* pName) const;
+	bool Busy(){return false;};
 
 	//Properties
 	int onMonitorInput(MM::PropertyBase* pProp, MM::ActionType eAct);
@@ -83,5 +90,6 @@ public:
 private:
 	void updateFilters();
 	checkStatus();
-	SuperKHub hub_;
-};*/
+	std::string name_;
+	SuperKHub* hub_;
+};

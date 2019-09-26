@@ -148,6 +148,7 @@
     <ClCompile Include="SuperKModule.cpp" />
     <ClCompile Include="SuperKExtreme.cpp" />
     <ClCompile Include="SuperKHub.cpp" />
+    <ClCompile Include="Varia.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SuperK.h" />

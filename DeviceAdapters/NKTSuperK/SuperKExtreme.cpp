@@ -28,6 +28,7 @@ int SuperKExtreme::Initialize() {
 		return 99;
 	}
 
+	//For some reason Micromanager tries accessing properties before initialization. For this reason we don't create properties until after initialization.
 	//Emission On
 	CPropertyAction* pAct = new CPropertyAction(this, &SuperKExtreme::onEmission);
 	CreateProperty("Emission Enabled", "False", MM::String, false, pAct, false);
@@ -43,11 +44,11 @@ int SuperKExtreme::Initialize() {
 	pAct = new CPropertyAction(this, &SuperKExtreme::onInletTemperature);
 	CreateProperty("Inlet Temperature (C)", "0", MM::Float, true, pAct, false); 
 	
-
 	return DEVICE_OK;
 }
 
 int SuperKExtreme::Shutdown() {
+	SetProperty("Emission Enabled", "False");
 	return DEVICE_OK;
 }
 
