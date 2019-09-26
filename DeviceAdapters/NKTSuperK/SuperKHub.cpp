@@ -59,11 +59,14 @@ int SuperKHub::DetectInstalledDevices() {
 	for (uint8_t i=0; i<maxTypes; i++) {
 		if (types[i] == 0) { continue; } //No device detected at address `i`
 		else {
-			const char* devName = g_devices.at(types[i]); //Some of the NKT devices do not have a class in this device adapter. in that case pDev will be 0 and will not be added.
-			MM::Device* pDev = CreateDevice(devName);
-			if (pDev) {
-				AddInstalledDevice(pDev);
-			}
+			try{
+				const char* devName = g_devices.at(types[i]); //Some of the NKT devices do not have a class in this device adapter. in that case pDev will be 0 and will not be added.
+				SuperKDevice* pDev = dynamic_cast<SuperKDevice*>(CreateDevice(devName));
+				if (pDev) {
+					pDev->setNKTAddress(i);
+					AddInstalledDevice(dynamic_cast<MM::Device*>(pDev));
+				}
+			} catch (const std::out_of_range& oor) {} // If a device type is in `types` but not in g_devices then an error will occur. this device isn't supported anyway though.
 		}
 	}
 	return DEVICE_OK;

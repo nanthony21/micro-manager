@@ -144,7 +144,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="SuperK.cpp" />
+    <ClCompile Include="SuperKDevice.cpp" />
+    <ClCompile Include="SuperKModule.cpp" />
     <ClCompile Include="SuperKExtreme.cpp" />
     <ClCompile Include="SuperKHub.cpp" />
   </ItemGroup>

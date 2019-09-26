@@ -26,8 +26,9 @@ MODULE_API void InitializeModuleData()
 	g_devices[0x65] = g_BoosterName;
 	g_devices[0x68] = g_VariaName;
 	RegisterDevice(g_HubName, MM::HubDevice, g_HubName);
-	RegisterDevice(g_ExtremeName, MM::ShutterDevice, g_ExtremeName);
-    RegisterDevice(g_VariaName, MM::ShutterDevice, g_VariaName);
+	//RegisterDevice(g_ExtremeName, MM::ShutterDevice, g_ExtremeName);
+    //RegisterDevice(g_VariaName, MM::ShutterDevice, g_VariaName);
+	RegisterDevice(g_ExtremeName, MM::GenericDevice, g_ExtremeName);
 }
 
 MODULE_API void DeleteDevice(MM::Device* pDevice)
@@ -44,10 +45,10 @@ MODULE_API MM::Device* CreateDevice(const char* deviceName)
 	   SuperKHub* pHub = new SuperKHub();
 	   return pHub;
    }
-   /*
    else if (strcmp(deviceName, g_ExtremeName) == 0) {
-		return new SuperKExtreme(address); 
+	   return new SuperKExtreme(); 
    }
+   /*
    else if (strcmp(deviceName, g_VariaName) == 0) {
 	   return new SuperKVaria(address);
    }*/

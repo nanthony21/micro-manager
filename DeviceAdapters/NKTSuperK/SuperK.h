@@ -17,7 +17,7 @@ public:
 	int Initialize();
 	int Shutdown();
 	void GetName(char* pName) const {}; //TODO implement
-	bool Busy() {return true;}; //TODO implement
+	bool Busy() {return false;}; //TODO implement
 	bool SupportsDeviceDetection() { return false; };
 	//MM::DeviceDetectionStatus DetectDevice();
 	//Hub API
@@ -29,14 +29,25 @@ private:
 	std::string port_;
 };
 
-class SuperKExtreme: public CShutterBase<SuperKExtreme> {
+class SuperKDevice{
+private: 
+	uint8_t address_;
+public:
+	SuperKDevice();
+	virtual void setNKTAddress(uint8_t address);
+	virtual uint8_t getNKTAddress();
+};
+
+class SuperKExtreme: public CGenericBase<SuperKExtreme>, public SuperKDevice {
 public:
 	SuperKExtreme();
+	~SuperKExtreme();
 
 	//Device API
 	int Initialize();
 	int Shutdown();
 	void GetName(char* pName) const;
+	bool Busy(){return false;};
 	
 	//Shutter API
 	//int SetOpen(bool open = true);
@@ -48,14 +59,12 @@ public:
 	int onPower(MM::PropertyBase* pProp, MM::ActionType eAct);
 	int onInletTemperature(MM::PropertyBase* pProp, MM::ActionType eAct);
 private:
-	uint8_t address_;
-	bool initialized_;
 	std::string name_;
 	SuperKHub* hub_;
 };
 
 /*
-class SuperKVaria {
+class SuperKVaria: public SuperKDevice {
 public:
 	SuperKVaria(uint8 address);
 

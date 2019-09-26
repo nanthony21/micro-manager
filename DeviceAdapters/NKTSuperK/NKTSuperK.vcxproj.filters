@@ -15,13 +15,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="SuperK.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="SuperKExtreme.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SuperKHub.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SuperKModule.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SuperKDevice.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
