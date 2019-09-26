@@ -12,7 +12,7 @@ const char* g_VariaName = "Varia";
 const char* g_BoosterName = "Booster_2011";
 const char* g_FrontPanelName = "Front_Panel_2011";
 
-std::map<uint8_t, const char*> g_devices; //A map of device names keyed by the integer used by NKTDLL to identify them.
+std::map<uint8_t, const char*> g_devices; //A map of device names keyed by the integer used by NKTDLL to identify the device type. Used to identify which devices are installed.
 
 
 
@@ -38,21 +38,21 @@ MODULE_API void DeleteDevice(MM::Device* pDevice)
 
 MODULE_API MM::Device* CreateDevice(const char* deviceName)
 {
-   if (deviceName == 0) {
-      return 0;
-   }
-   else if (strcmp(deviceName, g_HubName) == 0) {
-	   SuperKHub* pHub = new SuperKHub();
-	   return pHub;
-   }
-   else if (strcmp(deviceName, g_ExtremeName) == 0) {
-	   return new SuperKExtreme(); 
-   }
-   /*
-   else if (strcmp(deviceName, g_VariaName) == 0) {
-	   return new SuperKVaria(address);
-   }*/
-   else {
+	if (deviceName == 0) {
+	return 0;
+	}
+	else if (strcmp(deviceName, g_HubName) == 0) {
+		SuperKHub* pHub = new SuperKHub();
+		return pHub;
+	}
+	else if (strcmp(deviceName, g_ExtremeName) == 0) {
+		return new SuperKExtreme(); 
+	}
+	/*
+	else if (strcmp(deviceName, g_VariaName) == 0) {
+		return new SuperKVaria(address);
+	}*/
+	else {
 		return 0;
-   }
+	}
 }

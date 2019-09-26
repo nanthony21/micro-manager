@@ -3,11 +3,26 @@
 
 extern const char* g_ExtremeName;
 
-SuperKExtreme::SuperKExtreme(): name_(g_ExtremeName) {
+SuperKExtreme::SuperKExtreme(): name_(g_ExtremeName), SuperKDevice(0x60) {
 	InitializeDefaultErrorMessages();
 	SetErrorText(DEVICE_SERIAL_TIMEOUT, "Serial port timed out without receiving a response.");
 
-	
+	// Name
+	CreateProperty(MM::g_Keyword_Name, name_.c_str(), MM::String, true);
+
+	// Description
+	CreateProperty(MM::g_Keyword_Description, "NKT Photonics SuperK Extreme Laser", MM::String, true);
+}
+
+SuperKExtreme::~SuperKExtreme() {
+	Shutdown();
+}
+
+//********Device API*********//
+int SuperKExtreme::Initialize() {
+	hub_ = dynamic_cast<SuperKHub*>(GetParentHub());
+	setNKTAddress(hub_ -> getDeviceAddress(this)); 
+
 	//Emission On
 	CPropertyAction* pAct = new CPropertyAction(this, &SuperKExtreme::onEmission);
 	CreateProperty("Emission Enabled", "False", MM::String, false, pAct, false);
@@ -24,20 +39,6 @@ SuperKExtreme::SuperKExtreme(): name_(g_ExtremeName) {
 	CreateProperty("Inlet Temperature (C)", "0", MM::Float, true, pAct, false); 
 	
 
-	// Name
-	CreateProperty(MM::g_Keyword_Name, name_.c_str(), MM::String, true);
-
-	// Description
-	CreateProperty(MM::g_Keyword_Description, "NKT Photonics SuperK Extreme Laser", MM::String, true);
-}
-
-SuperKExtreme::~SuperKExtreme() {
-	Shutdown();
-}
-
-//********Device API*********//
-int SuperKExtreme::Initialize() {
-	hub_ = dynamic_cast<SuperKHub*>(GetParentHub());
 	return DEVICE_OK;
 }
 

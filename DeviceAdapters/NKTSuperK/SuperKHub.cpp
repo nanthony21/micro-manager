@@ -3,6 +3,9 @@
 extern std::map<uint8_t, const char*> g_devices;
 
 
+
+
+
 SuperKHub::SuperKHub() {
 	InitializeDefaultErrorMessages();
 	SetErrorText(DEVICE_SERIAL_TIMEOUT, "Serial port timed out without receiving a response.");
@@ -23,7 +26,6 @@ SuperKHub::SuperKHub() {
 	size_t pos = 0;
 	std::string token;
 	std::string delimiter = ",";
-
 	while (true) {
 		pos = detectedPortsStr.find(delimiter);
 		token = detectedPortsStr.substr(0, pos);
@@ -61,10 +63,10 @@ int SuperKHub::DetectInstalledDevices() {
 		else {
 			try{
 				const char* devName = g_devices.at(types[i]); //Some of the NKT devices do not have a class in this device adapter. in that case pDev will be 0 and will not be added.
-				SuperKDevice* pDev = dynamic_cast<SuperKDevice*>(CreateDevice(devName));
+				MM::Device* pDev = CreateDevice(devName); //Important to know that the instance created here will not be the one that actually gets used.
 				if (pDev) {
-					pDev->setNKTAddress(i);
-					AddInstalledDevice(dynamic_cast<MM::Device*>(pDev));
+					deviceAddressMap_[types[i]] = i; //Create an entry showing what address to find device type at.
+					AddInstalledDevice(pDev);
 				}
 			} catch (const std::out_of_range& oor) {} // If a device type is in `types` but not in g_devices then an error will occur. this device isn't supported anyway though.
 		}
@@ -85,4 +87,8 @@ int SuperKHub::onPort(MM::PropertyBase* pProp, MM::ActionType pAct) {
 
 std::string SuperKHub::getPort() {
 	return port_;
+}
+
+uint8_t SuperKHub::getDeviceAddress(SuperKDevice* devPtr) {
+	return deviceAddressMap_.at(devPtr->getNKTType());
 }

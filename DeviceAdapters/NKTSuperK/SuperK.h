@@ -9,6 +9,17 @@
 #include <map>
 #include <stdint.h>
 
+class SuperKDevice{
+private: 
+	uint8_t address_;
+	uint8_t type_;
+public:
+	SuperKDevice(uint8_t nktDevType);
+	void setNKTAddress(uint8_t address);
+	uint8_t getNKTAddress();
+	uint8_t getNKTType();
+};
+
 class SuperKHub: public HubBase<SuperKHub> {
 public:
 	SuperKHub();
@@ -19,24 +30,19 @@ public:
 	void GetName(char* pName) const {}; //TODO implement
 	bool Busy() {return false;}; //TODO implement
 	bool SupportsDeviceDetection() { return false; };
-	//MM::DeviceDetectionStatus DetectDevice();
 	//Hub API
 	int DetectInstalledDevices();
 	//Properties
 	int onPort(MM::PropertyBase* pProp, MM::ActionType eAct);
+	//Hub utility functions
 	std::string getPort();
+	uint8_t getDeviceAddress(SuperKDevice* devPtr);
 private:
 	std::string port_;
+	std::map<uint8_t, uint8_t> deviceAddressMap_;
 };
 
-class SuperKDevice{
-private: 
-	uint8_t address_;
-public:
-	SuperKDevice();
-	virtual void setNKTAddress(uint8_t address);
-	virtual uint8_t getNKTAddress();
-};
+
 
 class SuperKExtreme: public CGenericBase<SuperKExtreme>, public SuperKDevice {
 public:
