@@ -11,7 +11,7 @@ SuperKHub::SuperKHub() {
 	SetErrorText(DEVICE_SERIAL_TIMEOUT, "Serial port timed out without receiving a response.");
 
 	CPropertyAction* pAct = new CPropertyAction(this, &SuperKHub::onPort);
-	CreateProperty("Com Port", "Undefined", MM::String, false, pAct, true);
+	CreateProperty("ComPort", "Undefined", MM::String, false, pAct, true);
 
 	//Find NKT ports and add them a property options.
 	unsigned short maxLen = 255;
@@ -29,7 +29,7 @@ SuperKHub::SuperKHub() {
 	while (true) {
 		pos = detectedPortsStr.find(delimiter);
 		token = detectedPortsStr.substr(0, pos);
-		AddAllowedValue("Com Port", token.c_str());
+		AddAllowedValue("ComPort", token.c_str());
 		detectedPortsStr.erase(0, pos + delimiter.length());
 		if (pos == std::string::npos) {break;}
 	}
@@ -42,6 +42,7 @@ SuperKHub::~SuperKHub() {
 //********Device API*********//
 int SuperKHub::Initialize() {
 	int ret = NKTPDLL::openPorts(port_.c_str(), 1, 1); //Usage of the NKT sdk Dll requires we use their port opening mechanics rather than micromanager's.
+	DetectInstalledDevices(); //We need to populate deviceAddressMap_ or we won't be able to instantiate our devices.
 	if (ret!=0){return ret;}
 	return DEVICE_OK;
 }
@@ -74,6 +75,7 @@ int SuperKHub::DetectInstalledDevices() {
 	return DEVICE_OK;
 }
 
+
 //******Properties*******//
 int SuperKHub::onPort(MM::PropertyBase* pProp, MM::ActionType pAct) {
 	if (pAct == MM::BeforeGet) {
@@ -89,6 +91,6 @@ std::string SuperKHub::getPort() {
 	return port_;
 }
 
-uint8_t SuperKHub::getDeviceAddress(SuperKDevice* devPtr) {
+uint8_t SuperKHub::getDeviceAddress(SuperKDevice* devPtr) { //This can throw an out of range error.
 	return deviceAddressMap_.at(devPtr->getNKTType());
 }

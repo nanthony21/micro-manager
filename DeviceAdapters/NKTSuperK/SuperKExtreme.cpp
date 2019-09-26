@@ -21,7 +21,12 @@ SuperKExtreme::~SuperKExtreme() {
 //********Device API*********//
 int SuperKExtreme::Initialize() {
 	hub_ = dynamic_cast<SuperKHub*>(GetParentHub());
-	setNKTAddress(hub_ -> getDeviceAddress(this)); 
+	try {
+		setNKTAddress(hub_ -> getDeviceAddress(this)); 
+	} catch (const std::out_of_range& oor) {
+		SetErrorText(99, "SuperKExtreme Laser was not found in the SuperKHub list of connected devices.");
+		return 99;
+	}
 
 	//Emission On
 	CPropertyAction* pAct = new CPropertyAction(this, &SuperKExtreme::onEmission);
