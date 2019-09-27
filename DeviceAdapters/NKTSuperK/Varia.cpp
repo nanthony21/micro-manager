@@ -72,6 +72,7 @@ int SuperKVaria::onMonitorInput(MM::PropertyBase* pProp, MM::ActionType eAct){
 		float percent = ((float)val) / 10;//convert from units of 0.1% to %
 		pProp->Set(percent);
 	}
+	return DEVICE_OK;
 }
 
 int SuperKVaria::onBandwidth(MM::PropertyBase* pProp, MM::ActionType eAct) {
@@ -81,8 +82,9 @@ int SuperKVaria::onBandwidth(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	if (eAct == MM::AfterSet) {
 		pProp->Get(bandwidth_);
 		//Check the four properties and make sure its ok.
-		updateFilters();
+		return updateFilters();
 	}
+	return DEVICE_OK;
 }
 
 int SuperKVaria::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) {
@@ -92,32 +94,48 @@ int SuperKVaria::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	if (eAct == MM::AfterSet) {
 		pProp->Get(wavelength_);
 		//Check the four properties and make sure its ok.
-		updateFilters();
+		return updateFilters();
 	}
+	return DEVICE_OK;
 }
 
 int SuperKVaria::onLWP(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	if (eAct == MM::BeforeGet) {
-		pProp->Set(lwp_);
+		uint16_t val;
+		int ret = NKTPDLL::registerReadU16(hub_->getPort().c_str(), getNKTAddress(), 0x34, &val, -1);
+		if (ret!=0){return ret;}
+		swp_ = ((double) val) / 10;
+		pProp->Set(lwp_);//TODO actually read the register
 	}
 	if (eAct == MM::AfterSet) {
 		pProp->Get(lwp_);
 		//Check the four properties and make sure its ok.
-		updateFilters();
+		return updateFilters();
 	}
+	return DEVICE_OK;
 }
 
 int SuperKVaria::onSWP(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	if (eAct == MM::BeforeGet) {
+		uint16_t val;
+		int ret = NKTPDLL::registerReadU16(hub_->getPort().c_str(), getNKTAddress(), 0x33, &val, -1);
+		if (ret!=0){return ret;}
+		swp_ = ((double) val) / 10;
 		pProp->Set(swp_);
 	}
 	if (eAct == MM::AfterSet) {
 		pProp->Get(swp_);
 		//Check the four properties and make sure its ok.
-		updateFilters();
+		return updateFilters();
 	}
+	return DEVICE_OK;
 }
 
-int SuperKVaria::updateFilters() {
-
+ int SuperKVaria::updateFilters() {
+	uint16_t val = (uint16_t)(swp_ * 10); //Convert from units of nm to 0.1nm
+	int ret = NKTPDLL::registerWriteU16(hub_->getPort().c_str(), getNKTAddress(), 0x33, val, -1); //SWP 
+	val = (uint16_t)(lwp_ * 10); //Convert from units of nm to 0.1nm
+	ret = NKTPDLL::registerWriteU16(hub_->getPort().c_str(), getNKTAddress(), 0x34, val, -1); //LWP 
+	if (ret!=0){return ret;}
+	return DEVICE_OK;
 }

@@ -79,7 +79,7 @@ public:
 	int Initialize();
 	int Shutdown();
 	void GetName(char* pName) const;
-	bool Busy(){return false;};
+	bool Busy();//TODO implement
 
 	//Properties
 	int onMonitorInput(MM::PropertyBase* pProp, MM::ActionType eAct);
@@ -88,8 +88,12 @@ public:
 	int onLWP(MM::PropertyBase* pProp, MM::ActionType eAct);
 	int onSWP(MM::PropertyBase* pProp, MM::ActionType eAct);
 private:
-	void updateFilters();
+	int updateFilters();
 	checkStatus();
 	std::string name_;
 	SuperKHub* hub_;
+	double swp_;
+	double lwp_;
+	double wavelength_;
+	double bandwidth_;
 };
