@@ -1,3 +1,4 @@
+#define NOMINMAX //To get c++ min and max to work
 #include "SuperK.h"
 
 extern const char* g_VariaName;
@@ -40,7 +41,7 @@ int SuperKVaria::Initialize() {
 	//Wavelength
 	pAct = new CPropertyAction(this, &SuperKVaria::onWavelength);
 	CreateProperty("Wavelength", "632", MM::Float, false, pAct, false);
-	SetPropertyLimits("Wavelength", 400, 850);
+	SetPropertyLimits("Wavelength", 405, 845);
 
 	//Short Wave Pass
 	pAct = new CPropertyAction(this, &SuperKVaria::onSWP);
@@ -81,7 +82,6 @@ int SuperKVaria::onBandwidth(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	}
 	if (eAct == MM::AfterSet) {
 		pProp->Get(bandwidth_);
-		//Check the four properties and make sure its ok.
 		return updateFilters();
 	}
 	return DEVICE_OK;
@@ -93,7 +93,6 @@ int SuperKVaria::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	}
 	if (eAct == MM::AfterSet) {
 		pProp->Get(wavelength_);
-		//Check the four properties and make sure its ok.
 		return updateFilters();
 	}
 	return DEVICE_OK;
@@ -109,8 +108,9 @@ int SuperKVaria::onLWP(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	}
 	if (eAct == MM::AfterSet) {
 		pProp->Get(lwp_);
-		//Check the four properties and make sure its ok.
-		return updateFilters();
+		uint16_t val = (uint16_t)(lwp_ * 10); //Convert from units of nm to 0.1nm
+		int ret = NKTPDLL::registerWriteU16(hub_->getPort().c_str(), getNKTAddress(), 0x34, val, -1); //LWP 
+		if (ret!=0){return ret;}
 	}
 	return DEVICE_OK;
 }
@@ -125,17 +125,27 @@ int SuperKVaria::onSWP(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	}
 	if (eAct == MM::AfterSet) {
 		pProp->Get(swp_);
-		//Check the four properties and make sure its ok.
-		return updateFilters();
+		uint16_t val = (uint16_t)(swp_ * 10); //Convert from units of nm to 0.1nm
+		int ret = NKTPDLL::registerWriteU16(hub_->getPort().c_str(), getNKTAddress(), 0x33, val, -1); //SWP
+		if (ret!=0){return ret;}
 	}
 	return DEVICE_OK;
 }
 
- int SuperKVaria::updateFilters() {
-	uint16_t val = (uint16_t)(swp_ * 10); //Convert from units of nm to 0.1nm
-	int ret = NKTPDLL::registerWriteU16(hub_->getPort().c_str(), getNKTAddress(), 0x33, val, -1); //SWP 
-	val = (uint16_t)(lwp_ * 10); //Convert from units of nm to 0.1nm
-	ret = NKTPDLL::registerWriteU16(hub_->getPort().c_str(), getNKTAddress(), 0x34, val, -1); //LWP 
-	if (ret!=0){return ret;}
-	return DEVICE_OK;
+int SuperKVaria::updateFilters() {
+	double lwp = wavelength_ - bandwidth_ / 2;
+	double swp = wavelength_ + bandwidth_ / 2;
+	double min = 400;
+	double max = 850;
+	lwp = std::max(std::min(lwp, 850.0), 400.0); //Clamp the filter value to the allowed range.
+	swp = std::max(std::min(swp, 850.0), 400.0); //Clamp the filter value to the allowed range.
+	int ret = DEVICE_OK;
+	if (lwp != lwp_) {
+		ret = SetProperty("Long Wave Pass", std::to_string((long double)lwp).c_str());
+		if (ret!=DEVICE_OK;){return ret;}
+	}
+	if (swp != swp_) {
+		ret = SetProperty("Short Wave Pass", std::to_string((long double)swp).c_str());
+		if (ret!=DEVICE_OK;){return ret;}
+	}
 }

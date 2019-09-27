@@ -88,7 +88,7 @@ public:
 	int onLWP(MM::PropertyBase* pProp, MM::ActionType eAct);
 	int onSWP(MM::PropertyBase* pProp, MM::ActionType eAct);
 private:
-	int updateFilters();
+	int updateFilters(); //Use the wavelength and bandwidth settings to set the swp and lwp filters.
 	checkStatus();
 	std::string name_;
 	SuperKHub* hub_;
