@@ -67,7 +67,7 @@ void SuperKVaria::GetName(char* pName) const {
 
 bool SuperKVaria::Busy() {
 	unsigned long status;
-	NKTPDLL::deviceGetStatusBits(hub_->getPort().c_str(), getNKTAddress(),&status);
+	hub_->deviceGetStatusBits(this, &status);
 	if (status & 0x7000) { //One of the three filters is moving.
 		return true;
 	} else {
@@ -79,7 +79,7 @@ bool SuperKVaria::Busy() {
 int SuperKVaria::onMonitorInput(MM::PropertyBase* pProp, MM::ActionType eAct){
 	if (eAct == MM::BeforeGet) {
 		uint16_t val;
-		NKTPDLL::registerReadU16(hub_->getPort().c_str(), getNKTAddress(), 0x13, &val, -1);
+		hub_->registerReadU16(this, 0x13, &val);
 		float percent = ((float)val) / 10;//convert from units of 0.1% to %
 		pProp->Set(percent);
 	}
@@ -111,7 +111,7 @@ int SuperKVaria::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) {
 int SuperKVaria::onLWP(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	if (eAct == MM::BeforeGet) {
 		uint16_t val;
-		int ret = NKTPDLL::registerReadU16(hub_->getPort().c_str(), getNKTAddress(), 0x34, &val, -1);
+		int ret = hub_->registerReadU16(this, 0x34, &val);
 		if (ret!=0){return ret;}
 		swp_ = ((double) val) / 10;
 		pProp->Set(lwp_);//TODO actually read the register
@@ -119,7 +119,7 @@ int SuperKVaria::onLWP(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	if (eAct == MM::AfterSet) {
 		pProp->Get(lwp_);
 		uint16_t val = (uint16_t)(lwp_ * 10); //Convert from units of nm to 0.1nm
-		int ret = NKTPDLL::registerWriteU16(hub_->getPort().c_str(), getNKTAddress(), 0x34, val, -1); //LWP 
+		int ret = hub_->registerWriteU16(this, 0x34, val); //LWP 
 		if (ret!=0){return ret;}
 	}
 	return DEVICE_OK;
@@ -128,7 +128,7 @@ int SuperKVaria::onLWP(MM::PropertyBase* pProp, MM::ActionType eAct) {
 int SuperKVaria::onSWP(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	if (eAct == MM::BeforeGet) {
 		uint16_t val;
-		int ret = NKTPDLL::registerReadU16(hub_->getPort().c_str(), getNKTAddress(), 0x33, &val, -1);
+		int ret = hub_->registerReadU16(this, 0x33, &val);
 		if (ret!=0){return ret;}
 		swp_ = ((double) val) / 10;
 		pProp->Set(swp_);
@@ -136,7 +136,7 @@ int SuperKVaria::onSWP(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	if (eAct == MM::AfterSet) {
 		pProp->Get(swp_);
 		uint16_t val = (uint16_t)(swp_ * 10); //Convert from units of nm to 0.1nm
-		int ret = NKTPDLL::registerWriteU16(hub_->getPort().c_str(), getNKTAddress(), 0x33, val, -1); //SWP
+		int ret = hub_->registerWriteU16(this, 0x33, val); //SWP
 		if (ret!=0){return ret;}
 	}
 	return DEVICE_OK;

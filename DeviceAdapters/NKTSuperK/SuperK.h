@@ -37,9 +37,18 @@ public:
 	//Hub utility functions
 	std::string getPort();
 	uint8_t getDeviceAddress(SuperKDevice* devPtr);
+	int registerReadU8(SuperKDevice* dev, uint8_t regId, uint8_t* val);
+	int registerWriteU8(SuperKDevice* dev, uint8_t regId, uint8_t val);
+	int registerReadU16(SuperKDevice* dev, uint8_t regId, uint16_t* val);
+	int registerWriteU16(SuperKDevice* dev, uint8_t regId, uint16_t val);
+	int registerReadS16(SuperKDevice* dev, uint8_t regId, int16_t* val);
+	int deviceGetStatusBits(SuperKDevice* dev, unsigned long* val);
 private:
 	std::string port_;
 	std::map<uint8_t, uint8_t> deviceAddressMap_;
+	MMThreadLock lock_; //Make comms thread safe
+	MMThreadLock& getLock() { return lock_; };
+	int populateDeviceAddressMap();
 };
 
 

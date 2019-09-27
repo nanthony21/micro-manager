@@ -7,6 +7,7 @@ extern std::map<uint8_t, const char*> g_devices;
 
 
 SuperKHub::SuperKHub() {
+	MMThreadGuard myLock(getLock());
 	InitializeDefaultErrorMessages();
 	SetErrorText(DEVICE_SERIAL_TIMEOUT, "Serial port timed out without receiving a response.");
 
@@ -17,11 +18,11 @@ SuperKHub::SuperKHub() {
 	unsigned short maxLen = 255;
 	char ports[255];
 	NKTPDLL::getAllPorts(ports, &maxLen);
-	int ret =  NKTPDLL::openPorts(ports, 1, 1); //Scan all available ports and open the ones that are recognized as NKT devices
+	int ret =  NKTPDLL::openPorts(ports, 1, 0); //Scan all available ports and open the ones that are recognized as NKT devices
 	//if (ret!=0){return result;}
 	char detectedPorts[255];
 	NKTPDLL::getOpenPorts(detectedPorts, &maxLen); //string of comma separated port names
-	NKTPDLL::closePorts("");//Make sure to close the ports or micromanager won't be able ot open it's own port.
+	ret = NKTPDLL::closePorts("");
 	std::string detectedPortsStr(detectedPorts);
 	size_t pos = 0;
 	std::string token;
@@ -35,21 +36,22 @@ SuperKHub::SuperKHub() {
 	}
 }
 
-SuperKHub::~SuperKHub() {
-	Shutdown();
-}
+SuperKHub::~SuperKHub() {} //Some device adapters call shutdown here. However that causes shutdown to be called twice.
 
 //********Device API*********//
 int SuperKHub::Initialize() {
+	MMThreadGuard myLock(getLock());
 	int ret = NKTPDLL::openPorts(port_.c_str(), 1, 1); //Usage of the NKT sdk Dll requires we use their port opening mechanics rather than micromanager's.
-	DetectInstalledDevices(); //We need to populate deviceAddressMap_ or we won't be able to instantiate our devices.
+	if (ret!=0){return ret;}
+	ret = populateDeviceAddressMap(); //We need to populate deviceAddressMap_ or we won't be able to instantiate our devices.
 	if (ret!=0){return ret;}
 	return DEVICE_OK;
 }
 
 int SuperKHub::Shutdown() {
-	int ret = NKTPDLL::closePorts(port_.c_str());
-	if (ret!=0){return ret;}
+	MMThreadGuard myLock(getLock());
+	//int ret = NKTPDLL::closePorts(port_.c_str()); ///for some reason we are usually not able to close the port this is a problem, it won't close, it also won't reopen. what a mess.
+	//if ((ret!=0)){return ret;}
 	return DEVICE_OK;
 }
 
@@ -66,7 +68,6 @@ int SuperKHub::DetectInstalledDevices() {
 				const char* devName = g_devices.at(types[i]); //Some of the NKT devices do not have a class in this device adapter. in that case pDev will be 0 and will not be added.
 				MM::Device* pDev = CreateDevice(devName); //Important to know that the instance created here will not be the one that actually gets used.
 				if (pDev) {
-					deviceAddressMap_[types[i]] = i; //Create an entry showing what address to find device type at.
 					AddInstalledDevice(pDev);
 				}
 			} catch (const std::out_of_range& oor) {} // If a device type is in `types` but not in g_devices then an error will occur. this device isn't supported anyway though.
@@ -75,6 +76,26 @@ int SuperKHub::DetectInstalledDevices() {
 	return DEVICE_OK;
 }
 
+int SuperKHub::populateDeviceAddressMap() {
+	unsigned char maxTypes = 255;
+	unsigned char types[255]; 
+	int ret = NKTPDLL::deviceGetAllTypes(port_.c_str(), types, &maxTypes);
+	if (ret!=0) { return ret;}
+	for (uint8_t i=0; i<maxTypes; i++) {
+		if (types[i] == 0) { continue; } //No device detected at address `i`
+		else {
+			const char* devName;
+			try{
+				devName = g_devices.at(types[i]); //Some of the NKT devices do not have a class in this device adapter. in that case pDev will be 0 and will not be added.
+			} catch (const std::out_of_range& oor) { continue;}// If a device type is in `types` but not in g_devices then an error will occur. this device isn't supported anyway though.
+			MM::Device* pDev = CreateDevice(devName); //Important to know that the instance created here will not be the one that actually gets used.
+			if (pDev) {
+				deviceAddressMap_[types[i]] = i; //Create an entry showing what address to find device type at.
+			}	
+		}
+	}
+	return DEVICE_OK;
+}
 
 //******Properties*******//
 int SuperKHub::onPort(MM::PropertyBase* pProp, MM::ActionType pAct) {
@@ -93,4 +114,41 @@ std::string SuperKHub::getPort() {
 
 uint8_t SuperKHub::getDeviceAddress(SuperKDevice* devPtr) { //This can throw an out of range error.
 	return deviceAddressMap_.at(devPtr->getNKTType());
+}
+
+
+int SuperKHub::registerReadU8(SuperKDevice* dev, uint8_t regId, uint8_t* val) {
+	MMThreadGuard myLock(getLock()); //get thread lock
+	int ret = NKTPDLL::registerReadU8(port_.c_str(), dev->getNKTAddress(), regId, val, -1);
+	return ret;
+}
+
+int SuperKHub::registerReadU16(SuperKDevice* dev, uint8_t regId, uint16_t* val) {
+	MMThreadGuard myLock(getLock()); //get thread lock
+	int ret = NKTPDLL::registerReadU16(port_.c_str(), dev->getNKTAddress(), regId, val, -1);
+	return ret;
+}
+
+int SuperKHub::registerWriteU8(SuperKDevice* dev, uint8_t regId, uint8_t val) {
+	MMThreadGuard myLock(getLock()); //get thread lock
+	int ret = NKTPDLL::registerWriteU8(port_.c_str(), dev->getNKTAddress(), regId, val, -1);
+	return ret;
+}
+
+int SuperKHub::registerWriteU16(SuperKDevice* dev, uint8_t regId, uint16_t val) {
+	MMThreadGuard myLock(getLock()); //get thread lock
+	int ret = NKTPDLL::registerWriteU16(port_.c_str(), dev->getNKTAddress(), regId, val, -1);
+	return ret;
+}
+
+int SuperKHub::registerReadS16(SuperKDevice* dev, uint8_t regId, int16_t* val) {
+	MMThreadGuard myLock(getLock()); //get thread lock
+	int ret = NKTPDLL::registerReadS16(port_.c_str(), dev->getNKTAddress(), regId, val, -1);
+	return ret;
+}
+
+int SuperKHub::deviceGetStatusBits(SuperKDevice* dev, unsigned long* val) {
+	MMThreadGuard myLock(getLock());
+	int ret = NKTPDLL::deviceGetStatusBits(port_.c_str(), dev->getNKTAddress(), val);
+	return ret;
 }

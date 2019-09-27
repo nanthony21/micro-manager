@@ -14,9 +14,7 @@ SuperKExtreme::SuperKExtreme(): name_(g_ExtremeName), SuperKDevice(0x60) {
 	CreateProperty(MM::g_Keyword_Description, "NKT Photonics SuperK Extreme Laser", MM::String, true);
 }
 
-SuperKExtreme::~SuperKExtreme() {
-	Shutdown();
-}
+SuperKExtreme::~SuperKExtreme() {} //Some device adapters call shutdown here. However that causes shutdown to be called twice.
 
 //********Device API*********//
 int SuperKExtreme::Initialize() {
@@ -61,9 +59,10 @@ void SuperKExtreme::GetName(char* pName) const {
 //******Properties*******//
 
 int SuperKExtreme::onEmission(MM::PropertyBase* pProp, MM::ActionType eAct) {
+	//TODO this gets read too quickly after setting it.
 	if (eAct == MM::BeforeGet) {
 		unsigned long statusBits;
-		NKTPDLL::deviceGetStatusBits(hub_->getPort().c_str(), getNKTAddress(), &statusBits);
+		hub_->deviceGetStatusBits(this, &statusBits);
 		if (statusBits & 0x0001){ //Bit 0 of statusBits indicates if emission is on.
 			pProp->Set("True");
 		} else {
@@ -74,10 +73,10 @@ int SuperKExtreme::onEmission(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		std::string enabled;
 		pProp->Get(enabled);
 		if (enabled.compare("True") == 0) {
-			int ret = NKTPDLL::registerWriteU8(hub_->getPort().c_str(), getNKTAddress(), 0x30, 3, -1);
+			int ret = hub_->registerWriteU8(this, 0x30, 3);
 			if (ret!=0) { return ret;}
 		} else if (enabled.compare("False") == 0) {
-			int ret = NKTPDLL::registerWriteU8(hub_->getPort().c_str(), getNKTAddress(), 0x30, 0, -1);
+			int ret = hub_->registerWriteU8(this, 0x30, 0);
 			if (ret!=0) { return ret;}
 		} else {
 			return 666;
@@ -89,13 +88,13 @@ int SuperKExtreme::onEmission(MM::PropertyBase* pProp, MM::ActionType eAct) {
 int SuperKExtreme::onPower(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	if (eAct == MM::BeforeGet) {
 		uint16_t val;
-		NKTPDLL::registerReadU16(hub_->getPort().c_str(), getNKTAddress(), 0x37, &val, -1);
+		hub_->registerReadU16(this, 0x37, &val);
 		pProp -> Set(((float) val) / 10); //Convert for units of 0.1C to 1C
 	} else if (eAct == MM::AfterSet) {
 		double power;
 		pProp->Get(power);
 		uint16_t val = (uint16_t)(power * 10); //Convert for units of C to 0.1C
-		NKTPDLL::registerWriteU16(hub_->getPort().c_str(), getNKTAddress(), 0x37, val, -1);
+		hub_->registerWriteU16(this, 0x37, val);
 	}
 	return DEVICE_OK;
 }
@@ -103,7 +102,7 @@ int SuperKExtreme::onPower(MM::PropertyBase* pProp, MM::ActionType eAct) {
 int SuperKExtreme::onInletTemperature(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	if (eAct == MM::BeforeGet) {
 		int16_t val;
-		NKTPDLL::registerReadS16(hub_->getPort().c_str(), getNKTAddress(), 0x11, &val, -1);
+		hub_->registerReadS16(this, 0x11, &val);
 		pProp -> Set(((float) val) / 10); //Convert for units of 0.1C to 1C
 	}
 	return DEVICE_OK;
