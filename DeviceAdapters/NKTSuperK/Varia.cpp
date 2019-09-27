@@ -24,7 +24,7 @@ int SuperKVaria::Initialize() {
 	try {
 		setNKTAddress(hub_ -> getDeviceAddress(this)); 
 	} catch (const std::out_of_range& oor) {
-		SetErrorText(99, "SuperKExtreme Laser was not found in the SuperKHub list of connected devices.");
+		SetErrorText(99, "SuperKVaria Filter was not found in the SuperKHub list of connected devices.");
 		return 99;
 	}
 
@@ -63,6 +63,16 @@ int SuperKVaria::Shutdown() {
 void SuperKVaria::GetName(char* pName) const {
 	assert(name_.length() < CDeviceUtils::GetMaxStringLength());
 	CDeviceUtils::CopyLimitedString(pName, name_.c_str());
+}
+
+bool SuperKVaria::Busy() {
+	unsigned long status;
+	NKTPDLL::deviceGetStatusBits(hub_->getPort().c_str(), getNKTAddress(),&status);
+	if (status & 0x7000) { //One of the three filters is moving.
+		return true;
+	} else {
+		return false;
+	}
 }
 
 //******Properties*******//
@@ -135,17 +145,15 @@ int SuperKVaria::onSWP(MM::PropertyBase* pProp, MM::ActionType eAct) {
 int SuperKVaria::updateFilters() {
 	double lwp = wavelength_ - bandwidth_ / 2;
 	double swp = wavelength_ + bandwidth_ / 2;
-	double min = 400;
-	double max = 850;
 	lwp = std::max(std::min(lwp, 850.0), 400.0); //Clamp the filter value to the allowed range.
 	swp = std::max(std::min(swp, 850.0), 400.0); //Clamp the filter value to the allowed range.
 	int ret = DEVICE_OK;
 	if (lwp != lwp_) {
 		ret = SetProperty("Long Wave Pass", std::to_string((long double)lwp).c_str());
-		if (ret!=DEVICE_OK;){return ret;}
+		if (ret!=DEVICE_OK){return ret;}
 	}
 	if (swp != swp_) {
 		ret = SetProperty("Short Wave Pass", std::to_string((long double)swp).c_str());
-		if (ret!=DEVICE_OK;){return ret;}
+		if (ret!=DEVICE_OK){return ret;}
 	}
 }
