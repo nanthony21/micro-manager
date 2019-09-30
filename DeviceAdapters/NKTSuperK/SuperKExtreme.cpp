@@ -3,7 +3,7 @@
 
 extern const char* g_ExtremeName;
 
-SuperKExtreme::SuperKExtreme(): name_(g_ExtremeName), SuperKDevice(0x60) {
+SuperKExtreme::SuperKExtreme(): name_(g_ExtremeName), SuperKDevice(0x60), emissionChangedTime_(0) {
 	InitializeDefaultErrorMessages();
 	SetErrorText(DEVICE_SERIAL_TIMEOUT, "Serial port timed out without receiving a response.");
 
@@ -61,6 +61,9 @@ void SuperKExtreme::GetName(char* pName) const {
 int SuperKExtreme::onEmission(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	//TODO this gets read too quickly after setting it.
 	if (eAct == MM::BeforeGet) {
+		double elapsedTime = 0;
+		do {elapsedTime = (GetCurrentMMTime() - emissionChangedTime_).getMsec();}
+		while (elapsedTime < 10); //Wait until the emission has had at least 10ms before checking
 		unsigned long statusBits;
 		hub_->deviceGetStatusBits(this, &statusBits);
 		if (statusBits & 0x0001){ //Bit 0 of statusBits indicates if emission is on.
@@ -70,6 +73,7 @@ int SuperKExtreme::onEmission(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		}
 	}
 	else if (eAct == MM::AfterSet) {
+		emissionChangedTime_ = GetCurrentMMTime();
 		std::string enabled;
 		pProp->Get(enabled);
 		if (enabled.compare("True") == 0) {

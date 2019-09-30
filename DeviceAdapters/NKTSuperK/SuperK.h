@@ -83,6 +83,7 @@ public:
 private:
 	std::string name_;
 	SuperKHub* hub_;
+	MM::MMTime emissionChangedTime_;
 };
 
 
