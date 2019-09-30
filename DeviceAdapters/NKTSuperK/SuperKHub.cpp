@@ -3,12 +3,12 @@
 extern std::map<uint8_t, const char*> g_devices;
 
 
-
+//TODO find a way to set the proper errors
 
 
 SuperKHub::SuperKHub() {
 	MMThreadGuard myLock(getLock());
-	InitializeDefaultErrorMessages();
+	setNKTErrorText();
 	SetErrorText(DEVICE_SERIAL_TIMEOUT, "Serial port timed out without receiving a response.");
 
 	CPropertyAction* pAct = new CPropertyAction(this, &SuperKHub::onPort);
@@ -41,8 +41,8 @@ SuperKHub::~SuperKHub() {} //Some device adapters call shutdown here. However th
 //********Device API*********//
 int SuperKHub::Initialize() {
 	MMThreadGuard myLock(getLock());
-	int ret = NKTPDLL::openPorts(port_.c_str(), 1, 1); //Usage of the NKT sdk Dll requires we use their port opening mechanics rather than micromanager's.
-	if (ret!=0){return ret;}
+	int ret = NKTPDLL::openPorts(port_.c_str(), 1, 1) + PortResultsOffset; //Usage of the NKT sdk Dll requires we use their port opening mechanics rather than micromanager's.
+	if (ret!=PortResultsOffset){return ret;}
 	ret = populateDeviceAddressMap(); //We need to populate deviceAddressMap_ or we won't be able to instantiate our devices.
 	if (ret!=0){return ret;}
 	return DEVICE_OK;
@@ -59,8 +59,8 @@ int SuperKHub::Shutdown() {
 int SuperKHub::DetectInstalledDevices() {
 	unsigned char maxTypes = 255;
 	unsigned char types[255]; 
-	int ret = NKTPDLL::deviceGetAllTypes(port_.c_str(), types, &maxTypes);
-	if (ret!=0) { return ret;}
+	int ret = NKTPDLL::deviceGetAllTypes(port_.c_str(), types, &maxTypes) + DeviceResultsOffset;
+	if (ret!=DeviceResultsOffset) { return ret;}
 	for (uint8_t i=0; i<maxTypes; i++) {
 		if (types[i] == 0) { continue; } //No device detected at address `i`
 		else {
@@ -79,8 +79,8 @@ int SuperKHub::DetectInstalledDevices() {
 int SuperKHub::populateDeviceAddressMap() {
 	unsigned char maxTypes = 255;
 	unsigned char types[255]; 
-	int ret = NKTPDLL::deviceGetAllTypes(port_.c_str(), types, &maxTypes);
-	if (ret!=0) { return ret;}
+	int ret = NKTPDLL::deviceGetAllTypes(port_.c_str(), types, &maxTypes) + DeviceResultsOffset;
+	if (ret!=DeviceResultsOffset) { return ret;}
 	for (uint8_t i=0; i<maxTypes; i++) {
 		if (types[i] == 0) { continue; } //No device detected at address `i`
 		else {
@@ -119,36 +119,63 @@ uint8_t SuperKHub::getDeviceAddress(SuperKDevice* devPtr) { //This can throw an 
 
 int SuperKHub::registerReadU8(SuperKDevice* dev, uint8_t regId, uint8_t* val) {
 	MMThreadGuard myLock(getLock()); //get thread lock
-	int ret = NKTPDLL::registerReadU8(port_.c_str(), dev->getNKTAddress(), regId, val, -1);
-	return ret;
+	int ret = NKTPDLL::registerReadU8(port_.c_str(), dev->getNKTAddress(), regId, val, -1) + RegisterResultsOffset;
+	if (ret!=RegisterResultsOffset){return ret;}
+	return DEVICE_OK;
 }
 
 int SuperKHub::registerReadU16(SuperKDevice* dev, uint8_t regId, uint16_t* val) {
 	MMThreadGuard myLock(getLock()); //get thread lock
-	int ret = NKTPDLL::registerReadU16(port_.c_str(), dev->getNKTAddress(), regId, val, -1);
-	return ret;
+	int ret = NKTPDLL::registerReadU16(port_.c_str(), dev->getNKTAddress(), regId, val, -1) + RegisterResultsOffset;
+	if (ret!=RegisterResultsOffset){return ret;}
+	return DEVICE_OK;
 }
 
 int SuperKHub::registerWriteU8(SuperKDevice* dev, uint8_t regId, uint8_t val) {
 	MMThreadGuard myLock(getLock()); //get thread lock
-	int ret = NKTPDLL::registerWriteU8(port_.c_str(), dev->getNKTAddress(), regId, val, -1);
-	return ret;
+	int ret = NKTPDLL::registerWriteU8(port_.c_str(), dev->getNKTAddress(), regId, val, -1) + RegisterResultsOffset;
+	if (ret!=RegisterResultsOffset){return ret;}
+	return DEVICE_OK;
 }
 
 int SuperKHub::registerWriteU16(SuperKDevice* dev, uint8_t regId, uint16_t val) {
 	MMThreadGuard myLock(getLock()); //get thread lock
-	int ret = NKTPDLL::registerWriteU16(port_.c_str(), dev->getNKTAddress(), regId, val, -1);
-	return ret;
+	int ret = NKTPDLL::registerWriteU16(port_.c_str(), dev->getNKTAddress(), regId, val, -1) + RegisterResultsOffset;
+	if (ret!=RegisterResultsOffset){return ret;}
+	return DEVICE_OK;;
 }
 
 int SuperKHub::registerReadS16(SuperKDevice* dev, uint8_t regId, int16_t* val) {
 	MMThreadGuard myLock(getLock()); //get thread lock
-	int ret = NKTPDLL::registerReadS16(port_.c_str(), dev->getNKTAddress(), regId, val, -1);
-	return ret;
+	int ret = NKTPDLL::registerReadS16(port_.c_str(), dev->getNKTAddress(), regId, val, -1) + RegisterResultsOffset;
+	if (ret!=RegisterResultsOffset){return ret;}
+	return DEVICE_OK;
 }
 
 int SuperKHub::deviceGetStatusBits(SuperKDevice* dev, unsigned long* val) {
 	MMThreadGuard myLock(getLock());
-	int ret = NKTPDLL::deviceGetStatusBits(port_.c_str(), dev->getNKTAddress(), val);
-	return ret;
+	int ret = NKTPDLL::deviceGetStatusBits(port_.c_str(), dev->getNKTAddress(), val) + RegisterResultsOffset;
+	if (ret!=RegisterResultsOffset){return ret;}
+	return DEVICE_OK;
+}
+
+void SuperKHub::setNKTErrorText() {
+	for (int i=0; i<16; i++) {
+		int errNum = i + RegisterResultsOffset;
+		char newstr[255];
+		sprintf(newstr, "NKT SDK RegisterResults Error Code: %d", errNum - RegisterResultsOffset);
+		SetErrorText(errNum, newstr);
+	}
+	for (int i=0; i<7; i++) {
+		int errNum = i + DeviceResultsOffset;
+		char newstr[255];
+		sprintf(newstr, "NKT SDK DeviceResults Error Code: %d", errNum - DeviceResultsOffset);
+		SetErrorText(errNum, newstr);
+	}
+	for (int i=0; i<5; i++) {
+		int errNum = i + PortResultsOffset;
+		char newstr[255];
+		sprintf(newstr, "NKT SDK PortResults Error Code: %d", errNum - PortResultsOffset);
+		SetErrorText(errNum, newstr);
+	}
 }

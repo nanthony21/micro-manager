@@ -3,7 +3,7 @@
 
 extern const char* g_VariaName;
 
-SuperKVaria::SuperKVaria(): name_(g_VariaName), SuperKDevice(0x68) { 
+SuperKVaria::SuperKVaria(): name_(g_VariaName), SuperKDevice(0x68), wavelength_(632), bandwidth_(10) { 
 	InitializeDefaultErrorMessages();
 	SetErrorText(DEVICE_SERIAL_TIMEOUT, "Serial port timed out without receiving a response.");
 		// Name
@@ -43,6 +43,7 @@ int SuperKVaria::Initialize() {
 	CreateProperty("Wavelength", "632", MM::Float, false, pAct, false);
 	SetPropertyLimits("Wavelength", 405, 845);
 
+
 	//Short Wave Pass
 	pAct = new CPropertyAction(this, &SuperKVaria::onSWP);
 	CreateProperty("Short Wave Pass", "632", MM::Float, false, pAct, false);
@@ -52,6 +53,13 @@ int SuperKVaria::Initialize() {
 	pAct = new CPropertyAction(this, &SuperKVaria::onLWP);
 	CreateProperty("Long Wave Pass", "632", MM::Float, false, pAct, false);
 	SetPropertyLimits("Long Wave Pass", 400, 850);
+
+	//Update variables by actually reading the hardware
+	double val;
+	GetProperty("Short Wave Pass",val);
+	GetProperty("Long Wave Pass", val);
+	GetProperty("Bandwidth", val);
+	GetProperty("Wavelength", val);
 
 	return DEVICE_OK;
 }
@@ -112,15 +120,15 @@ int SuperKVaria::onLWP(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	if (eAct == MM::BeforeGet) {
 		uint16_t val;
 		int ret = hub_->registerReadU16(this, 0x34, &val);
-		if (ret!=0){return ret;}
-		swp_ = ((double) val) / 10;
-		pProp->Set(lwp_);//TODO actually read the register
+		if (ret!=DEVICE_OK){return ret;}
+		lwp_ = ((double) val) / 10;
+		pProp->Set(lwp_);
 	}
 	if (eAct == MM::AfterSet) {
 		pProp->Get(lwp_);
 		uint16_t val = (uint16_t)(lwp_ * 10); //Convert from units of nm to 0.1nm
 		int ret = hub_->registerWriteU16(this, 0x34, val); //LWP 
-		if (ret!=0){return ret;}
+		if (ret!=DEVICE_OK){return ret;}
 	}
 	return DEVICE_OK;
 }
@@ -129,7 +137,7 @@ int SuperKVaria::onSWP(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	if (eAct == MM::BeforeGet) {
 		uint16_t val;
 		int ret = hub_->registerReadU16(this, 0x33, &val);
-		if (ret!=0){return ret;}
+		if (ret!=DEVICE_OK){return ret;}
 		swp_ = ((double) val) / 10;
 		pProp->Set(swp_);
 	}
@@ -137,7 +145,7 @@ int SuperKVaria::onSWP(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		pProp->Get(swp_);
 		uint16_t val = (uint16_t)(swp_ * 10); //Convert from units of nm to 0.1nm
 		int ret = hub_->registerWriteU16(this, 0x33, val); //SWP
-		if (ret!=0){return ret;}
+		if (ret!=DEVICE_OK){return ret;}
 	}
 	return DEVICE_OK;
 }
@@ -156,4 +164,5 @@ int SuperKVaria::updateFilters() {
 		ret = SetProperty("Short Wave Pass", std::to_string((long double)swp).c_str());
 		if (ret!=DEVICE_OK){return ret;}
 	}
+	return DEVICE_OK;
 }

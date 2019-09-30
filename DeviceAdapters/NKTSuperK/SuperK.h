@@ -9,6 +9,12 @@
 #include <map>
 #include <stdint.h>
 
+//Offsets so we can initialize NKT specific errors without overwriting the default errors.
+#define PortResultsOffset 50 //0-4
+#define DeviceResultsOffset 55 //0-6
+#define RegisterResultsOffset 62 //0-15
+
+
 class SuperKDevice{
 private: 
 	uint8_t address_;
@@ -49,6 +55,7 @@ private:
 	MMThreadLock lock_; //Make comms thread safe
 	MMThreadLock& getLock() { return lock_; };
 	int populateDeviceAddressMap();
+	void setNKTErrorText();
 };
 
 
