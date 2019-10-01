@@ -121,14 +121,16 @@ int SuperKExtreme::SetOpen(bool open) {
 	if (ret!=0) { return ret;}
 	emissionOn_ = open;
 	emissionChangedTime_ = GetCurrentMMTime();
+	return DEVICE_OK;
 }
 
 int SuperKExtreme::GetOpen(bool& open) {
 	double elapsedTime = 0;
 	do {elapsedTime = (GetCurrentMMTime() - emissionChangedTime_).getMsec();}
-	while (elapsedTime < 10); //Wait until the emission setting has had at least 10ms before checking the register
+	while (elapsedTime < 10) ; //Wait until the emission setting has had at least 10ms before checking the register
 	unsigned long statusBits;
-	hub_->deviceGetStatusBits(this, &statusBits);
+	int ret = hub_->deviceGetStatusBits(this, &statusBits);
+	if (ret!=DEVICE_OK){return ret;}
 	if (statusBits & 0x0001){ //Bit 0 of statusBits indicates if emission is on.
 		emissionOn_ = true;
 	} else {
