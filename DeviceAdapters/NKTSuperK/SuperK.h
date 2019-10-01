@@ -9,7 +9,7 @@
 #include <map>
 #include <stdint.h>
 
-//Offsets so we can initialize NKT specific errors without overwriting the default errors.
+//Offsets so we can initialize NKT specific errors without overwriting the default errors. The offset is added to the value of the error when it is generated. We also register error messages with MMCore using the offset.
 #define PortResultsOffset 50 //0-4
 #define DeviceResultsOffset 55 //0-6
 #define RegisterResultsOffset 62 //0-15
@@ -60,7 +60,7 @@ private:
 
 
 
-class SuperKExtreme: public CGenericBase<SuperKExtreme>, public SuperKDevice {
+class SuperKExtreme: public CShutterBase<SuperKExtreme>, public SuperKDevice {
 public:
 	SuperKExtreme();
 	~SuperKExtreme();
@@ -72,9 +72,9 @@ public:
 	bool Busy(){return false;};
 	
 	//Shutter API TODO implement
-	//int SetOpen(bool open = true);
-	//int GetOpen(bool& open);
-	//int Fire(double deltaT);
+	int SetOpen(bool open = true);
+	int GetOpen(bool& open);
+	int Fire(double deltaT);
 
 	//Properties
 	int onEmission(MM::PropertyBase* pProp, MM::ActionType eAct);
@@ -84,6 +84,7 @@ private:
 	std::string name_;
 	SuperKHub* hub_;
 	MM::MMTime emissionChangedTime_;
+	bool emissionOn_;
 };
 
 

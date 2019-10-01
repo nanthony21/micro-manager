@@ -3,7 +3,7 @@
 
 extern const char* g_ExtremeName;
 
-SuperKExtreme::SuperKExtreme(): name_(g_ExtremeName), SuperKDevice(0x60), emissionChangedTime_(0) {
+SuperKExtreme::SuperKExtreme(): name_(g_ExtremeName), SuperKDevice(0x60), emissionChangedTime_(0), emissionOn_(false) {
 	InitializeDefaultErrorMessages();
 	SetErrorText(DEVICE_SERIAL_TIMEOUT, "Serial port timed out without receiving a response.");
 
@@ -60,30 +60,26 @@ void SuperKExtreme::GetName(char* pName) const {
 
 int SuperKExtreme::onEmission(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	if (eAct == MM::BeforeGet) {
-		double elapsedTime = 0;
-		do {elapsedTime = (GetCurrentMMTime() - emissionChangedTime_).getMsec();}
-		while (elapsedTime < 10); //Wait until the emission has had at least 10ms before checking the register
-		unsigned long statusBits;
-		hub_->deviceGetStatusBits(this, &statusBits);
-		if (statusBits & 0x0001){ //Bit 0 of statusBits indicates if emission is on.
+		bool open;
+		GetOpen(open);
+		if (open) {
 			pProp->Set("True");
 		} else {
 			pProp->Set("False");
 		}
 	}
 	else if (eAct == MM::AfterSet) {
-		emissionChangedTime_ = GetCurrentMMTime();
 		std::string enabled;
 		pProp->Get(enabled);
+		int ret;
 		if (enabled.compare("True") == 0) {
-			int ret = hub_->registerWriteU8(this, 0x30, 3);
-			if (ret!=0) { return ret;}
+			ret = SetOpen(true);
 		} else if (enabled.compare("False") == 0) {
-			int ret = hub_->registerWriteU8(this, 0x30, 0);
-			if (ret!=0) { return ret;}
+			ret = SetOpen(false);
 		} else {
 			return 666;
 		}
+		if (ret!=DEVICE_OK){return ret;}
 	}
 	return DEVICE_OK;
 }
@@ -109,4 +105,41 @@ int SuperKExtreme::onInletTemperature(MM::PropertyBase* pProp, MM::ActionType eA
 		pProp -> Set(((float) val) / 10); //Convert for units of 0.1C to 1C
 	}
 	return DEVICE_OK;
+}
+
+
+//******Shutter API*******//
+int SuperKExtreme::SetOpen(bool open) {
+	int ret;
+	uint8_t val;
+	if (open) {
+		val = 3;
+	} else {
+		val = 0;
+	}
+	ret = hub_->registerWriteU8(this, 0x30, val);	
+	if (ret!=0) { return ret;}
+	emissionOn_ = open;
+	emissionChangedTime_ = GetCurrentMMTime();
+}
+
+int SuperKExtreme::GetOpen(bool& open) {
+	double elapsedTime = 0;
+	do {elapsedTime = (GetCurrentMMTime() - emissionChangedTime_).getMsec();}
+	while (elapsedTime < 10); //Wait until the emission setting has had at least 10ms before checking the register
+	unsigned long statusBits;
+	hub_->deviceGetStatusBits(this, &statusBits);
+	if (statusBits & 0x0001){ //Bit 0 of statusBits indicates if emission is on.
+		emissionOn_ = true;
+	} else {
+		emissionOn_ = false;
+	}
+	open = emissionOn_;
+	return DEVICE_OK;
+}
+
+int SuperKExtreme::Fire(double /* deltaT */)
+{
+   // Not supported
+   return DEVICE_UNSUPPORTED_COMMAND;
 }

@@ -28,7 +28,7 @@ MODULE_API void InitializeModuleData()
 	RegisterDevice(g_HubName, MM::HubDevice, g_HubName);
 	//RegisterDevice(g_ExtremeName, MM::ShutterDevice, g_ExtremeName);
     RegisterDevice(g_VariaName, MM::GenericDevice, g_VariaName);
-	RegisterDevice(g_ExtremeName, MM::GenericDevice, g_ExtremeName);
+	RegisterDevice(g_ExtremeName, MM::ShutterDevice, g_ExtremeName);
 }
 
 MODULE_API void DeleteDevice(MM::Device* pDevice)
