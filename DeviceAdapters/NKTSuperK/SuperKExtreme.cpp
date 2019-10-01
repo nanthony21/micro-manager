@@ -59,11 +59,10 @@ void SuperKExtreme::GetName(char* pName) const {
 //******Properties*******//
 
 int SuperKExtreme::onEmission(MM::PropertyBase* pProp, MM::ActionType eAct) {
-	//TODO this gets read too quickly after setting it.
 	if (eAct == MM::BeforeGet) {
 		double elapsedTime = 0;
 		do {elapsedTime = (GetCurrentMMTime() - emissionChangedTime_).getMsec();}
-		while (elapsedTime < 10); //Wait until the emission has had at least 10ms before checking
+		while (elapsedTime < 10); //Wait until the emission has had at least 10ms before checking the register
 		unsigned long statusBits;
 		hub_->deviceGetStatusBits(this, &statusBits);
 		if (statusBits & 0x0001){ //Bit 0 of statusBits indicates if emission is on.

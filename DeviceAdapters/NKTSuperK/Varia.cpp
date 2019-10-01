@@ -36,7 +36,7 @@ int SuperKVaria::Initialize() {
 	//Bandwidth
 	pAct = new CPropertyAction(this, &SuperKVaria::onBandwidth);
 	CreateProperty("Bandwidth (nm)", "10", MM::Float, false, pAct, false);
-	SetPropertyLimits("Bandwidth (nm)", 10, 100);
+	SetPropertyLimits("Bandwidth (nm)", 1, 100);
 
 	//Wavelength
 	pAct = new CPropertyAction(this, &SuperKVaria::onWavelength);
@@ -54,12 +54,10 @@ int SuperKVaria::Initialize() {
 	CreateProperty("Long Wave Pass", "632", MM::Float, false, pAct, false);
 	SetPropertyLimits("Long Wave Pass", 400, 850);
 
-	//Update variables by actually reading the hardware
+	//Set the hardware to make sure all variables are consistent
 	double val;
-	GetProperty("Short Wave Pass",val);
-	GetProperty("Long Wave Pass", val);
-	GetProperty("Bandwidth", val);
-	GetProperty("Wavelength", val);
+	SetProperty("Wavelength", "632");
+	SetProperty("Bandwidth", "10");
 
 	return DEVICE_OK;
 }
