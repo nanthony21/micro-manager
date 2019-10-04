@@ -588,21 +588,6 @@ public:
       return properties_.CreateProperty(name, value, eType, readOnly, pAct, isPreInitProperty);
    }
 
-   /**
-   * Creates a new property for the device.
-   * @param name - property name
-   * @param value - initial value
-   * @param eType - property type (string, integer or float)
-   * @param readOnly - is the property read-only or not
-   * @param memberFunction - Function pointer to the device object "OnProperty" member function, e.g. &MyDevice::OnState
-   * @param isPreInitProperty - whether to create a "pre-init" property, whose
-   * value will be available before Initialize() is called
-   */
-   int CreatePropertyWithHandler(const char* name, const char* value, MM::PropertyType eType, bool readOnly,
-                                 int(U::*memberFunction)(MM::PropertyBase* pProp, MM::ActionType eAct), bool isPreInitProperty=false) {
-      CPropertyAction* pAct = new CPropertyAction((U*) this, memberFunction);
-      return CreateProperty(name, value, eType, readOnly, pAct, isPreInitProperty);
-   }
 
    /**
     * Create an integer-valued property for the device

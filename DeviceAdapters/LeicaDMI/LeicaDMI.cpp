@@ -1266,7 +1266,9 @@ FastFilterWheel::FastFilterWheel() :
    // Description
    CreateProperty(MM::g_Keyword_Description, description_.c_str(), MM::String, true);
 
-   CreatePropertyWithHandler("Filter Wheel ID", "0", MM::Integer, false, &FastFilterWheel::OnFilterWheelID,true);
+
+   CPropertyAction* pAct = new CPropertyAction(this, FastFilterWheel::OnFilterWheelID);
+   CreateProperty("Filter Wheel ID", "0", MM::Integer, false, pAct, true);
    for (int i=0; i<4; ++i) {
       stringstream ss;
       ss << i;
