@@ -22,10 +22,6 @@
 
 // #define TESTRUN // uncomment this macro to run in 'dry' testing mode (no COM port queries)
 
-#ifdef WIN32
-   #include <windows.h>
-   #define snprintf _snprintf 
-#endif
 
 #include "PiezoZStage.h"
 #include "Thorlabs.h"

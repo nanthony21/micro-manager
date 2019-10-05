@@ -31,11 +31,6 @@
 // Based on NikonTE2000 controller adapter by Nenad Amodaj
 //
 
-#ifdef WIN32
-#include <windows.h>
-#define snprintf _snprintf 
-#endif
-
 #include "CSUW1.h"
 #include "CSUW1Hub.h"
 #include <cstdio>

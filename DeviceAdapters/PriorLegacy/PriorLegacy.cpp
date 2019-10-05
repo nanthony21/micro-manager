@@ -27,11 +27,6 @@
 //                but full functionality including synchronization and resolution
 //                calibration will require use of the standard Prior.cpp library
 
-#ifdef WIN32
-   #include <windows.h>
-   #define snprintf _snprintf 
-#endif
-
 #include "PriorLegacy.h"
 #include <cstdio>
 #include <string>

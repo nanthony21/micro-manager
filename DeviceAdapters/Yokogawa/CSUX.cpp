@@ -31,10 +31,6 @@
 // Based on NikonTE2000 controller adapter by Nenad Amodaj
 //
 
-#ifdef WIN32
-#include <windows.h>
-#define snprintf _snprintf 
-#endif
 
 #include "CSUX.h"
 #include "CSUXHub.h"

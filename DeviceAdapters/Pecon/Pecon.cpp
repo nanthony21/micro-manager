@@ -8,10 +8,6 @@
 // AUTHOR:        Peter Topor, topor@ilc.sk, 05/17/2008
 // LICENSE:       This file is distributed under the BSD license.
 
-#ifdef WIN32
-#include <windows.h>
-#define snprintf _snprintf 
-#endif
 
 #include "Pecon.h"
 #include <cstdio>

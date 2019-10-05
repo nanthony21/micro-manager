@@ -1,13 +1,6 @@
 #ifndef __ABSCAMERA_H__
 #define __ABSCAMERA_H__
 
-#ifdef WIN32
-   #define WIN32_LEAN_AND_MEAN
-   #include <windows.h>   
-   #define snprintf _snprintf 
-   #pragma warning(disable : 4996) // disable warning for deperecated CRT functions on Windows 
-#endif
-
 #include "MMDevice.h"
 #include "MMDeviceConstants.h"
 #include "ModuleInterface.h"

@@ -28,10 +28,7 @@
 // AUTHOR:        Lon Chu (lonchu@yahoo.com), created on August 2011
 //
 
-#ifdef WIN32
-   #include <windows.h>
-   #define snprintf _snprintf 
-#endif
+
 
 #include <stdio.h>
 #include <string>

@@ -26,12 +26,6 @@
 
 
 
-#ifdef WIN32
-   #include <windows.h>
-   #define snprintf _snprintf 
-#endif
-
-
 #include "../../MMDevice/MMDevice.h"
 #include "../../MMDevice/ModuleInterface.h"
 #include "../../MMDevice/DeviceUtils.h"

@@ -23,10 +23,6 @@
 // CVS:           $Id: Nikon.cpp 574 2007-11-07 21:00:45Z nenad $
 //
 
-#ifdef WIN32
-   #include <windows.h>
-   #define snprintf _snprintf 
-#endif
 
 #include "PI.h"
 #include <string>

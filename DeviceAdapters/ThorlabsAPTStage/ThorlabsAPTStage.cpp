@@ -39,10 +39,7 @@
 //                [X] TDC001 - 1 Ch DC servo driver T-Cube
 //
 
-#ifdef WIN32
-   #include <windows.h>
-   #define snprintf _snprintf
-#endif
+
 
 #include "ThorlabsAPTStage.h"
 #include "APTAPI.h"

@@ -29,10 +29,6 @@
 //
 // vim: set autoindent tabstop=3 softtabstop=3 shiftwidth=3 expandtab textwidth=78:
 
-#ifdef WIN32
-#include <windows.h>
-#define snprintf _snprintf
-#endif
 
 // The main Oasis controller API
 #include "oasis4i.h"

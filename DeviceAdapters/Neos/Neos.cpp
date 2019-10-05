@@ -17,10 +17,6 @@
 //                INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES.
 // AUTHOR:        Nico Stuurman, 10/03/2009
 
-#ifdef WIN32
-#include <windows.h>
-#define snprintf _snprintf 
-#endif
 
 #include "Neos.h"
 #include <string>

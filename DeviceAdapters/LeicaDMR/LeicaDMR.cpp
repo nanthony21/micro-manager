@@ -26,11 +26,6 @@
 // AUTHOR:        Nico Stuurman (based on code by Nenad Amodaj), nico@cmp.ucsf.edu, April 2007
 //
 
-#ifdef WIN32
-   //#include <windows.h>
-   #define snprintf _snprintf 
-#endif
-
 #include "LeicaDMR.h"
 #include "LeicaDMRHub.h"
 #include <cstdio>

@@ -26,10 +26,6 @@
 // AUTHOR:        Arthur Edelstein, 2012
 //                Special thanks to Andre Ratz
 
-#ifdef WIN32
-#define snprintf _snprintf 
-#pragma warning(disable: 4355)
-#endif
 
 #include "Rapp.h"
 #include <cstdio>

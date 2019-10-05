@@ -8,10 +8,6 @@
 // AUTHOR:        Erwin Peterman 02/02/2010
 //
 
-#ifdef WIN32
-   #include <windows.h>
-   #define snprintf _snprintf 
-#endif
 
 #include "AAAOTF.h"
 #include <string>

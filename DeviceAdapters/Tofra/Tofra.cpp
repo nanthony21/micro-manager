@@ -22,10 +22,6 @@
 // AUTHOR:        Ilya Ravkin, based on Code by Nenad Amodaj and Nico Stuurman
 //
 
-#ifdef WIN32
-   #include <windows.h>
-   #define snprintf _snprintf 
-#endif
 
 #include "Tofra.h"
 #include <boost/lexical_cast.hpp>

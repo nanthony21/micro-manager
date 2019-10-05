@@ -21,11 +21,6 @@
 // CVS:           $Id: FreeSerialPort.cpp 4112 2010-03-04 00:07:24Z karlh $
 //
 
-#ifdef WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#define snprintf _snprintf 
-#endif
 
 #include "FreeSerialPort.h"
 #include "../../MMDevice/ModuleInterface.h"

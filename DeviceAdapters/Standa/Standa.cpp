@@ -20,10 +20,6 @@
 // AUTHOR:        Clarence Leung, clarence.leung@mail.mcgill.ca, 2013
 //
 
-#ifdef WIN32
-   #include <windows.h>
-   #define snprintf _snprintf 
-#endif
 
 #include "Standa.h"
 

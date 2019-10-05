@@ -29,10 +29,6 @@
  * Make sure that the objective is far enough away from the sample before executing this command.
  */
 
-#ifdef WIN32
-#include <windows.h>
-#define snprintf _snprintf
-#endif
 
 #include "KDV.h"
 #include <string>

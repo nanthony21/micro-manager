@@ -20,11 +20,6 @@
 // AUTHOR:        Jon Daniels (jon@asiimaging.com) 06/2014
 //
 
-
-#ifdef WIN32
-#define snprintf _snprintf 
-#endif
-
 #include "OVP_ECS2.h"
 #include "../../MMDevice/MMDevice.h"
 #include "../../MMDevice/DeviceBase.h"

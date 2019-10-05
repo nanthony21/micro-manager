@@ -30,12 +30,6 @@
 //                INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES. 
 //
 
-//#include "stdafx.h"
-
-#ifdef WIN32
-   #include <windows.h>
-   #define snprintf _snprintf 
-#endif
 
 #include "Piezosystem_30DV50.h"
 #include "../../MMDevice/ModuleInterface.h"

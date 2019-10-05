@@ -21,10 +21,6 @@
 //                INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES.
 //
 
-#ifdef WIN32
-#define snprintf _snprintf 
-#pragma warning(disable: 4355)
-#endif
 
 #include "XYStage.h"
 

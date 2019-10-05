@@ -21,10 +21,6 @@
 // AUTHOR:        Erich E. Hoover, ehoover@mines.edu, 2012
 //
 
-#ifdef WIN32
-   #include <windows.h>
-   #define snprintf _snprintf 
-#endif
 
 #include "MotorZStage.h"
 #include "Thorlabs.h"

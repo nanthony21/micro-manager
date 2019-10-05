@@ -15,11 +15,6 @@
 #include "../../MMDevice/ModuleInterface.h"
 #include <cstdio>
 
-#ifdef WIN32
-   #define WIN32_LEAN_AND_MEAN
-   #include <windows.h>
-   #define snprintf _snprintf 
-#endif
 
 using namespace std;
 

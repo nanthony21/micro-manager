@@ -22,10 +22,6 @@
 // AUTHOR:		  Matthew Player (ELECSOFT)
 //
 
-#ifdef WIN32
-   #include <windows.h>
-   #define snprintf _snprintf 
-#endif
 
 #include "Scientifica.h"
 #include <cstdio>

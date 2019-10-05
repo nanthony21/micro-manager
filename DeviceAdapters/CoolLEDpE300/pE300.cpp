@@ -18,10 +18,6 @@
 //
 // AUTHOR:        Jinting Guo, jinting.guo@coolled.com, 12/07/2017
 
-#ifdef WIN32
-#include <windows.h>
-#define snprintf _snprintf 
-#endif
 
 
 #include "../../MMDevice/MMDevice.h"

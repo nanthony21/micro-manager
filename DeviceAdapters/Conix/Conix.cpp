@@ -12,11 +12,6 @@
 // Based on Ludl controller adpater by Nenad Amodaj
 // Includes some code from Nikon Z Stage adapter by Nenad Amodaj
 
-#ifdef WIN32
-#include <windows.h>
-#define snprintf _snprintf
-#endif
-
 #include "Conix.h"
 #include <cstdio>
 #include <string>

@@ -17,10 +17,6 @@
 //                INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES.
 // AUTHOR:        Jannis Uhlendorf (jannis.uhlendorf@gmail.com) 2015
 
-#ifdef WIN32
-#include <windows.h>
-#define snprintf _snprintf
-#endif
 
 #include "LStepOld.h"
 #include <string>

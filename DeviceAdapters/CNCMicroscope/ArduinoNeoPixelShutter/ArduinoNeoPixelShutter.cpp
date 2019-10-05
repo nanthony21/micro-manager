@@ -21,11 +21,6 @@ limitations under the License.
 
 #include <boost/lexical_cast.hpp>
 
-#ifdef WIN32
-   #define WIN32_LEAN_AND_MEAN
-   #include <windows.h>
-   #define snprintf _snprintf 
-#endif
 
 const char* g_DeviceNameArduinoNeoPixelHub = "ArduinoNeoPixel-Hub";
 const char* g_DeviceNameArduinoNeoPixelShutter = "ArduinoNeoPixel-Shutter";

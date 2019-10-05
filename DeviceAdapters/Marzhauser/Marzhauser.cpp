@@ -31,12 +31,6 @@
 //                INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES.  
 //
 
-#ifdef WIN32
-//   #include <windows.h>
-#define snprintf _snprintf 
-#pragma warning(disable: 4355)
-#endif
-
 #include "Marzhauser.h"
 #include <string>
 //#include <math.h>

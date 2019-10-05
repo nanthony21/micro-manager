@@ -32,12 +32,6 @@
 //                INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES. 
 //
 
-//#include "stdafx.h"
-
-#ifdef WIN32
-   #include <windows.h>
-   #define snprintf _snprintf 
-#endif
 
 #include "Piezosystem_dDrive.h"
 #include "devicelist.h"

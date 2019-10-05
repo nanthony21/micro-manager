@@ -27,11 +27,6 @@
 // CVS:           $Id :$        
 //
 
-#ifdef WIN32
-#include <windows.h>
-#define snprintf _snprintf 
-#endif
-
 
 // Declarations for the ALC library.
 #include "ALC_REV.h"

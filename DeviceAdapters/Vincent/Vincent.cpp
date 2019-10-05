@@ -20,11 +20,6 @@
 // NOTE:          Based on Ludl controller adpater by Nenad Amodaj
 //
 
-#ifdef WIN32
-#include <windows.h>
-#define snprintf _snprintf 
-#endif
-
 #include "Vincent.h"
 #include <string>
 #include <math.h>

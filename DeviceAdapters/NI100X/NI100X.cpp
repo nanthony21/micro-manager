@@ -10,11 +10,6 @@
 // COPYRIGHT:     100X Imaging Inc, 2010
 //                
 
-#ifdef WIN32
-   #define WIN32_LEAN_AND_MEAN
-   #include <windows.h>
-   #define snprintf _snprintf 
-#endif
 
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/replace.hpp>

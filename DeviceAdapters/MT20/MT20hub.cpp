@@ -28,7 +28,6 @@
 
 #ifdef WIN32
 	#define close closesocket
-	#define snprintf _snprintf
 	//#define errno WSAGetLastError()
 	#define strerror stringerror	// defined internally to use FormatMessage() instead of strerror
 #else

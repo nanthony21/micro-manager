@@ -37,11 +37,6 @@
 // CVS:           $Id: utilities.cpp,v 1.33 2009/08/19 22:40:57 nenad Exp $
 //													
 
-#ifdef WIN32
-   #define WIN32_LEAN_AND_MEAN
-   #include <windows.h>
-   #define snprintf _snprintf 
-#endif
 
 #include	"ScionCamera.h"
 

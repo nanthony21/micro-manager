@@ -51,9 +51,6 @@ CSensicam* CSensicam::m_pInstance = 0;
 const char* g_PixelType_8bit = "8bit";
 const char* g_PixelType_16bit = "16bit";
 
-#ifdef WIN32
-   #define snprintf _snprintf
-#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 // Exported MMDevice API

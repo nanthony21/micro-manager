@@ -21,11 +21,6 @@
 //                by Nico Stuurman, 2006
 
 
-#ifdef WIN32
-#include <windows.h>
-#define snprintf _snprintf 
-#endif
-
 #include "Xcite.h"
 #include <string>
 #include <math.h>

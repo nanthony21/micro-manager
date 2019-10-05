@@ -21,11 +21,6 @@
 // AUTHOR:			Olaf Wohlmann, owohlmann@thorlabs.com
 //
 
-
-#ifdef WIN32
-	#include <windows.h>
-	#define snprintf _snprintf
-#endif
 #include <string>
 #include <math.h>
 #include "DCxxxx_Plugin.h"
