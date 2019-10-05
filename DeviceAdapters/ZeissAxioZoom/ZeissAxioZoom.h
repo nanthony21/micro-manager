@@ -49,9 +49,7 @@
 #define _ZEISSCAN29_H_
 
 #ifdef WIN32
-#include <windows.h>
 #include <winsock.h>
-#define snprintf _snprintf 
 #else
 #include <netinet/in.h>
 #endif

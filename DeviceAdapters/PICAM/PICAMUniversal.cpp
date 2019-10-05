@@ -37,7 +37,6 @@
 #pragma warning(push)
 #include "picam.h"
 #include "picam_advanced.h"
-
 #pragma warning(pop)
 #endif
 
