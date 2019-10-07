@@ -1,0 +1,3 @@
+[submodule "MM3rdparty"]
+	path = MM3rdparty
+	url = https://github.com/nanthony21/MM3rdparty.git
