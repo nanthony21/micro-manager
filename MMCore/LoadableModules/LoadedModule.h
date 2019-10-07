@@ -21,7 +21,6 @@
 
 #pragma once
 
-#include <boost/utility.hpp>
 #include <string>
 
 

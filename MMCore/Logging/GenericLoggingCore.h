@@ -22,8 +22,6 @@
 #include "GenericPacketQueue.h"
 #include "GenericSink.h"
 
-#include <boost/thread.hpp>
-
 #include <algorithm>
 #include <string>
 #include <vector>

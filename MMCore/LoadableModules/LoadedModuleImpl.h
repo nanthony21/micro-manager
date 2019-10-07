@@ -24,8 +24,6 @@
 
 #include "LoadedModule.h"
 
-#include <boost/utility.hpp>
-
 class LoadedModuleImpl
 {
 public:

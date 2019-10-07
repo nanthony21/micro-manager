@@ -16,7 +16,7 @@
 
 #include "Metadata.h"
 
-#include <boost/thread.hpp>
+#include <mutex>
 
 #include <set>
 #include <string>

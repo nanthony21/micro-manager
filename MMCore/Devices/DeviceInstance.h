@@ -26,7 +26,6 @@
 #include <string>
 #include <vector>
 #include <functional>
-#include <boost/utility.hpp>
 
 class CMMCore;
 class HubInstance;

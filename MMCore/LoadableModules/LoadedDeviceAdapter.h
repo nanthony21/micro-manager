@@ -27,7 +27,6 @@
 #include "../../MMDevice/ModuleInterface.h"
 #include "../Logging/Logger.h"
 
-#include <boost/utility.hpp>
 
 class CMMCore;
 

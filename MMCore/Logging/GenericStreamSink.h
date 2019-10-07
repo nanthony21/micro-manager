@@ -18,7 +18,6 @@
 
 #include "GenericSink.h"
 
-#include <boost/utility.hpp>
 
 #include <exception>
 #include <iostream>
