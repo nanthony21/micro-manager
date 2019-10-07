@@ -3,8 +3,6 @@
 #include "CoreUtils.h"
 #include "Error.h"
 
-#include <boost/make_shared.hpp>
-#include <boost/shared_ptr.hpp>
 
 #include <utility>
 #include <vector>
@@ -34,7 +32,7 @@ const char* StringForLogLevel(LogLevel level)
 } // anonymous namespace
 
 LogManager::LogManager() :
-   loggingCore_(boost::make_shared<LoggingCore>()),
+   loggingCore_(std::make_shared<LoggingCore>()),
    internalLogger_(loggingCore_->NewLogger("LogManager")),
    primaryLogLevel_(LogLevelInfo),
    usingStdErr_(false),
@@ -45,7 +43,7 @@ LogManager::LogManager() :
 void
 LogManager::SetUseStdErr(bool flag)
 {
-   boost::lock_guard<boost::mutex> lock(mutex_);
+   std::lock_guard<std::mutex> lock(mutex_);
 
    if (flag == usingStdErr_)
       return;
@@ -55,9 +53,9 @@ LogManager::SetUseStdErr(bool flag)
    {
       if (!stdErrSink_)
       {
-         stdErrSink_ = boost::make_shared<StdErrLogSink>();
+         stdErrSink_ = std::make_shared<StdErrLogSink>();
          stdErrSink_->SetFilter(
-               boost::make_shared<LevelFilter>(primaryLogLevel_));
+               std::make_shared<LevelFilter>(primaryLogLevel_));
       }
       loggingCore_->AddSink(stdErrSink_, PrimarySinkMode);
 
@@ -75,7 +73,7 @@ LogManager::SetUseStdErr(bool flag)
 bool
 LogManager::IsUsingStdErr() const
 {
-   boost::lock_guard<boost::mutex> lock(mutex_);
+   std::lock_guard<std::mutex> lock(mutex_);
    return usingStdErr_;
 }
 
@@ -83,7 +81,7 @@ LogManager::IsUsingStdErr() const
 void
 LogManager::SetPrimaryLogFilename(const std::string& filename, bool truncate)
 {
-   boost::lock_guard<boost::mutex> lock(mutex_);
+   std::lock_guard<std::mutex> lock(mutex_);
 
    if (filename == primaryFilename_)
       return;
@@ -101,10 +99,10 @@ LogManager::SetPrimaryLogFilename(const std::string& filename, bool truncate)
       return;
    }
 
-   boost::shared_ptr<LogSink> newSink;
+   std::shared_ptr<LogSink> newSink;
    try
    {
-      newSink = boost::make_shared<FileLogSink>(primaryFilename_, !truncate);
+      newSink = std::make_shared<FileLogSink>(primaryFilename_, !truncate);
    }
    catch (const CannotOpenFileException&)
    {
@@ -120,7 +118,7 @@ LogManager::SetPrimaryLogFilename(const std::string& filename, bool truncate)
       throw CMMError("Cannot open file " + ToQuotedString(filename));
    }
 
-   newSink->SetFilter(boost::make_shared<LevelFilter>(primaryLogLevel_));
+   newSink->SetFilter(std::make_shared<LevelFilter>(primaryLogLevel_));
 
    if (!primaryFileSink_)
    {
@@ -136,8 +134,8 @@ LogManager::SetPrimaryLogFilename(const std::string& filename, bool truncate)
       // rotation.
 
       LOG_INFO(internalLogger_) << "Switching primary log file";
-      std::vector< std::pair<boost::shared_ptr<LogSink>, SinkMode> > toRemove;
-      std::vector< std::pair<boost::shared_ptr<LogSink>, SinkMode> > toAdd;
+      std::vector< std::pair<std::shared_ptr<LogSink>, SinkMode> > toRemove;
+      std::vector< std::pair<std::shared_ptr<LogSink>, SinkMode> > toAdd;
       toRemove.push_back(
             std::make_pair(primaryFileSink_, PrimarySinkMode));
       toAdd.push_back(std::make_pair(newSink, PrimarySinkMode));
@@ -154,7 +152,7 @@ LogManager::SetPrimaryLogFilename(const std::string& filename, bool truncate)
 std::string
 LogManager::GetPrimaryLogFilename() const
 {
-   boost::lock_guard<boost::mutex> lock(mutex_);
+   std::lock_guard<std::mutex> lock(mutex_);
    return primaryFilename_;
 }
 
@@ -162,7 +160,7 @@ LogManager::GetPrimaryLogFilename() const
 bool
 LogManager::IsUsingPrimaryLogFile() const
 {
-   boost::lock_guard<boost::mutex> lock(mutex_);
+   std::lock_guard<std::mutex> lock(mutex_);
    return !primaryFilename_.empty();
 }
 
@@ -170,7 +168,7 @@ LogManager::IsUsingPrimaryLogFile() const
 void
 LogManager::SetPrimaryLogLevel(LogLevel level)
 {
-   boost::lock_guard<boost::mutex> lock(mutex_);
+   std::lock_guard<std::mutex> lock(mutex_);
 
    if (level == primaryLogLevel_)
       return;
@@ -181,13 +179,13 @@ LogManager::SetPrimaryLogLevel(LogLevel level)
    LOG_INFO(internalLogger_) << "Switching primary log level from " <<
       StringForLogLevel(oldLevel) << " to " << StringForLogLevel(level);
 
-   boost::shared_ptr<EntryFilter> filter =
-      boost::make_shared<LevelFilter>(level);
+   std::shared_ptr<EntryFilter> filter =
+      std::make_shared<LevelFilter>(level);
 
    std::vector<
       std::pair<
-         std::pair<boost::shared_ptr<LogSink>, SinkMode>,
-         boost::shared_ptr<EntryFilter>
+         std::pair<std::shared_ptr<LogSink>, SinkMode>,
+         std::shared_ptr<EntryFilter>
       >
    > changes;
    if (stdErrSink_)
@@ -213,7 +211,7 @@ LogManager::SetPrimaryLogLevel(LogLevel level)
 LogLevel
 LogManager::GetPrimaryLogLevel() const
 {
-   boost::lock_guard<boost::mutex> lock(mutex_);
+   std::lock_guard<std::mutex> lock(mutex_);
    return primaryLogLevel_;
 }
 
@@ -222,12 +220,12 @@ LogManager::LogFileHandle
 LogManager::AddSecondaryLogFile(LogLevel level,
       const std::string& filename, bool truncate, SinkMode mode)
 {
-   boost::lock_guard<boost::mutex> lock(mutex_);
+   std::lock_guard<std::mutex> lock(mutex_);
 
-   boost::shared_ptr<LogSink> sink;
+   std::shared_ptr<LogSink> sink;
    try
    {
-      sink = boost::make_shared<FileLogSink>(filename, !truncate);
+      sink = std::make_shared<FileLogSink>(filename, !truncate);
    }
    catch (const CannotOpenFileException&)
    {
@@ -236,7 +234,7 @@ LogManager::AddSecondaryLogFile(LogLevel level,
       throw CMMError("Cannot open file " + ToQuotedString(filename));
    }
 
-   sink->SetFilter(boost::make_shared<LevelFilter>(level));
+   sink->SetFilter(std::make_shared<LevelFilter>(level));
 
    LogFileHandle handle = nextSecondaryHandle_++;
    secondaryLogFiles_.insert(std::make_pair(handle,
@@ -254,7 +252,7 @@ LogManager::AddSecondaryLogFile(LogLevel level,
 void
 LogManager::RemoveSecondaryLogFile(LogManager::LogFileHandle handle)
 {
-   boost::lock_guard<boost::mutex> lock(mutex_);
+   std::lock_guard<std::mutex> lock(mutex_);
 
    std::map<LogFileHandle, LogFileInfo>::iterator foundIt =
       secondaryLogFiles_.find(handle);

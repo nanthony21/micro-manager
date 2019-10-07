@@ -35,10 +35,10 @@ LoggerData::InternString(const std::string& s)
    // this set, iterators (and thus const char* to the contained strings)
    // are never invalidated and can be used as a light-weight handle. Thus,
    // we need to protect only insertion by a mutex.
-   static boost::mutex mutex;
+   static std::mutex mutex;
    static std::set<std::string> strings;
 
-   boost::lock_guard<boost::mutex> lock(mutex);
+   std::lock_guard<std::mutex> lock(mutex);
    return strings.insert(s).first->c_str();
 }
 

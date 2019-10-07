@@ -40,7 +40,6 @@
 #pragma warning( pop )
 #endif
 
-#include <boost/lexical_cast.hpp>
 #include <string>
 
 

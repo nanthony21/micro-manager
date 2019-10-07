@@ -26,10 +26,14 @@
 
 #include <boost/utility.hpp>
 
-class LoadedModuleImpl : boost::noncopyable
+class LoadedModuleImpl
 {
 public:
    static LoadedModuleImpl* NewPlatformImpl(const std::string& filename);
+
+   //Make noncopyable
+   LoadedModuleImpl(const LoadedModuleImpl&) = delete;
+   LoadedModuleImpl& operator=(const LoadedModuleImpl&) = delete;
 
    virtual ~LoadedModuleImpl() {}
 

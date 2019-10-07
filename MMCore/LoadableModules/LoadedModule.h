@@ -27,11 +27,15 @@
 
 class LoadedModuleImpl;
 
-class LoadedModule /* final */ : boost::noncopyable
+class LoadedModule /* final */
 {
 public:
    explicit LoadedModule(const std::string& filename);
    ~LoadedModule();
+
+   //Make noncopyable
+   LoadedModule(const LoadedModule&) = delete;
+   LoadedModule& operator=(const LoadedModule&) = delete;
 
    void Unload(); // For developer use only
    void* GetFunction(const char* funcName);
