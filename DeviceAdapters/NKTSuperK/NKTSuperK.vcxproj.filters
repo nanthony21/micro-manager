@@ -40,7 +40,10 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Library Include="x64NKTSDK\NKTPDLL.lib">
+    <Library Include="..\..\..\3rdparty\NKTPDLL\x64\NKTPDLL.lib">
+      <Filter>Resource Files</Filter>
+    </Library>
+    <Library Include="..\..\..\3rdparty\NKTPDLL\x86\NKTPDLL.lib">
       <Filter>Resource Files</Filter>
     </Library>
   </ItemGroup>
