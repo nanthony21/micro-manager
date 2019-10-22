@@ -24,27 +24,6 @@
 
 
 
-
-
-// General utility function:
-int ClearPort(MM::Device& device, MM::Core& core, std::string port)
-{
-   // Clear contents of serial port 
-   const int bufSize = 255;
-   unsigned char clear[bufSize];                      
-   unsigned long read = bufSize;
-   int ret;                                                                   
-   while (read == (unsigned) bufSize) 
-   {                                                                     
-      ret = core.ReadFromSerial(&device, port.c_str(), clear, bufSize, read);
-      if (ret != DEVICE_OK)                               
-         return ret;                                               
-   }
-   return DEVICE_OK;                                                           
-} 
-
-
-
 AOTF::AOTF() :
    port_("Undefined"),
    state_(0),
