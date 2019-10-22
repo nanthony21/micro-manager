@@ -15,12 +15,24 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AAAOTF.cpp">
+    <ClCompile Include="moduleAPI.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AOTF.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="multiAOTF.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AAAOTF.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="multiAOTF.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AOTF.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

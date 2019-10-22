@@ -156,10 +156,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="AAAOTF.cpp" />
+    <ClCompile Include="AOTF.cpp" />
+    <ClCompile Include="moduleAPI.cpp" />
+    <ClCompile Include="multiAOTF.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AAAOTF.h" />
+    <ClInclude Include="AOTF.h" />
+    <ClInclude Include="multiAOTF.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\MMDevice\MMDevice-SharedRuntime.vcxproj">

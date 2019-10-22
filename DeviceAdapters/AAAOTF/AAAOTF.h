@@ -8,13 +8,10 @@
 // AUTHOR:        Lukas Kapitein / Erwin Peterman 24/08/2009
 
 
-#ifndef _AOTF_H_
-#define _AOTF_H_
+#pragma once
 
 #include "../../MMDevice/MMDevice.h"
 #include "../../MMDevice/DeviceBase.h"
-#include <string>
-#include <map>
 
 //////////////////////////////////////////////////////////////////////////////
 // Error codes
@@ -37,108 +34,18 @@
 #define ERR_AOTF_OFFSET 10200
 #define ERR_INTENSILIGHTSHUTTER_OFFSET 10300
 
-
-
-class AOTF : public CShutterBase<AOTF>
-{
-public:
-   AOTF();
-   ~AOTF();
-  
-   // Device API
-   // ----------
-   int Initialize();
-   int Shutdown();
-  
-   void GetName(char* pszName) const;
-   bool Busy();
-
-   // Shutter API
-   // ---------
-   int SetOpen(bool open);
-   int GetOpen(bool& open);
-   int Fire(double /*interval*/) {return DEVICE_UNSUPPORTED_COMMAND; }
-
-
-   // action interface
-   // ----------------
-   int OnPort(MM::PropertyBase* pProp, MM::ActionType eAct);
-   int OnState(MM::PropertyBase* pProp, MM::ActionType eAct);
-   int OnChannel(MM::PropertyBase* pProp, MM::ActionType eAct);
-   int OnIntensity(MM::PropertyBase* pProp, MM::ActionType eAct);
-   int OnMaxintensity(MM::PropertyBase* pProp, MM::ActionType eAct);
-   //int OnVersion(MM::PropertyBase* pProp, MM::ActionType eAct);
-
-private:
-
-   int SetIntensity(double intensity);
-	
-   int SetShutterPosition(bool state);
-   //int GetVersion();
-
-   // MMCore name of serial port
-   std::string port_;
-   // Command exchange with MMCore                                           
-   std::string command_;           
-   // close (0) or open (1)
-   int state_;
-   bool initialized_;
-   // channel that we are currently working on 
-   std::string activeChannel_;
-   //intensity
-   double intensity_;
-   int maxintensity_; 
-   
-};
-
-class multiAOTF : public CShutterBase<multiAOTF>
-{
-public:
-   multiAOTF();
-   ~multiAOTF();
-  
-   // Device API
-   // ----------
-   int Initialize();
-   int Shutdown();
-  
-   void GetName(char* pszName) const;
-   bool Busy();
-
-   // Shutter API
-   // ---------
-   int SetOpen(bool open);
-   int GetOpen(bool& open);
-   int Fire(double /*interval*/) {return DEVICE_UNSUPPORTED_COMMAND; }
-
-
-   // action interface
-   // ----------------
-   int OnPort(MM::PropertyBase* pProp, MM::ActionType eAct);
-   int OnState(MM::PropertyBase* pProp, MM::ActionType eAct);
-   int OnChannel(MM::PropertyBase* pProp, MM::ActionType eAct);
-   //int OnIntensity(MM::PropertyBase* pProp, MM::ActionType eAct);
-   //int OnVersion(MM::PropertyBase* pProp, MM::ActionType eAct);
-   int OnDelayBetweenChannels(MM::PropertyBase* pProp, MM::ActionType eAct);
-
-private:
-
-   //int SetIntensity(int intensity);
-	
-   int SetShutterPosition(bool state);
-   //int GetVersion();
-
-   // MMCore name of serial port
-   std::string port_;
-   // Command exchange with MMCore                                           
-   std::string command_;           
-   // close (0) or open (1)
-   int state_;
-   bool initialized_;
-   // channels that we are currently working on 
-   int activeMultiChannels_;
-   // milliseconds to wait between the per-channel on/off commands
-   double delayBetweenChannels_;
-};
-
-#endif //_AOTF_H_
+//These variables are defined in moduleAPI.cpp, we include them here to make them global to the device adapter.
+extern const char* g_AOTF; 
+extern const char* g_mAOTF;
+extern const char* g_Int;
+extern const char* g_Maxint;
+extern const char* g_mChannel; 
+extern const char* g_Channel_1;
+extern const char* g_Channel_2; 	
+extern const char* g_Channel_3;	
+extern const char* g_Channel_4;
+extern const char* g_Channel_5;			
+extern const char* g_Channel_6;	
+extern const char* g_Channel_7;
+extern const char* g_Channel_8;
+extern const char* g_DelayBetweenChannels;
