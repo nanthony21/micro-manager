@@ -1,8 +1,9 @@
 #pragma once
 
 #include "AAAOTF.h"
+#include "MDS.h"
 
-class AOTF : public CShutterBase<AOTF>
+class AOTF : public CShutterBase<AOTF>, public MDS
 {
 public:
    AOTF();
@@ -33,14 +34,7 @@ public:
    //int OnVersion(MM::PropertyBase* pProp, MM::ActionType eAct);
 
 private:
-
-   int SetIntensity(double intensity);
-	
-   int SetShutterPosition(bool state);
-   //int GetVersion();
-
-   // MMCore name of serial port
-   std::string port_;
+  
    // Command exchange with MMCore                                           
    std::string command_;           
    // close (0) or open (1)
@@ -48,8 +42,6 @@ private:
    bool initialized_;
    // channel that we are currently working on 
    std::string activeChannel_;
-   //intensity
-   double intensity_;
-   int maxintensity_; 
+   
    
 };

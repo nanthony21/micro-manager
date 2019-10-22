@@ -199,61 +199,6 @@ int AOTF::GetOpen(bool& open)
 
 
 
-/**
- * Here we set the shutter to open or close
- */
-int AOTF::SetShutterPosition(bool state)                              
-{                                                                            
-	std::ostringstream command;
-
-   int test;
-   test = atoi(activeChannel_.c_str());
-
-   if (state == false)
-	   command<< "L" << test << "O0";
-   else
-	   command<< "L" << test << "O1";
-
-   int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
-   if (ret!=DEVICE_OK)
-	   return ret;
-
-   state_ = state ? 1 : 0;
-   return DEVICE_OK;
-
-}
-
-
-
-
-/**
- * Here we set the intensity
- */
-int AOTF::SetIntensity(double intensity)
-{                                                                            	
-   std::ostringstream command;
-   int test;
-
-   test = atoi(activeChannel_.c_str());
-
-   //ofstream out("test.txt");
-
-   //divide intensity by 100 to get dBm
-   command<< "L" << test << "D" << intensity*maxintensity_/10000 ;
-
-   //out << command.str().c_str() << "\n";
-
-   int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
-   if (ret!=DEVICE_OK)
-	   return ret;
-
-   intensity_ = intensity;
-   return DEVICE_OK;
-   
-   //out.close();
-
-}
-
 
 int AOTF::Shutdown()                                                
 {                                                                            
