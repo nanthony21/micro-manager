@@ -56,27 +56,34 @@ std::string MDSChannel::getCmdString() {
 }
 
 
-MDS::MDS(int numChannels, std::string port) {
-	this->port_ = port.c_str();
+MDS::MDS(int numChannels, std::function<int(std::string)> serialSend, std::function<std::string(void)> serialRetrieve) {
+	this->sendSerial = serialSend;
+	this->getSerial = serialRetrieve;
+	this->sendSerial("I0"); //set all channels to internal mode.
+
 	this->numChannels_ = numChannels;
 	for (uint8_t i=0; i < numChannels; i++) {
-		this->channels.push_back(MDSChannel(i+1));
+		this->channels.push_back(MDSChannel(i+1, maxPower, minFreq, maxFreq));
 	}
 }
 
 int MDS::updateChannel(uint8_t channel) {
 	if ((channel > this->numChannels_) || (channel < 1)) {
-		return DEVICE_ERROR;
+		return DEVICE_ERR;
 	}
 	MDSChannel chan = channels.at(channel - 1);
 	std::string cmd = chan.getCmdString();
 	int ret = this->sendSerial(cmd);
+	return ret;
 }
 
 int MDS::updateAllChannels() {
+	int ret;
 	for (int i=1; i<this->numChannels_+1; i++) {
-		this->updateChannel(i);
+		ret = this->updateChannel(i);
+		if (ret != DEVICE_OK) {return ret};
 	}
+	return DEVICE_OK;
 }
 
 std::string MDS::getId() {

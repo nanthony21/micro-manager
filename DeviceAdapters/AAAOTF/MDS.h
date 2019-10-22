@@ -1,23 +1,24 @@
 //This class does not implement any micromanager api but provides hardware functionality that can be used by other classes.
+#include "AAAOTF.h"
 #include <string>
 #include <sstream>
 #include <vector>
 #include <stdint.h>
+#include <functional>
 
 class MDS {
 public:
-	MDS(int channels, std::string port);
+	MDS(int channels, std::function<int(std::string)> serialSend, std::function<std::string(void)> serialRetrieve);
 	std::string getId();
 	int updateChannel(uint8_t channel);
 	int updateAllChannels();
 	std::vector<MDSChannel> channels;
 protected:
-	const char* port_;
 	int numChannels_;
 private:
 	int updateChannelsFromDevice();
-	virtual int sendSerial(std::string) = 0;
-	virtual std::string getSerial() = 0;
+	std::function<int(std::string)> sendSerial;
+	std::function<std::string(void)> getSerial;
 }
 
 class MDSChannel {

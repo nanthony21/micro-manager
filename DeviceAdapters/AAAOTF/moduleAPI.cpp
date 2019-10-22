@@ -4,7 +4,6 @@
 #include "multiAOTF.h"
 
 const char* g_AOTF = "AAAOTF";
-const char* g_mAOTF = "multiAAAOTF";
 const char* g_Int = "Power (% of max)";
 const char* g_Maxint = "Maximum intensity (dB)";
 const char* g_mChannel = "Channels (8 bit word 1..255)";
@@ -24,7 +23,6 @@ const char* g_DelayBetweenChannels = "Delay between channels (ms)";
 MODULE_API void InitializeModuleData()
 {
    RegisterDevice(g_AOTF, MM::ShutterDevice, "AAAOTF");
-   RegisterDevice(g_mAOTF, MM::ShutterDevice, "multiAAAOTF");
 }
 
 MODULE_API MM::Device* CreateDevice(const char* deviceName)
@@ -35,12 +33,6 @@ MODULE_API MM::Device* CreateDevice(const char* deviceName)
    if (strcmp(deviceName, g_AOTF) == 0)
    {
        AOTF* s = new AOTF();
-       return s;
-   }
-
-   if (strcmp(deviceName, g_mAOTF) == 0)
-   {
-       multiAOTF* s = new multiAOTF();
        return s;
    }
 

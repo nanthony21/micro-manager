@@ -31,8 +31,6 @@ AOTF::AOTF() :
    activeChannel_(g_Channel_1),
    intensity_(100),
    maxintensity_(1900)
-   /*,*/
-   /*version_("Undefined")*/
 {
    InitializeDefaultErrorMessages();
                                                                              
@@ -53,7 +51,6 @@ AOTF::AOTF() :
                                                                              
 AOTF::~AOTF()                                                            
 {                                                                            
-
 	Shutdown();                                                               
 } 
 
@@ -64,26 +61,14 @@ void AOTF::GetName(char* Name) const
 
 int AOTF::Initialize()
 {
-	std::ostringstream command;
-	int i;
-
-
-	if (initialized_)
-      return DEVICE_OK;
-      
-   // set property list
-   // -----------------
-
-   // State
-   //------------------
-
-
+	{
+		using namespace std::placeholders;
+		//this->mds_ = MDS(8, std::bind(&AOTF::sendSerial, this, _1), std::bind(&AOTF::retrieveSerial, this, _1));
+		this->mds_ = MDS(8, &AOTF::sendSerial, &AOTF::retrieveSerial);
+	}
    CPropertyAction* pAct = new CPropertyAction(this, &AOTF::OnState);
    int ret = CreateProperty(MM::g_Keyword_State, "0", MM::Integer, false, pAct);
-
-   if (ret!=DEVICE_OK)
-	   return ret;
-
+   if (ret!=DEVICE_OK) {return ret;}
    AddAllowedValue(MM::g_Keyword_State, "0");
    AddAllowedValue(MM::g_Keyword_State, "1");
 
@@ -91,17 +76,15 @@ int AOTF::Initialize()
    //--------------------
    pAct = new CPropertyAction(this, &AOTF::OnIntensity);
    ret = CreateProperty(g_Int, "100", MM::Float, false, pAct);
-   if (ret!=DEVICE_OK)
-	   return ret;
+   if (ret!=DEVICE_OK) {return ret;}
    SetPropertyLimits(g_Int, 0, 100);
 
    // Maximumintensity (in dB)
    //-------------------
-   pAct = new CPropertyAction(this, &AOTF::OnMaxintensity);
+   /*pAct = new CPropertyAction(this, &AOTF::OnMaxintensity);
    ret = CreateProperty(g_Maxint, "1900", MM::Integer, false, pAct);
-   if (ret!=DEVICE_OK)
-	   return ret;
-   SetPropertyLimits(g_Maxint, 0, 2200);
+   if (ret!=DEVICE_OK) {return ret;}
+   SetPropertyLimits(g_Maxint, 0, 2200);*/
 
    // The Channel we will act on
    // -------
@@ -120,79 +103,24 @@ int AOTF::Initialize()
    commands.push_back(g_Channel_8);   
 
    ret = SetAllowedValues(MM::g_Keyword_Channel, commands);
-   if (ret != DEVICE_OK)                                                     
-      return ret;
-
-
-   //switch AOTF to internal mode
-   SendSerialCommand(port_.c_str(), "I0", "\r");
-   if (ret != DEVICE_OK)                                                     
-      return ret;
-
-   // switch all channels off on startup instead of querying which one is open
-   SetProperty(MM::g_Keyword_State , "0");
+   if (ret != DEVICE_OK) {return ret;}
 
    ret = UpdateStatus();                                                 
    if (ret != DEVICE_OK)                                                     
       return ret;
 
-
-	command.str("");
-	for(i=1;i<=8;i++) {
-		command<< "L" << i << "O0\r";
-	}
-
-	ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
-	if (ret!=DEVICE_OK)
-	   return ret;
-
-
    initialized_ = true;
-
-   return DEVICE_OK;                                                         
-}  
-
-int AOTF::SetOpen(bool open)
-{  
-   long pos;
-   if(open)
-	   pos=1;
-   else
-	   pos=0;
-
-   return SetProperty(MM::g_Keyword_State, CDeviceUtils::ConvertToString(pos));
-} 
-
-int AOTF::GetOpen(bool& open)
-{     
-   char buf[MM::MaxStrLength];
-   int ret = GetProperty(MM::g_Keyword_State, buf);
-
-   if (ret != DEVICE_OK)                                                     
-      return ret;
-   long pos = atol(buf);
-	   pos==1 ? open=true : open = false;
-   
    return DEVICE_OK;                                                         
 } 
 
 
-
-
-int AOTF::Shutdown()                                                
-{                                                                            
-   if (initialized_)                                                         
-   {                                                                         
+int AOTF::Shutdown() {                                                        
+   if (initialized_) {                                                                         
       initialized_ = false;                                                  
    }                                                                         
    return DEVICE_OK;                                                         
 }                                                                            
 
-// Never busy because all commands block
-bool AOTF::Busy()
-{
-   return false;
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Action handlers
@@ -214,9 +142,9 @@ int AOTF::OnPort(MM::PropertyBase* pProp, MM::ActionType eAct)
          // revert
          pProp->Set(port_.c_str());
          return ERR_PORT_CHANGE_FORBIDDEN;
-      }
-                                                                             
-      pProp->Get(port_);                                                     
+      } else {                                                                
+			pProp->Get(port_);
+	  }
    }                                                                         
    return DEVICE_OK;     
 }
@@ -226,14 +154,13 @@ int AOTF::OnState(MM::PropertyBase* pProp, MM::ActionType eAct)
    if (eAct == MM::BeforeGet)
    {                                                                         
       // instead of relying on stored state we could actually query the device
-      pProp->Set((long)state_);                                                          
+      pProp->Set(mds_.channels.at(activeChannelNum_).getEnabled());                                                          
    }                                                                         
    else if (eAct == MM::AfterSet)
    {
-      long pos;
-      pProp->Get(pos);
-
-      return SetShutterPosition(pos == 0 ? false : true);
+      bool enabled;
+      pProp->Get(enabled);
+      return mds_.channels.at(this->activeChannelNum_).setEnabled(enabled);
    }
    return DEVICE_OK;
 }
@@ -241,21 +168,21 @@ int AOTF::OnState(MM::PropertyBase* pProp, MM::ActionType eAct)
 
 int AOTF::OnIntensity(MM::PropertyBase* pProp, MM::ActionType eAct)
 {
-
 	if (eAct == MM::BeforeGet)
-   {                                                                         
+	{                                                                         
       // instead of relying on stored state we could actually query the device
-      pProp->Set((double)intensity_);                                                          
+      pProp->Set(mds_.channels.at(activeChannelNum_).getPower();                                                          
    }                                                                         
    else if (eAct == MM::AfterSet)
    {
-      double pos;
-      pProp->Get(pos);
-      return SetIntensity(pos);
+      double power;
+      pProp->Get(power);
+      return mds_.channels.at(activeChannelNum_).setPower(power);
    }
    return DEVICE_OK;
 }
 
+/*
 int AOTF::OnMaxintensity(MM::PropertyBase* pProp, MM::ActionType eAct)
 {
    if (eAct == MM::BeforeGet)
@@ -271,7 +198,8 @@ int AOTF::OnMaxintensity(MM::PropertyBase* pProp, MM::ActionType eAct)
       }
    }
    return DEVICE_OK;;
-}
+}*/
+
 int AOTF::OnChannel(MM::PropertyBase* pProp, MM::ActionType eAct)
 {
    if (eAct == MM::BeforeGet)
@@ -280,15 +208,19 @@ int AOTF::OnChannel(MM::PropertyBase* pProp, MM::ActionType eAct)
    }
    else if (eAct == MM::AfterSet)
    {
-      // if there is a channel change and the shutter was open, re-open in the new position
-      std::string tmpChannel;
-      pProp->Get(tmpChannel);
-      if (tmpChannel != activeChannel_) {
-         activeChannel_ = tmpChannel;
-		 if (state_ == 1)
-            SetShutterPosition(true);
-      }
-      // It might be a good idea to close the shutter at this point...
+      pProp->Get(activeChannel_);
+	  activeChannelNum_ = //Set this
    }
    return DEVICE_OK;
+}
+
+
+int AOTF::sendSerial(std::string cmd) {
+	this->SendSerialCommand(port_.c_str(), cmd.c_str(), "\r");
+}
+
+std::string AOTF::retrieveSerial() {
+	std::string ans;
+	this->GetSerialAnswer(port_.c_str(), "?", ans); //TODO this won't work need to find a proper delimiter.
+	return ans;
 }
