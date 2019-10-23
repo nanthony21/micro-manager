@@ -13,7 +13,7 @@ const char* g_DelayBetweenChannels = "Delay between channels (ms)";
 ///////////////////////////////////////////////////////////////////////////////
 MODULE_API void InitializeModuleData()
 {
-   RegisterDevice(g_AOTF, MM::ShutterDevice, "AAAOTF");
+	RegisterDevice(g_AOTF, MM::GenericDevice, "AAAOTF");
 }
 
 MODULE_API MM::Device* CreateDevice(const char* deviceName)
