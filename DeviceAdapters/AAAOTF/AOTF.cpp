@@ -59,7 +59,10 @@ void AOTF::GetName(char* Name) const
 
 int AOTF::Initialize()
 {
-	this->mds_ = new MDS(8, &AOTF::sendSerial, &AOTF::retrieveSerial);
+	{
+		using namespace std::placeholders;
+		this->mds_ = new MDS(8, std::bind(&AOTF::sendSerial, this, _1), std::bind(&AOTF::retrieveSerial, this));
+	}
    CPropertyAction* pAct = new CPropertyAction(this, &AOTF::OnState);
 
    int ret = CreateProperty(MM::g_Keyword_State, "0", MM::Integer, false, pAct);
@@ -212,7 +215,8 @@ int AOTF::OnChannel(MM::PropertyBase* pProp, MM::ActionType eAct)
 
 
 int AOTF::sendSerial(std::string cmd) {
-	this->SendSerialCommand(port_.c_str(), cmd.c_str(), "\n\r");
+	int ret = this->SendSerialCommand(port_.c_str(), cmd.c_str(), "\n\r");
+	return ret;
 }
 
 std::string AOTF::retrieveSerial() {
