@@ -1,20 +1,11 @@
 #include "../../MMDevice/ModuleInterface.h"
 #include "AAAOTF.h"
 #include "AOTF.h"
-#include "multiAOTF.h"
 
 const char* g_AOTF = "AAAOTF";
 const char* g_Int = "Power (% of max)";
 const char* g_Maxint = "Maximum intensity (dB)";
-const char* g_mChannel = "Channels (8 bit word 1..255)";
-const char* g_Channel_1 = "1";	
-const char* g_Channel_2 = "2";		
-const char* g_Channel_3 = "3";		
-const char* g_Channel_4 = "4";		
-const char* g_Channel_5 = "5";			
-const char* g_Channel_6 = "6";			
-const char* g_Channel_7 = "7";			
-const char* g_Channel_8 = "8";			
+const char* g_mChannel = "Channels (8 bit word 1..255)";		
 const char* g_DelayBetweenChannels = "Delay between channels (ms)";
 
 ///////////////////////////////////////////////////////////////////////////////

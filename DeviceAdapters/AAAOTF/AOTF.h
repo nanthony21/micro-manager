@@ -3,7 +3,7 @@
 #include "AAAOTF.h"
 #include "MDS.h"
 
-class AOTF : public CGenericBase<AOTF>, public MDS
+class AOTF : public CGenericBase<AOTF>
 {
 public:
    AOTF();
@@ -29,10 +29,10 @@ public:
 
 private:      
 	std::string port_;
-	MDS mds_;
+	MDS* mds_;
    bool initialized_;
    // channel that we are currently working on 
-   std::string activeChannel_;
+   uint8_t activeChannel_;
    int sendSerial(std::string);
    std::string retrieveSerial();
    

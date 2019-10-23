@@ -21,7 +21,7 @@
     <ClCompile Include="AOTF.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="multiAOTF.cpp">
+    <ClCompile Include="MDS.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -29,10 +29,10 @@
     <ClInclude Include="AAAOTF.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="multiAOTF.h">
+    <ClInclude Include="AOTF.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AOTF.h">
+    <ClInclude Include="MDS.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

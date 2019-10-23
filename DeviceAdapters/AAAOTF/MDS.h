@@ -6,6 +6,31 @@
 #include <stdint.h>
 #include <functional>
 
+class MDSChannel {
+	//The methods in this class do not execute any action. they simply set variables. then you can use getCmdString to get the string that should be sent to the device.
+public:
+	MDSChannel(int channelNum, double maxPower, double minFrequency, double maxFrequency);
+	int setIntensity(double intensity);
+	void setEnabled(bool state);
+	int setFrequency(double frequency);
+	bool getEnabled();
+	double getIntensity();
+	double getFrequency();
+	void updateFromDeviceString(std::string str);
+	std::string getCmdString();
+protected:
+	int channelNum_;
+	//On/off
+	int enabled_;
+	//Intensity
+	double power_;
+	double maxPower_; //These are in units of dBm
+	//Frequency
+	double freq_;
+	double maxFreq_;
+	double minFreq_;
+};
+
 class MDS {
 public:
 	MDS(int channels, std::function<int(std::string)> serialSend, std::function<std::string(void)> serialRetrieve);
@@ -19,28 +44,4 @@ private:
 	int updateChannelsFromDevice();
 	std::function<int(std::string)> sendSerial;
 	std::function<std::string(void)> getSerial;
-}
-
-class MDSChannel {
-	//The methods in this class do not execute any action. they simply set variables. then you can use getCmdString to get the string that should be sent to the device.
-public:
-	MDSChannel(int channelNum, double maxPower, double minFrequency, double maxFrequency);
-	int setIntensity(double intensity);
-	void setEnabled(bool state);
-	int setFrequency(double frequency);
-	bool getEnabled();
-	double getIntensity();
-	double getFrequency();
-	std::string getCmdString();
-protected:
-	int channelNum_;
-	//On/off
-	int enabled_;
-	//Intensity
-	double power_;
-	double maxPower_; //These are in units of dBm
-	//Frequency
-	double freq_;
-	double maxFreq_;
-	double minFreq_;
-}
+};

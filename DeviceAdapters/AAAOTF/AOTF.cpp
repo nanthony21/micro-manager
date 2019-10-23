@@ -26,11 +26,9 @@
 
 AOTF::AOTF() :
    port_("Undefined"),
-   state_(0),
    initialized_(false),
-   activeChannel_(g_Channel_1),
-   intensity_(100),
-   maxintensity_(1900)
+   activeChannel_(1),
+   mds_(nullptr)
 {
    InitializeDefaultErrorMessages();
                                                                              
@@ -61,12 +59,9 @@ void AOTF::GetName(char* Name) const
 
 int AOTF::Initialize()
 {
-	{
-		using namespace std::placeholders;
-		//this->mds_ = MDS(8, std::bind(&AOTF::sendSerial, this, _1), std::bind(&AOTF::retrieveSerial, this, _1));
-		this->mds_ = MDS(8, &AOTF::sendSerial, &AOTF::retrieveSerial);
-	}
+	this->mds_ = new MDS(8, &AOTF::sendSerial, &AOTF::retrieveSerial);
    CPropertyAction* pAct = new CPropertyAction(this, &AOTF::OnState);
+
    int ret = CreateProperty(MM::g_Keyword_State, "0", MM::Integer, false, pAct);
    if (ret!=DEVICE_OK) {return ret;}
    AddAllowedValue(MM::g_Keyword_State, "0");
@@ -90,17 +85,17 @@ int AOTF::Initialize()
    // -------
 
    pAct = new CPropertyAction (this, &AOTF::OnChannel);
-   ret = CreateProperty(MM::g_Keyword_Channel, g_Channel_1, MM::String, false, pAct);  
+   ret = CreateProperty(MM::g_Keyword_Channel, "1", MM::Integer, false, pAct);  
 
    std::vector<std::string> commands;                                                  
-   commands.push_back(g_Channel_1);                                           
-   commands.push_back(g_Channel_2);                                            
-   commands.push_back(g_Channel_3);   
-   commands.push_back(g_Channel_4);  
-   commands.push_back(g_Channel_5);  
-   commands.push_back(g_Channel_6);                                           
-   commands.push_back(g_Channel_7);                                            
-   commands.push_back(g_Channel_8);   
+   commands.push_back("1");                                           
+   commands.push_back("2");                                            
+   commands.push_back("3");   
+   commands.push_back("4");  
+   commands.push_back("5");  
+   commands.push_back("6");                                           
+   commands.push_back("7");                                            
+   commands.push_back("8");   
 
    ret = SetAllowedValues(MM::g_Keyword_Channel, commands);
    if (ret != DEVICE_OK) {return ret;}
@@ -154,13 +149,13 @@ int AOTF::OnState(MM::PropertyBase* pProp, MM::ActionType eAct)
    if (eAct == MM::BeforeGet)
    {                                                                         
       // instead of relying on stored state we could actually query the device
-      pProp->Set(mds_.channels.at(activeChannelNum_).getEnabled());                                                          
+      pProp->Set((long) mds_->channels.at(activeChannel_-1).getEnabled());                                                          
    }                                                                         
    else if (eAct == MM::AfterSet)
    {
-      bool enabled;
+      long enabled;
       pProp->Get(enabled);
-      return mds_.channels.at(this->activeChannelNum_).setEnabled(enabled);
+      mds_->channels.at(this->activeChannel_-1).setEnabled((bool)enabled);
    }
    return DEVICE_OK;
 }
@@ -171,13 +166,13 @@ int AOTF::OnIntensity(MM::PropertyBase* pProp, MM::ActionType eAct)
 	if (eAct == MM::BeforeGet)
 	{                                                                         
       // instead of relying on stored state we could actually query the device
-      pProp->Set(mds_.channels.at(activeChannelNum_).getPower();                                                          
+      pProp->Set(mds_->channels.at(activeChannel_-1).getIntensity());                                                          
    }                                                                         
    else if (eAct == MM::AfterSet)
    {
       double power;
       pProp->Get(power);
-      return mds_.channels.at(activeChannelNum_).setPower(power);
+      return mds_->channels.at(activeChannel_-1).setIntensity(power);
    }
    return DEVICE_OK;
 }
@@ -204,23 +199,24 @@ int AOTF::OnChannel(MM::PropertyBase* pProp, MM::ActionType eAct)
 {
    if (eAct == MM::BeforeGet)
    {
-      pProp->Set(activeChannel_.c_str());
+		pProp->Set(std::to_string((long long)activeChannel_).c_str());
    }
    else if (eAct == MM::AfterSet)
    {
-      pProp->Get(activeChannel_);
-	  activeChannelNum_ = //Set this
+		std::string channelStr;
+		pProp->Get(channelStr);
+		activeChannel_ = std::stoi(channelStr);
    }
    return DEVICE_OK;
 }
 
 
 int AOTF::sendSerial(std::string cmd) {
-	this->SendSerialCommand(port_.c_str(), cmd.c_str(), "\r");
+	this->SendSerialCommand(port_.c_str(), cmd.c_str(), "\n\r");
 }
 
 std::string AOTF::retrieveSerial() {
 	std::string ans;
-	this->GetSerialAnswer(port_.c_str(), "?", ans); //TODO this won't work need to find a proper delimiter.
+	this->GetSerialAnswer(port_.c_str(), "\n\r", ans);
 	return ans;
 }

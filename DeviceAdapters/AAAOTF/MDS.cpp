@@ -48,6 +48,12 @@ double MDSChannel::getFrequency() {
 	return this->freq_;
 }
 
+void MDSChannel::updateFromDeviceString(std::string str) {
+	size_t freqStart = str.find("F=");
+	std::string freqStr = str.substr(freqStart);
+	size_t freqEnd = freqStr.find(" ");
+	freqStr = freqStr.substr(0, freqEnd);
+}
 
 std::string MDSChannel::getCmdString() {
 	std::ostringstream command;
@@ -57,13 +63,13 @@ std::string MDSChannel::getCmdString() {
 
 
 MDS::MDS(int numChannels, std::function<int(std::string)> serialSend, std::function<std::string(void)> serialRetrieve) {
-	this->sendSerial = serialSend;
-	this->getSerial = serialRetrieve;
+	this->sendSerial = serialSend; //This should be a function which takes a std::string and transmits to the device along with a \n\r terminator.
+	this->getSerial = serialRetrieve; //This should be a function which returns std::string from the device. Should read a single line where the line separator is \n\r
 	this->sendSerial("I0"); //set all channels to internal mode.
 
 	this->numChannels_ = numChannels;
 	for (uint8_t i=0; i < numChannels; i++) {
-		this->channels.push_back(MDSChannel(i+1, maxPower, minFreq, maxFreq));
+		this->channels.push_back(MDSChannel(i+1, 22.0, 50.0, 100.0)); //TODO we're just making up max power and frequency numbers here.
 	}
 }
 
@@ -81,7 +87,7 @@ int MDS::updateAllChannels() {
 	int ret;
 	for (int i=1; i<this->numChannels_+1; i++) {
 		ret = this->updateChannel(i);
-		if (ret != DEVICE_OK) {return ret};
+		if (ret != DEVICE_OK) {return ret;}
 	}
 	return DEVICE_OK;
 }
@@ -93,5 +99,12 @@ std::string MDS::getId() {
 
 int MDS::updateChannelsFromDevice() {
 	int ret = this->sendSerial("s");
-	//TODO parse and upde channel objects.
+	for (uint8_t i=0; i<this->numChannels_; i++) {
+		std::string response = this->getSerial();
+		std::string searchStr = "l" + std::to_string((long long) i+1) + " ";
+		size_t pos = response.find(searchStr);
+		std::string devStr = response.substr(pos);
+		this->channels.at(i).updateFromDeviceString(devStr);
+	}
+	return DEVICE_OK;
 }
