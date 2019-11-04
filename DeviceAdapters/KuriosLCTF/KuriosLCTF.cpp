@@ -182,7 +182,8 @@ int KuriosLCTF::onPort(MM::PropertyBase* pProp, MM::ActionType eAct) {
 int KuriosLCTF::onOutputMode(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	if (eAct == MM::BeforeGet) {
 		int mode;
-		kurios_Get_OutputMode(portHandle_, &mode);
+		int ret = kurios_Get_OutputMode(portHandle_, &mode);
+		if (ret<0){ return DEVICE_ERR; }
 		if (mode==1) {
 			pProp->Set("Manual");
 		} else if (mode==2) {
@@ -213,7 +214,8 @@ int KuriosLCTF::onOutputMode(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		} else {
 			return DEVICE_ERR;
 		}
-		kurios_Set_OutputMode(portHandle_, mode);
+		int ret = kurios_Set_OutputMode(portHandle_, mode);
+		if (ret<0){ return DEVICE_ERR; }
 	}
 	return DEVICE_OK;
 }
@@ -221,7 +223,8 @@ int KuriosLCTF::onOutputMode(MM::PropertyBase* pProp, MM::ActionType eAct) {
 int KuriosLCTF::onBandwidthMode(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	if (eAct == MM::BeforeGet) {
 		int bandwidth;
-		kurios_Get_BandwidthMode(portHandle_, &bandwidth);
+		int ret = kurios_Get_BandwidthMode(portHandle_, &bandwidth);
+		if (ret<0){ return DEVICE_ERR; }
 		if (bandwidth & Bandwidth::black) {
 			pProp->Set("Black");
 		} else if (bandwidth & Bandwidth::wide) {
@@ -250,12 +253,13 @@ int KuriosLCTF::onBandwidthMode(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		} else if (strcmp(bw, "Super Narrow")==0) {
 			bandwidth = Bandwidth::superNarrow;
 		}
-		kurios_Set_BandwidthMode(portHandle_, bandwidth);
+		int ret = kurios_Set_BandwidthMode(portHandle_, bandwidth);
+		if (ret<0){ return DEVICE_ERR; }
 	}
 	return DEVICE_OK;
 }
 
-/*todo implementint KuriosLCTF::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) {
+/*todo implement int KuriosLCTF::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	if (eAct == MM::BeforeGet) {
 
 	}
@@ -273,10 +277,12 @@ int KuriosLCTF::onBandwidthMode(MM::PropertyBase* pProp, MM::ActionType eAct) {
     }
     else if (eAct == MM::AfterLoadSequence) { 
         std::vector<std::string> sequence =  pProp->GetSequence();
-		kurios_Set_DeleteSequenceStep(portHandle_, 0); //Using a value of 0 here deletes the whole sequence.
+		int ret = kurios_Set_DeleteSequenceStep(portHandle_, 0); //Using a value of 0 here deletes the whole sequence.
+		if (ret<0){ return DEVICE_ERR; }
 		for (int i=0; i<sequence.size(); i++) {
 			std::string step = sequence[i];
-			kurios_Set_InsertSequenceStep(portHandle_, 0, std::atoi(step.c_str()), defaultIntervalMs_, defaultBandwidth_);
+			ret = kurios_Set_InsertSequenceStep(portHandle_, 0, std::atoi(step.c_str()), defaultIntervalMs_, defaultBandwidth_);
+			if (ret<0){ return DEVICE_ERR; }
 		}
     }
 	return DEVICE_OK;
@@ -284,12 +290,14 @@ int KuriosLCTF::onBandwidthMode(MM::PropertyBase* pProp, MM::ActionType eAct) {
 
 int KuriosLCTF::onSeqTimeInterval(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	if (eAct == MM::BeforeGet) {
-		kurios_Get_DefaultTimeIntervalForSequence(portHandle_, ((int*) &defaultIntervalMs_));
+		int ret = kurios_Get_DefaultTimeIntervalForSequence(portHandle_, ((int*) &defaultIntervalMs_));
+		if (ret<0){ return DEVICE_ERR; }
 		pProp->Set(defaultIntervalMs_);
 	}
 	else if (eAct == MM::AfterSet) {
 		pProp->Get(defaultIntervalMs_);
-		kurios_Set_DefaultTimeIntervalForSequence(portHandle_, defaultIntervalMs_);
+		int ret = kurios_Set_DefaultTimeIntervalForSequence(portHandle_, defaultIntervalMs_);
+		if (ret<0){ return DEVICE_ERR; }
 	}
 	return DEVICE_OK;
 }
@@ -297,7 +305,8 @@ int KuriosLCTF::onSeqTimeInterval(MM::PropertyBase* pProp, MM::ActionType eAct) 
 
 int KuriosLCTF::onSequenceBandwidthMode(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	if (eAct == MM::BeforeGet) {
-		kurios_Get_DefaultBandwidthForSequence(portHandle_, &defaultBandwidth_);
+		int ret = kurios_Get_DefaultBandwidthForSequence(portHandle_, &defaultBandwidth_);
+		if (ret<0){ return DEVICE_ERR; }
 		if (defaultBandwidth_ & Bandwidth::wide) {
 			pProp->Set("Wide");
 		} else if (defaultBandwidth_ & Bandwidth::medium) {
@@ -321,7 +330,8 @@ int KuriosLCTF::onSequenceBandwidthMode(MM::PropertyBase* pProp, MM::ActionType 
 		} else if (strcmp(bw, "Super Narrow")==0) {
 			defaultBandwidth_ = Bandwidth::superNarrow;
 		}
-		kurios_Set_DefaultBandwidthForSequence(portHandle_, defaultBandwidth_);
+		int ret = kurios_Set_DefaultBandwidthForSequence(portHandle_, defaultBandwidth_);
+		if (ret<0){ return DEVICE_ERR; }
 	}
 	return DEVICE_OK;
 }
@@ -329,7 +339,8 @@ int KuriosLCTF::onSequenceBandwidthMode(MM::PropertyBase* pProp, MM::ActionType 
 int KuriosLCTF::onStatus(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	if (eAct == MM::BeforeGet) {
 		int status;
-		kurios_Get_Status(portHandle_, &status);
+		int ret = kurios_Get_Status(portHandle_, &status);
+		if (ret<0){ return DEVICE_ERR; }
 		if (status==0) {
 			pProp->Set("Initialization");
 		} else if (status==1) {
@@ -344,7 +355,8 @@ int KuriosLCTF::onStatus(MM::PropertyBase* pProp, MM::ActionType eAct) {
 int KuriosLCTF::onTemperature(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	if (eAct == MM::BeforeGet) {
 		double temp;
-		kurios_Get_Temperature(portHandle_, &temp);
+		int ret = kurios_Get_Temperature(portHandle_, &temp);
+		if (ret<0){ return DEVICE_ERR; }
 		pProp->Set(temp);
 	}
 	return DEVICE_OK;
@@ -353,7 +365,8 @@ int KuriosLCTF::onTemperature(MM::PropertyBase* pProp, MM::ActionType eAct) {
 int KuriosLCTF::onTriggerOutMode(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	if (eAct == MM::BeforeGet) {
 		int polarity;
-		kurios_Get_TriggerOutSignalMode(portHandle_, &polarity);
+		int ret = kurios_Get_TriggerOutSignalMode(portHandle_, &polarity);
+		if (ret<0){ return DEVICE_ERR; }
 		if (polarity==0) {
 			pProp->Set("Normal");
 		} else if (polarity == 1) {
@@ -372,7 +385,8 @@ int KuriosLCTF::onTriggerOutMode(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		} else {
 			return DEVICE_ERR;
 		}
-		kurios_Set_TriggerOutSignalMode(portHandle_, pol);
+		int ret = kurios_Set_TriggerOutSignalMode(portHandle_, pol);
+		if (ret<0){ return DEVICE_ERR; }
 	}
 	return DEVICE_OK;
 }
@@ -385,7 +399,8 @@ int KuriosLCTF::onForceTrigger(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		std::string msg;
 		pProp->Get(msg);
 		if (strcmp(msg.c_str(), "Trigger")==0) {
-			kurios_Set_ForceTrigger(portHandle_);
+			int ret = kurios_Set_ForceTrigger(portHandle_);
+			if (ret<0){ return DEVICE_ERR; }
 		}
 	}
 	return DEVICE_OK;
