@@ -30,14 +30,58 @@
 
 #include "KuriosLCTF.h"
 
-KuriosLCTF::KuriosLCTF();
-KuriosLCTF::~KuriosLCTF();
+KuriosLCTF::KuriosLCTF() {
+	SetErrorText(DEVICE_SERIAL_TIMEOUT, "Serial port timed out without receiving a response.");
+
+	CPropertyAction* pAct = new CPropertyAction(this, &KuriosLCTF::onPort);
+	CreateProperty("ComPort", "Undefined", MM::String, false, pAct, true);
+
+
+	//Find NKT ports and add them a property options.
+
+	unsigned char ports[1024];
+	int ret = common_List(ports);
+	std::string portStr = std::string(ports);
+	size_t pos = 0;
+	std::string token;
+	std::string delimiter = ",";
+	while (true) {
+		pos = portStr.find(delimiter);
+		token = portStr.substr(0, pos);
+		AddAllowedValue("ComPort", token.c_str());
+		portStr.erase(0, pos + delimiter.length());
+		if (pos == std::string::npos) {break;}
+	}
+}
+
+
+
+KuriosLCTF::~KuriosLCTF() {}
 
 //Device API
-int KuriosLCTF::Initialize();
-int KuriosLCTF::Shutdown();
-void KuriosLCTF::GetName(char* pName) const;
+int KuriosLCTF::Initialize() {
+	portHandle_ = common_Open((char*) port_.c_str(), 57600, 1); //TODO is the baud right?
+	if (portHandle_<0){return DEVICE_ERR;}
+
+	//TODO initialize properties. populate readonly properties.
+		id ro
+	spec ro
+	opticalheadtype ro
+
+	return DEVICE_OK;
+}
+
+int KuriosLCTF::Shutdown() {
+	int ret = common_Close(portHandle_);
+	if (ret<0) {return DEVICE_ERR;}
+}
+
+
+void KuriosLCTF::GetName(char* name) const {
+	assert(strlen(g_LCTFName) < CDeviceUtils::GetMaxStringLength());
+	CDeviceUtils::CopyLimitedString(name, g_LCTFName);
+}
+
 bool KuriosLCTF::Busy(){return false;};
 
 //Properties
-int KuriosLCTF::onEmission(MM::PropertyBase* pProp, MM::ActionType eAct);

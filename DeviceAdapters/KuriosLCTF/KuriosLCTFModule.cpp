@@ -31,7 +31,7 @@
 #include "KuriosLCTF.h"
 
 // Device Names
-const char* g_LCTFName = "Kurios LCTF";
+extern const char* g_LCTFName;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Exported MMDevice API

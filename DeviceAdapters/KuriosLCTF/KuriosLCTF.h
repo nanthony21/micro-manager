@@ -37,6 +37,7 @@
 #include <stdint.h>
 
 
+const char* g_LCTFName = "Kurios LCTF";
 
 class KuriosLCTF: public CGenericBase<KuriosLCTF> {
 public:
@@ -50,18 +51,22 @@ public:
 	bool Busy(){return false;};
 
 	//Properties
+	int onPort(MM::PropertyBase* pProp, MM::ActionType eAct);
 	id ro
 	spec ro
 	opticalheadtype ro
-	outputmode
-	bandwidthmode
-	wavelength - sequence data, insert, delete 
-	seqTimeInterval
-	seqBandwidthMode
-	status ro
-	temperature ro
-	triggerout mode
-	forcetrigger
+	int onOutputMode(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int onBandwidthMode(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int onSeqTimeInterval(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int onSeqBandwidthMode(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int onStatus(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int onTemperature(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int onTriggerOutMode(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int onForceTrigger(MM::PropertyBase* pProp, MM::ActionType eAct);
+private:
+	int portHandle_;
+	std::string port_;
 
 
 	int onEmission(MM::PropertyBase* pProp, MM::ActionType eAct);
