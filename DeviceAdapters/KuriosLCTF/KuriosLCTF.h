@@ -66,4 +66,6 @@ private:
 	std::string port_;
 	enum SpectralRange {vis=1, nir=2, ir=4};
 	enum Bandwidth {black=1, wide=2, medium=4, narrow=8, superNarrow=16};
-	};
+	long defaultIntervalMs_;
+	int defaultBandwidth_;
+};

@@ -117,7 +117,7 @@ int KuriosLCTF::Initialize() {
 	ret = kurios_Get_Specification(portHandle_, &max, &min);
 	if (ret<0) { return DEVICE_ERR; }
 	pAct = new CPropertyAction(this, &KuriosLCTF::onWavelength);
-	CreateProperty("Wavelength", "500", MM::Float, false, pAct, false);
+	CreateProperty("Wavelength", "500", MM::Integer, false, pAct, false);
 	SetPropertyLimits("Wavelength", min, max);
 
 	//Output mode
@@ -169,3 +169,224 @@ void KuriosLCTF::GetName(char* name) const {
 bool KuriosLCTF::Busy(){return false;};
 
 //Properties
+int KuriosLCTF::onPort(MM::PropertyBase* pProp, MM::ActionType eAct) {
+	if (eAct == MM::BeforeGet) {
+		pProp->Set(port_.c_str());
+	}
+	else if (eAct == MM::AfterSet) {
+		pProp->Get(port_);
+	}
+	return DEVICE_OK;
+}
+
+int KuriosLCTF::onOutputMode(MM::PropertyBase* pProp, MM::ActionType eAct) {
+	if (eAct == MM::BeforeGet) {
+		int mode;
+		kurios_Get_OutputMode(portHandle_, &mode);
+		if (mode==1) {
+			pProp->Set("Manual");
+		} else if (mode==2) {
+			pProp->Set("Sequence (internal clock)");
+		} else if (mode==3) {
+			pProp->Set("Sequence (external trig)");
+		} else if (mode==4) {
+			pProp->Set("Analog (internal clock)");
+		} else if (mode==5) {
+			pProp->Set("Analog (external trig)");
+		}
+	}
+	else if (eAct == MM::AfterSet) {
+		std::string msg;
+		pProp->Get(msg);
+		const char* m = msg.c_str();
+		int mode;
+		if (strcmp(m, "Manual")==0) {
+			mode=1;
+		} else if (strcmp(m, "equence (internal clock)")==0) {
+			mode=2;
+		} else if (strcmp(m, "Sequence (external trig)")==0) {
+			mode=3;
+		} else if (strcmp(m, "Analog (internal clock)")==0) {
+			mode=4;
+		} else if (strcmp(m, "Analog (external trig)")==0) {
+			mode=5;
+		} else {
+			return DEVICE_ERR;
+		}
+		kurios_Set_OutputMode(portHandle_, mode);
+	}
+	return DEVICE_OK;
+}
+
+int KuriosLCTF::onBandwidthMode(MM::PropertyBase* pProp, MM::ActionType eAct) {
+	if (eAct == MM::BeforeGet) {
+		int bandwidth;
+		kurios_Get_BandwidthMode(portHandle_, &bandwidth);
+		if (bandwidth & Bandwidth::black) {
+			pProp->Set("Black");
+		} else if (bandwidth & Bandwidth::wide) {
+			pProp->Set("Wide");
+		} else if (bandwidth & Bandwidth::medium) {
+			pProp->Set("Medium");
+		} else if (bandwidth & Bandwidth::narrow) {
+			pProp->Set("Narrow");
+		} else if (bandwidth & Bandwidth::superNarrow) {
+			pProp->Set("Super Narrow");
+		}		
+	}
+	else if (eAct == MM::AfterSet) {
+		std::string setting;
+		int bandwidth;
+		pProp->Get(setting);
+		const char* bw = setting.c_str();
+		if (strcmp(bw, "Black")==0) {
+			bandwidth = Bandwidth::black;
+		} else if (strcmp(bw, "Wide")==0) {
+			bandwidth = Bandwidth::wide;
+		} else if (strcmp(bw, "Medium")==0) {
+			bandwidth = Bandwidth::medium;
+		} else if (strcmp(bw, "Narrow")==0) {
+			bandwidth = Bandwidth::narrow;
+		} else if (strcmp(bw, "Super Narrow")==0) {
+			bandwidth = Bandwidth::superNarrow;
+		}
+		kurios_Set_BandwidthMode(portHandle_, bandwidth);
+	}
+	return DEVICE_OK;
+}
+
+/*todo implementint KuriosLCTF::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) {
+	if (eAct == MM::BeforeGet) {
+
+	}
+	else if (eAct == MM::AfterSet) {
+
+	}
+	else if (eAct == MM::IsSequenceable) {
+        pProp->SetSequenceable(1024);   //I have no idea how many steps the device actually supports.
+    }
+    else if (eAct == MM::StartSequence) {
+
+    }
+    else if (eAct == MM::StopSequence) {
+
+    }
+    else if (eAct == MM::AfterLoadSequence) { 
+        std::vector<std::string> sequence =  pProp->GetSequence();
+		kurios_Set_DeleteSequenceStep(portHandle_, 0); //Using a value of 0 here deletes the whole sequence.
+		for (int i=0; i<sequence.size(); i++) {
+			std::string step = sequence[i];
+			kurios_Set_InsertSequenceStep(portHandle_, 0, std::atoi(step.c_str()), defaultIntervalMs_, defaultBandwidth_);
+		}
+    }
+	return DEVICE_OK;
+}*/
+
+int KuriosLCTF::onSeqTimeInterval(MM::PropertyBase* pProp, MM::ActionType eAct) {
+	if (eAct == MM::BeforeGet) {
+		kurios_Get_DefaultTimeIntervalForSequence(portHandle_, ((int*) &defaultIntervalMs_));
+		pProp->Set(defaultIntervalMs_);
+	}
+	else if (eAct == MM::AfterSet) {
+		pProp->Get(defaultIntervalMs_);
+		kurios_Set_DefaultTimeIntervalForSequence(portHandle_, defaultIntervalMs_);
+	}
+	return DEVICE_OK;
+}
+
+
+int KuriosLCTF::onSequenceBandwidthMode(MM::PropertyBase* pProp, MM::ActionType eAct) {
+	if (eAct == MM::BeforeGet) {
+		kurios_Get_DefaultBandwidthForSequence(portHandle_, &defaultBandwidth_);
+		if (defaultBandwidth_ & Bandwidth::wide) {
+			pProp->Set("Wide");
+		} else if (defaultBandwidth_ & Bandwidth::medium) {
+			pProp->Set("Medium");
+		} else if (defaultBandwidth_ & Bandwidth::narrow) {
+			pProp->Set("Narrow");
+		} else if (defaultBandwidth_ & Bandwidth::superNarrow) {
+			pProp->Set("Super Narrow");
+		}
+	}
+	else if (eAct == MM::AfterSet) {
+		std::string setting;
+		pProp->Get(setting);
+		const char* bw = setting.c_str();
+		if (strcmp(bw, "Wide")==0) {
+			defaultBandwidth_ = Bandwidth::wide;
+		} else if (strcmp(bw, "Medium")==0) {
+			defaultBandwidth_ = Bandwidth::medium;
+		} else if (strcmp(bw, "Narrow")==0) {
+			defaultBandwidth_ = Bandwidth::narrow;
+		} else if (strcmp(bw, "Super Narrow")==0) {
+			defaultBandwidth_ = Bandwidth::superNarrow;
+		}
+		kurios_Set_DefaultBandwidthForSequence(portHandle_, defaultBandwidth_);
+	}
+	return DEVICE_OK;
+}
+
+int KuriosLCTF::onStatus(MM::PropertyBase* pProp, MM::ActionType eAct) {
+	if (eAct == MM::BeforeGet) {
+		int status;
+		kurios_Get_Status(portHandle_, &status);
+		if (status==0) {
+			pProp->Set("Initialization");
+		} else if (status==1) {
+			pProp->Set("Warm Up");
+		} else if (status==2) {
+			pProp->Set("Ready");
+		}
+	}
+	return DEVICE_OK;
+}
+
+int KuriosLCTF::onTemperature(MM::PropertyBase* pProp, MM::ActionType eAct) {
+	if (eAct == MM::BeforeGet) {
+		double temp;
+		kurios_Get_Temperature(portHandle_, &temp);
+		pProp->Set(temp);
+	}
+	return DEVICE_OK;
+}
+
+int KuriosLCTF::onTriggerOutMode(MM::PropertyBase* pProp, MM::ActionType eAct) {
+	if (eAct == MM::BeforeGet) {
+		int polarity;
+		kurios_Get_TriggerOutSignalMode(portHandle_, &polarity);
+		if (polarity==0) {
+			pProp->Set("Normal");
+		} else if (polarity == 1) {
+			pProp->Set("Flipped");
+		}
+	}
+	else if (eAct == MM::AfterSet) {
+		std::string msg;
+		pProp->Get(msg);
+		const char * polarity = msg.c_str();
+		int pol;
+		if (strcmp(polarity, "Normal")==0) {
+			pol = 0;
+		} else if (strcmp(polarity, "Flipped")==0) {
+			pol = 1;
+		} else {
+			return DEVICE_ERR;
+		}
+		kurios_Set_TriggerOutSignalMode(portHandle_, pol);
+	}
+	return DEVICE_OK;
+}
+
+int KuriosLCTF::onForceTrigger(MM::PropertyBase* pProp, MM::ActionType eAct) {
+	if (eAct == MM::BeforeGet) {
+		pProp->Set("Idle");
+	}
+	else if (eAct == MM::AfterSet) {
+		std::string msg;
+		pProp->Get(msg);
+		if (strcmp(msg.c_str(), "Trigger")==0) {
+			kurios_Set_ForceTrigger(portHandle_);
+		}
+	}
+	return DEVICE_OK;
+}
