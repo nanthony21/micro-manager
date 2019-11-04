@@ -52,14 +52,11 @@ public:
 
 	//Properties
 	int onPort(MM::PropertyBase* pProp, MM::ActionType eAct);
-	id ro
-	spec ro
-	opticalheadtype ro
 	int onOutputMode(MM::PropertyBase* pProp, MM::ActionType eAct);
 	int onBandwidthMode(MM::PropertyBase* pProp, MM::ActionType eAct);
 	int onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct);
 	int onSeqTimeInterval(MM::PropertyBase* pProp, MM::ActionType eAct);
-	int onSeqBandwidthMode(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int onSequenceBandwidthMode(MM::PropertyBase* pProp, MM::ActionType eAct);
 	int onStatus(MM::PropertyBase* pProp, MM::ActionType eAct);
 	int onTemperature(MM::PropertyBase* pProp, MM::ActionType eAct);
 	int onTriggerOutMode(MM::PropertyBase* pProp, MM::ActionType eAct);
@@ -67,11 +64,6 @@ public:
 private:
 	int portHandle_;
 	std::string port_;
-
-
-	int onEmission(MM::PropertyBase* pProp, MM::ActionType eAct);
-	int onPower(MM::PropertyBase* pProp, MM::ActionType eAct);
-	int onInletTemperature(MM::PropertyBase* pProp, MM::ActionType eAct);
-private:
-	std::string name_;
-};
+	enum SpectralRange {vis=1, nir=2, ir=4};
+	enum Bandwidth {black=1, wide=2, medium=4, narrow=8, superNarrow=16};
+	};

@@ -63,10 +63,94 @@ int KuriosLCTF::Initialize() {
 	portHandle_ = common_Open((char*) port_.c_str(), 57600, 1); //TODO is the baud right?
 	if (portHandle_<0){return DEVICE_ERR;}
 
-	//TODO initialize properties. populate readonly properties.
-		id ro
-	spec ro
-	opticalheadtype ro
+	//For some reason Micromanager tries accessing properties before initialization. For this reason we don't create properties until after initialization.
+	unsigned char* id;
+	int ret = kurios_Get_ID(portHandle_, id);
+	if (ret<0){return DEVICE_ERR;}
+	CreateProperty("ID", (const char*) id, MM::String, true);
+
+	unsigned char spectrumRange;
+	unsigned char availableBandwidthRange;
+	ret = kurios_Get_OpticalHeadType(portHandle_, &spectrumRange, &availableBandwidthRange); 
+	if (ret<0){return DEVICE_ERR;}
+	std::string specRange;
+	if (spectrumRange == SpectralRange::vis) {
+		specRange = "Visible";
+	} else if (spectrumRange == SpectralRange::nir) {
+		specRange = "Near IR";
+	} else if (spectrumRange == SpectralRange::ir) {
+		specRange = "Infrared";
+	} else {
+		specRange = "Unkn";
+	}
+	CPropertyAction* pAct = new CPropertyAction(this, &KuriosLCTF::onBandwidthMode);
+	CreateProperty("Bandwidth", "Wide", MM::String, false, pAct, false);
+	pAct = new CPropertyAction(this, &KuriosLCTF::onSequenceBandwidthMode);
+	CreateProperty("Sequence Bandwidth", "Wide", MM::String, false, pAct, false);
+	CreateProperty("Spectral Range", specRange.c_str(), MM::String, true);
+	std::string bw = "";
+	if (availableBandwidthRange & Bandwidth::black) {
+		bw.append("Black");
+		AddAllowedValue("Bandwidth", "Black");
+	} if (availableBandwidthRange & Bandwidth::wide) {
+		bw.append(" Wide");
+		AddAllowedValue("Bandwidth", "Wide");
+		AddAllowedValue("Sequence Bandwidth", "Wide");
+	} if (availableBandwidthRange & Bandwidth::medium) {
+		bw.append(" Medium");
+		AddAllowedValue("Bandwidth", "Medium");
+		AddAllowedValue("Sequence Bandwidth", "Medium");
+	} if (availableBandwidthRange & Bandwidth::narrow) {
+		bw.append(" Narrow");
+		AddAllowedValue("Bandwidth", "Narrow");
+		AddAllowedValue("Sequence Bandwidth", "Narrow");
+	} if (availableBandwidthRange & Bandwidth::superNarrow) {
+		bw.append(" SuperNarrow");
+		AddAllowedValue("Bandwidth", "Super Narrow");
+		AddAllowedValue("Sequence Bandwidth", "Super Narrow");
+	}
+	CreateProperty("Available Bandwidths", bw.c_str(), MM::String, true);
+
+	//Wavelength
+	int max;
+	int min;
+	ret = kurios_Get_Specification(portHandle_, &max, &min);
+	if (ret<0) { return DEVICE_ERR; }
+	pAct = new CPropertyAction(this, &KuriosLCTF::onWavelength);
+	CreateProperty("Wavelength", "500", MM::Float, false, pAct, false);
+	SetPropertyLimits("Wavelength", min, max);
+
+	//Output mode
+	pAct = new CPropertyAction(this, &KuriosLCTF::onOutputMode);
+	CreateProperty("Output Mode", "Manual", MM::String, false, pAct, false);
+	AddAllowedValue("Output Mode", "Manual");
+	AddAllowedValue("Output Mode", "Sequence (internal clock)");
+	AddAllowedValue("Output Mode", "Sequence (external trig)");
+	AddAllowedValue("Output Mode", "Analog (internal clock)");
+	AddAllowedValue("Output Mode", "Analog (external trig)");
+
+	pAct = new CPropertyAction(this, &KuriosLCTF::onSeqTimeInterval);
+	CreateProperty("Sequence Time Interval (ms)", "1000", MM::Integer, false, pAct, false);
+	SetPropertyLimits("Sequence Time Interval (ms)", 1, 60000);
+
+	pAct = new CPropertyAction(this, &KuriosLCTF::onStatus);
+	CreateProperty("Status", "Initialization", MM::String, true, pAct, false);
+	AddAllowedValue("Status", "Initialization");
+	AddAllowedValue("Status", "Warm Up");
+	AddAllowedValue("Status", "Ready");
+
+	pAct = new CPropertyAction(this, &KuriosLCTF::onTemperature);
+	CreateProperty("Temperature", "0", MM::Float, true, pAct, false);
+
+	pAct = new CPropertyAction(this, &KuriosLCTF::onTriggerOutMode);
+	CreateProperty("Trigger Out Polarity", "Normal", MM::String, false, pAct, false);
+	AddAllowedValue("Trigger Out Polarity", "Normal");
+	AddAllowedValue("Trigger Out Polarity", "Flipped");
+
+	pAct = new CPropertyAction(this, &KuriosLCTF::onForceTrigger);
+	CreateProperty("Force Trigger", "Idle", MM::String, false, pAct, false);
+	AddAllowedValue("Force Trigger", "Idle");
+	AddAllowedValue("Force Trigger", "Trigger");
 
 	return DEVICE_OK;
 }
