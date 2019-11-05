@@ -68,4 +68,5 @@ private:
 	enum Bandwidth {black=1, wide=2, medium=4, narrow=8, superNarrow=16};
 	long defaultIntervalMs_;
 	int defaultBandwidth_;
+	std::string origOutputMode_;
 };

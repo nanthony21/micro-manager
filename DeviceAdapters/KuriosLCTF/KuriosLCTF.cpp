@@ -203,7 +203,7 @@ int KuriosLCTF::onOutputMode(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		int mode;
 		if (strcmp(m, "Manual")==0) {
 			mode=1;
-		} else if (strcmp(m, "equence (internal clock)")==0) {
+		} else if (strcmp(m, "Sequence (internal clock)")==0) {
 			mode=2;
 		} else if (strcmp(m, "Sequence (external trig)")==0) {
 			mode=3;
@@ -259,21 +259,32 @@ int KuriosLCTF::onBandwidthMode(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	return DEVICE_OK;
 }
 
-/*todo implement int KuriosLCTF::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) {
+int KuriosLCTF::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	if (eAct == MM::BeforeGet) {
-
+		int wv;
+		int ret = kurios_Get_Wavelength(portHandle_, &wv);
+		if (ret<0) { return ret; }
+		pProp->Set((long) wv);
 	}
 	else if (eAct == MM::AfterSet) {
-
+		long wv;
+		pProp->Get(wv);
+		int ret = kurios_Set_Wavelength(portHandle_, wv);
+		if (ret<0) { return ret; }
 	}
 	else if (eAct == MM::IsSequenceable) {
-        pProp->SetSequenceable(1024);   //I have no idea how many steps the device actually supports.
+        pProp->SetSequenceable(1024);   //According the thorlabs website it can store 1024 items.
     }
     else if (eAct == MM::StartSequence) {
-
+		char* msg;
+		int ret = this->GetProperty("Output Mode", msg);
+		if (ret!=DEVICE_OK) { return ret;}
+		origOutputMode_ = std::string(msg); //save the original output mode we were in. we'll go back to it when the sequence is stopped.
+		ret = this->SetProperty("Output Mode", "Sequence (external trig)"); //For now we only support externally triggered sequencing. We would need to add further configuration properties to support the other modes.
+		if (ret!=DEVICE_OK) { return ret;}
     }
     else if (eAct == MM::StopSequence) {
-
+		int ret = this->SetProperty("Output Mode", origOutputMode_.c_str());
     }
     else if (eAct == MM::AfterLoadSequence) { 
         std::vector<std::string> sequence =  pProp->GetSequence();
@@ -286,7 +297,7 @@ int KuriosLCTF::onBandwidthMode(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		}
     }
 	return DEVICE_OK;
-}*/
+}
 
 int KuriosLCTF::onSeqTimeInterval(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	if (eAct == MM::BeforeGet) {
