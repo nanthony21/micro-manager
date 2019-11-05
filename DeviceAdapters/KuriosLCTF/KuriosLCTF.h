@@ -62,28 +62,6 @@ struct {
 	const char* AEXT;
 } const TrigModeNames = {"Manual", "Sequence (internal clock)", "Sequence (external trig)", "Analog (internal clock)", "Analog (external trig)"};
 
-/*
-static std::map<SR::Type,const char*> create_SpectralRangeMap() {
-	std::map<SR::Type, const char*> m;
-	m[SR::VIS]="Visible";
-	m[SR::NIR]="Near IR";
-	m[SR::IR]="Infrared";
-	return m;
-};
-static const std::map<SR::Type, const char*> SRNames = create_SpectralRangeMap();
-
-
-static std::map<BW::Type,const char*> create_BandwidthMap() {
-	std::map<BW::Type, const char*> m;
-	m[BW::BLACK]= "Black";
-	m[BW::WIDE]="Wide";
-	m[BW::MEDIUM]="Medium";
-	m[BW::NARROW]="Narrow";
-	m[BW::SUPERNARROW]="Super Narrow";
-	return m;
-};
-static const std::map<BW::Type, const char*> BWNames = create_BandwidthMap();
-*/
 const char* const g_LCTFName = "Kurios LCTF";
 
 
