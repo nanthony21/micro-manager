@@ -29,6 +29,10 @@
 // AUTHOR:        Nick Anthony
 
 #include "KuriosLCTF.h"
+#include "kuriosConstants.cpp"
+
+
+
 
 KuriosLCTF::KuriosLCTF() {
 	SetErrorText(DEVICE_SERIAL_TIMEOUT, "Serial port timed out without receiving a response.");
@@ -37,11 +41,10 @@ KuriosLCTF::KuriosLCTF() {
 	CreateProperty("ComPort", "Undefined", MM::String, false, pAct, true);
 
 
-	//Find NKT ports and add them a property options.
-
+	//Find ports and add them aa property options
 	unsigned char ports[1024];
-	int ret = common_List(ports);
-	std::string portStr = std::string(ports);
+	common_List(ports);
+	std::string portStr = std::string((const char*)ports);
 	size_t pos = 0;
 	std::string token;
 	std::string delimiter = ",";
@@ -60,7 +63,7 @@ KuriosLCTF::~KuriosLCTF() {}
 
 //Device API
 int KuriosLCTF::Initialize() {
-	portHandle_ = common_Open((char*) port_.c_str(), 57600, 1); //TODO is the baud right?
+	portHandle_ = common_Open((char*) port_.c_str(), 115200, 1); //TODO is the baud right?
 	if (portHandle_<0){return DEVICE_ERR;}
 
 	//For some reason Micromanager tries accessing properties before initialization. For this reason we don't create properties until after initialization.
@@ -74,12 +77,12 @@ int KuriosLCTF::Initialize() {
 	ret = kurios_Get_OpticalHeadType(portHandle_, &spectrumRange, &availableBandwidthRange); 
 	if (ret<0){return DEVICE_ERR;}
 	std::string specRange;
-	if (spectrumRange == SpectralRange::vis) {
-		specRange = "Visible";
-	} else if (spectrumRange == SpectralRange::nir) {
-		specRange = "Near IR";
-	} else if (spectrumRange == SpectralRange::ir) {
-		specRange = "Infrared";
+	if (spectrumRange == SR::VIS) {
+		specRange = SRNames.at(SR::VIS);
+	} else if (spectrumRange == SR::NIR) {
+		specRange = SRNames.at(SR::NIR);
+	} else if (spectrumRange == SR::IR) {
+		specRange = SRNames.at(SR::IR);
 	} else {
 		specRange = "Unkn";
 	}
@@ -89,22 +92,22 @@ int KuriosLCTF::Initialize() {
 	CreateProperty("Sequence Bandwidth", "Wide", MM::String, false, pAct, false);
 	CreateProperty("Spectral Range", specRange.c_str(), MM::String, true);
 	std::string bw = "";
-	if (availableBandwidthRange & Bandwidth::black) {
+	if (availableBandwidthRange & BW::BLACK) {
 		bw.append("Black");
 		AddAllowedValue("Bandwidth", "Black");
-	} if (availableBandwidthRange & Bandwidth::wide) {
+	} if (availableBandwidthRange & BW::WIDE) {
 		bw.append(" Wide");
 		AddAllowedValue("Bandwidth", "Wide");
 		AddAllowedValue("Sequence Bandwidth", "Wide");
-	} if (availableBandwidthRange & Bandwidth::medium) {
+	} if (availableBandwidthRange & BW::MEDIUM) {
 		bw.append(" Medium");
 		AddAllowedValue("Bandwidth", "Medium");
 		AddAllowedValue("Sequence Bandwidth", "Medium");
-	} if (availableBandwidthRange & Bandwidth::narrow) {
+	} if (availableBandwidthRange & BW::NARROW) {
 		bw.append(" Narrow");
 		AddAllowedValue("Bandwidth", "Narrow");
 		AddAllowedValue("Sequence Bandwidth", "Narrow");
-	} if (availableBandwidthRange & Bandwidth::superNarrow) {
+	} if (availableBandwidthRange & BW::SUPERNARROW) {
 		bw.append(" SuperNarrow");
 		AddAllowedValue("Bandwidth", "Super Narrow");
 		AddAllowedValue("Sequence Bandwidth", "Super Narrow");
@@ -166,7 +169,6 @@ void KuriosLCTF::GetName(char* name) const {
 	CDeviceUtils::CopyLimitedString(name, g_LCTFName);
 }
 
-bool KuriosLCTF::Busy(){return false;};
 
 //Properties
 int KuriosLCTF::onPort(MM::PropertyBase* pProp, MM::ActionType eAct) {
@@ -225,15 +227,15 @@ int KuriosLCTF::onBandwidthMode(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		int bandwidth;
 		int ret = kurios_Get_BandwidthMode(portHandle_, &bandwidth);
 		if (ret<0){ return DEVICE_ERR; }
-		if (bandwidth & Bandwidth::black) {
+		if (bandwidth & BW::BLACK) {
 			pProp->Set("Black");
-		} else if (bandwidth & Bandwidth::wide) {
+		} else if (bandwidth & BW::WIDE) {
 			pProp->Set("Wide");
-		} else if (bandwidth & Bandwidth::medium) {
+		} else if (bandwidth & BW::MEDIUM) {
 			pProp->Set("Medium");
-		} else if (bandwidth & Bandwidth::narrow) {
+		} else if (bandwidth & BW::NARROW) {
 			pProp->Set("Narrow");
-		} else if (bandwidth & Bandwidth::superNarrow) {
+		} else if (bandwidth & BW::SUPERNARROW) {
 			pProp->Set("Super Narrow");
 		}		
 	}
@@ -243,15 +245,15 @@ int KuriosLCTF::onBandwidthMode(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		pProp->Get(setting);
 		const char* bw = setting.c_str();
 		if (strcmp(bw, "Black")==0) {
-			bandwidth = Bandwidth::black;
+			bandwidth = BW::BLACK;
 		} else if (strcmp(bw, "Wide")==0) {
-			bandwidth = Bandwidth::wide;
+			bandwidth = BW::WIDE;
 		} else if (strcmp(bw, "Medium")==0) {
-			bandwidth = Bandwidth::medium;
+			bandwidth = BW::MEDIUM;
 		} else if (strcmp(bw, "Narrow")==0) {
-			bandwidth = Bandwidth::narrow;
+			bandwidth = BW::NARROW;
 		} else if (strcmp(bw, "Super Narrow")==0) {
-			bandwidth = Bandwidth::superNarrow;
+			bandwidth = BW::SUPERNARROW;
 		}
 		int ret = kurios_Set_BandwidthMode(portHandle_, bandwidth);
 		if (ret<0){ return DEVICE_ERR; }
@@ -318,13 +320,13 @@ int KuriosLCTF::onSequenceBandwidthMode(MM::PropertyBase* pProp, MM::ActionType 
 	if (eAct == MM::BeforeGet) {
 		int ret = kurios_Get_DefaultBandwidthForSequence(portHandle_, &defaultBandwidth_);
 		if (ret<0){ return DEVICE_ERR; }
-		if (defaultBandwidth_ & Bandwidth::wide) {
+		if (defaultBandwidth_ & BW::WIDE) {
 			pProp->Set("Wide");
-		} else if (defaultBandwidth_ & Bandwidth::medium) {
+		} else if (defaultBandwidth_ & BW::MEDIUM) {
 			pProp->Set("Medium");
-		} else if (defaultBandwidth_ & Bandwidth::narrow) {
+		} else if (defaultBandwidth_ & BW::NARROW) {
 			pProp->Set("Narrow");
-		} else if (defaultBandwidth_ & Bandwidth::superNarrow) {
+		} else if (defaultBandwidth_ & BW::SUPERNARROW) {
 			pProp->Set("Super Narrow");
 		}
 	}
@@ -333,13 +335,13 @@ int KuriosLCTF::onSequenceBandwidthMode(MM::PropertyBase* pProp, MM::ActionType 
 		pProp->Get(setting);
 		const char* bw = setting.c_str();
 		if (strcmp(bw, "Wide")==0) {
-			defaultBandwidth_ = Bandwidth::wide;
+			defaultBandwidth_ = BW::WIDE;
 		} else if (strcmp(bw, "Medium")==0) {
-			defaultBandwidth_ = Bandwidth::medium;
+			defaultBandwidth_ = BW::MEDIUM;
 		} else if (strcmp(bw, "Narrow")==0) {
-			defaultBandwidth_ = Bandwidth::narrow;
+			defaultBandwidth_ = BW::NARROW;
 		} else if (strcmp(bw, "Super Narrow")==0) {
-			defaultBandwidth_ = Bandwidth::superNarrow;
+			defaultBandwidth_ = BW::SUPERNARROW;
 		}
 		int ret = kurios_Set_DefaultBandwidthForSequence(portHandle_, defaultBandwidth_);
 		if (ret<0){ return DEVICE_ERR; }

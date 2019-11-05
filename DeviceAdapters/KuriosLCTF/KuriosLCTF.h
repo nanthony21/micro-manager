@@ -34,10 +34,9 @@
 #include "../../MMDevice/DeviceBase.h"
 #include "KURIOS_COMMAND_LIB.h"
 #include <string>
-#include <stdint.h>
 
 
-const char* g_LCTFName = "Kurios LCTF";
+
 
 class KuriosLCTF: public CGenericBase<KuriosLCTF> {
 public:
@@ -64,8 +63,6 @@ public:
 private:
 	int portHandle_;
 	std::string port_;
-	enum SpectralRange {vis=1, nir=2, ir=4};
-	enum Bandwidth {black=1, wide=2, medium=4, narrow=8, superNarrow=16};
 	long defaultIntervalMs_;
 	int defaultBandwidth_;
 	std::string origOutputMode_;
