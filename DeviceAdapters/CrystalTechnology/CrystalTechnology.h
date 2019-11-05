@@ -49,7 +49,12 @@ public:
 	bool SupportsDeviceDetection() { return false; };
 	//Properties
 	int onPort(MM::PropertyBase* pProp, MM::ActionType eAct);
-
+	dds
+	calibration
+	temperature
+	modulation?
+	chirp?
+	boardid
 private:
 	int sendCmd(const char* cmd);
 	int sendCmd(const char* cmd, std::string response);

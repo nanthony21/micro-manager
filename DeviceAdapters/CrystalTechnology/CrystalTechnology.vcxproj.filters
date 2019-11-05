@@ -18,5 +18,13 @@
     <ClCompile Include="CrystalTechnology.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CrystalTechnologyModule.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CrystalTechnology.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
