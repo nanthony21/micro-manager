@@ -49,12 +49,12 @@ public:
 	bool SupportsDeviceDetection() { return false; };
 	//Properties
 	int onPort(MM::PropertyBase* pProp, MM::ActionType eAct);
-	dds
-	calibration
-	temperature
-	modulation?
-	chirp?
-	boardid
+	dds -> Amplitude, gain
+	calibration -> Identify, Tuning 
+	temperature -> Read {C/O/A}//readonly 3 sensors
+	boardid -> Version, PartNumber, Identify, ModelNumber, CTISerialNumber Date, Options
+	set frequency(nm) -> dds frequency {chan} #{wv}
+	set frequency(mHz) -> dds frequency {chan} {mhz}
 private:
 	int sendCmd(const char* cmd);
 	int sendCmd(const char* cmd, std::string response);
