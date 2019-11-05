@@ -122,12 +122,12 @@ int KuriosLCTF::Initialize() {
 
 	//Output mode
 	pAct = new CPropertyAction(this, &KuriosLCTF::onOutputMode);
-	CreateProperty("Output Mode", "Manual", MM::String, false, pAct, false);
-	AddAllowedValue("Output Mode", "Manual");
-	AddAllowedValue("Output Mode", "Sequence (internal clock)");
-	AddAllowedValue("Output Mode", "Sequence (external trig)");
-	AddAllowedValue("Output Mode", "Analog (internal clock)");
-	AddAllowedValue("Output Mode", "Analog (external trig)");
+	CreateProperty("Output Mode", TrigModeNames.MAN, MM::String, false, pAct, false);
+	AddAllowedValue("Output Mode", TrigModeNames.MAN);
+	AddAllowedValue("Output Mode", TrigModeNames.INT);
+	AddAllowedValue("Output Mode", TrigModeNames.EXT);
+	AddAllowedValue("Output Mode", TrigModeNames.AINT);
+	AddAllowedValue("Output Mode", TrigModeNames.AEXT);
 
 	pAct = new CPropertyAction(this, &KuriosLCTF::onSeqTimeInterval);
 	CreateProperty("Sequence Time Interval (ms)", "1000", MM::Integer, false, pAct, false);
@@ -184,16 +184,16 @@ int KuriosLCTF::onOutputMode(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		int mode;
 		int ret = kurios_Get_OutputMode(portHandle_, &mode);
 		if (ret<0){ return DEVICE_ERR; }
-		if (mode==1) {
-			pProp->Set("Manual");
-		} else if (mode==2) {
-			pProp->Set("Sequence (internal clock)");
-		} else if (mode==3) {
-			pProp->Set("Sequence (external trig)");
-		} else if (mode==4) {
-			pProp->Set("Analog (internal clock)");
-		} else if (mode==5) {
-			pProp->Set("Analog (external trig)");
+		if (mode==TrigModes::MAN) {
+			pProp->Set(TrigModeNames.MAN);
+		} else if (mode==TrigModes::INT) {
+			pProp->Set(TrigModeNames.INT);
+		} else if (mode==TrigModes::EXT) {
+			pProp->Set(TrigModeNames.EXT);
+		} else if (mode==TrigModes::AINT) {
+			pProp->Set(TrigModeNames.AINT);
+		} else if (mode==TrigModes::AEXT) {
+			pProp->Set(TrigModeNames.AEXT);
 		}
 	}
 	else if (eAct == MM::AfterSet) {
@@ -201,16 +201,16 @@ int KuriosLCTF::onOutputMode(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		pProp->Get(msg);
 		const char* m = msg.c_str();
 		int mode;
-		if (strcmp(m, "Manual")==0) {
-			mode=1;
-		} else if (strcmp(m, "Sequence (internal clock)")==0) {
-			mode=2;
-		} else if (strcmp(m, "Sequence (external trig)")==0) {
-			mode=3;
-		} else if (strcmp(m, "Analog (internal clock)")==0) {
-			mode=4;
-		} else if (strcmp(m, "Analog (external trig)")==0) {
-			mode=5;
+		if (strcmp(m, TrigModeNames.MAN)==0) {
+			mode=TrigModes::MAN;
+		} else if (strcmp(m, TrigModeNames.INT)==0) {
+			mode=TrigModes::INT;
+		} else if (strcmp(m, TrigModeNames.EXT)==0) {
+			mode=TrigModes::EXT;
+		} else if (strcmp(m, TrigModeNames.AINT)==0) {
+			mode=TrigModes::AINT;
+		} else if (strcmp(m, TrigModeNames.AEXT)==0) {
+			mode=TrigModes::AEXT;
 		} else {
 			return DEVICE_ERR;
 		}
@@ -282,7 +282,7 @@ int KuriosLCTF::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) {
 		int ret = this->GetProperty("Output Mode", msg);
 		if (ret!=DEVICE_OK) { return ret;}
 		origOutputMode_ = std::string(msg); //save the original output mode we were in. we'll go back to it when the sequence is stopped.
-		ret = this->SetProperty("Output Mode", "Sequence (external trig)"); //For now we only support externally triggered sequencing. We would need to add further configuration properties to support the other modes.
+		ret = this->SetProperty("Output Mode", TrigModeNames.EXT); //For now we only support externally triggered sequencing. We would need to add further configuration properties to support the other modes.
 		if (ret!=DEVICE_OK) { return ret;}
     }
     else if (eAct == MM::StopSequence) {

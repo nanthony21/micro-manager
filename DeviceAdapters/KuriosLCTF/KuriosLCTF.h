@@ -38,27 +38,29 @@
 
 struct SR {typedef enum Type {VIS=1, NIR=2, IR=4};}; //spectral range
 struct BW {typedef enum Type {BLACK=1, WIDE=2, MEDIUM=4, NARROW=8, SUPERNARROW=16};};
+struct TrigModes {typedef enum Type {MAN=1, INT=2, EXT=3, AINT=4, AEXT=5};};
 
-static struct __B__{
+struct {
 	 const char*  VIS;
 	 const char*  NIR;
 	 const char*  IR;
-private:
-	__B__& operator=(const __B__&); //This silences a bunch of warnings.
 } const SRNames = {"Visible", "Near IR", "Infrared"};
 
-static struct __A__{
+struct {
 	 const char*  BLACK;
 	 const char*  WIDE;
 	 const char*  MEDIUM;
 	 const char*  NARROW;
 	 const char*  SUPERNARROW;
-private:
-	__A__& operator=(const __A__&); //This silences a bunch of warnings.
 } const BWNames = {"Black", "Wide", "Medium", "Narrow", "Super Narrow"};
 
-
-
+struct {
+	const char* MAN;
+	const char* INT;
+	const char* EXT;
+	const char* AINT;
+	const char* AEXT;
+} const TrigModeNames = {"Manual", "Sequence (internal clock)", "Sequence (external trig)", "Analog (internal clock)", "Analog (external trig)"};
 
 /*
 static std::map<SR::Type,const char*> create_SpectralRangeMap() {
