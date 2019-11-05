@@ -39,18 +39,40 @@
 struct SR {typedef enum Type {VIS=1, NIR=2, IR=4};}; //spectral range
 struct BW {typedef enum Type {BLACK=1, WIDE=2, MEDIUM=4, NARROW=8, SUPERNARROW=16};};
 
+static struct __B__{
+	 const char*  VIS;
+	 const char*  NIR;
+	 const char*  IR;
+private:
+	__B__& operator=(const __B__&); //This silences a bunch of warnings.
+} const SRNames = {"Visible", "Near IR", "Infrared"};
 
-static std::map<SR::Type,std::string> create_SpectralRangeMap() {
-	std::map<SR::Type, std::string> m;
+static struct __A__{
+	 const char*  BLACK;
+	 const char*  WIDE;
+	 const char*  MEDIUM;
+	 const char*  NARROW;
+	 const char*  SUPERNARROW;
+private:
+	__A__& operator=(const __A__&); //This silences a bunch of warnings.
+} const BWNames = {"Black", "Wide", "Medium", "Narrow", "Super Narrow"};
+
+
+
+
+/*
+static std::map<SR::Type,const char*> create_SpectralRangeMap() {
+	std::map<SR::Type, const char*> m;
 	m[SR::VIS]="Visible";
 	m[SR::NIR]="Near IR";
 	m[SR::IR]="Infrared";
 	return m;
 };
-static const std::map<SR::Type, std::string> SRNames = create_SpectralRangeMap();
+static const std::map<SR::Type, const char*> SRNames = create_SpectralRangeMap();
 
-static std::map<BW::Type,std::string> create_BandwidthMap() {
-	std::map<BW::Type, std::string> m;
+
+static std::map<BW::Type,const char*> create_BandwidthMap() {
+	std::map<BW::Type, const char*> m;
 	m[BW::BLACK]= "Black";
 	m[BW::WIDE]="Wide";
 	m[BW::MEDIUM]="Medium";
@@ -58,8 +80,8 @@ static std::map<BW::Type,std::string> create_BandwidthMap() {
 	m[BW::SUPERNARROW]="Super Narrow";
 	return m;
 };
-static const std::map<BW::Type, std::string> BWNames = create_BandwidthMap();
-
+static const std::map<BW::Type, const char*> BWNames = create_BandwidthMap();
+*/
 const char* const g_LCTFName = "Kurios LCTF";
 
 
