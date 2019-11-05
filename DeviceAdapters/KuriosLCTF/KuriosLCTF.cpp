@@ -29,9 +29,6 @@
 // AUTHOR:        Nick Anthony
 
 #include "KuriosLCTF.h"
-#include "kuriosConstants.cpp"
-
-
 
 
 KuriosLCTF::KuriosLCTF() {
@@ -161,6 +158,7 @@ int KuriosLCTF::Initialize() {
 int KuriosLCTF::Shutdown() {
 	int ret = common_Close(portHandle_);
 	if (ret<0) {return DEVICE_ERR;}
+	return DEVICE_OK;
 }
 
 
@@ -254,6 +252,8 @@ int KuriosLCTF::onBandwidthMode(MM::PropertyBase* pProp, MM::ActionType eAct) {
 			bandwidth = BW::NARROW;
 		} else if (strcmp(bw, "Super Narrow")==0) {
 			bandwidth = BW::SUPERNARROW;
+		} else {
+			return DEVICE_ERR;
 		}
 		int ret = kurios_Set_BandwidthMode(portHandle_, bandwidth);
 		if (ret<0){ return DEVICE_ERR; }
@@ -287,6 +287,7 @@ int KuriosLCTF::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) {
     }
     else if (eAct == MM::StopSequence) {
 		int ret = this->SetProperty("Output Mode", origOutputMode_.c_str());
+		if (ret!=DEVICE_OK) { return ret; }
     }
     else if (eAct == MM::AfterLoadSequence) { 
         std::vector<std::string> sequence =  pProp->GetSequence();
