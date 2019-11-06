@@ -72,23 +72,33 @@ private:
 
 class CTDriver {
 #define CT_INVALID_CHANNEL 2
+#define CT_INVALID_VALUE 3
 #define CT_ERR 1
 #define CT_OK 0
 	//This class implements all functionality without any reliance on micromanager specific stuff. It can be wrapped into a device adapter.
 public:
 	CTDriver(uint8_t numChannels, std::function<int(std::string)> serialSend, std::function<std::string(void)> serialReceive);
 
+	//Setters
 	int setFrequencyMhz(uint8_t chan,  double freq);
 	int setWavelengthNm(uint8_t chan, unsigned int wv);
 	int setAmplitude(uint8_t chan,  unsigned int asf);
 	int setGain(uint8_t chan, unsigned int gain);
+	int setPhase(uint8_t chan, double phaseDegrees);
+	//Getters
+	int getPhase(uint8_t chan, double& phaseDegrees);
+	int getAmplitude(uint8_t chan, unsigned int& asf);
+	//int getFrequencyMhz
+	//int getWavelengthNm
 	/*
-	calibration -> Identify, Tuning 
+	
 	temperature -> Read {C/O/A}//readonly 3 sensors
 	boardid -> Version, PartNumber, Identify, ModelNumber, CTISerialNumber Date, Options
 	*/
+	//Unkn
+	//calibration -> Identify, Tuning 
 private:
-	int getChannelStr(uint8_t chan, std::string& str);
+	int getChannelStr(uint8_t chan, std::string& str, bool allowWildcard);
 	int setFreq(uint8_t chan, std::string freqStr);
 	std::function<int(std::string)> tx_;
 	std::function<int(std::string)> rx_;
@@ -114,14 +124,14 @@ private:
 
 	int CTDriver::setFreq(uint8_t chan, std::string freqStr) {
 		std::string chanStr;
-		int ret = this->getChannelStr(chan, chanStr);
+		int ret = this->getChannelStr(chan, chanStr, true);
 		if (ret!=CT_OK) { return ret; }
 		std::string str = "dds frequency " + chanStr + " " + freqStr;
 		return this->tx_(str);
 	}
 
-	int CTDriver::getChannelStr(uint8_t chan, std::string& chanStr) {
-		if (chan==255) {
+	int CTDriver::getChannelStr(uint8_t chan, std::string& chanStr, bool allowWildcard) {
+		if ((chan==255) && (allowWildcard)) {
 			chanStr = "*";
 			return CT_OK;
 		} else if (chan >= numChan_) {
@@ -132,19 +142,57 @@ private:
 	}
 
 	int CTDriver::setAmplitude(uint8_t chan,  unsigned int asf) {
-		if (asf > 16383) { return CT_ERR; }
+		if (asf > 16383) { return CT_INVALID_VALUE; }
 		std::string chanStr;
-		int ret = this->getChannelStr(chan, chanStr);
+		int ret = this->getChannelStr(chan, chanStr, true);
 		if (ret!=CT_OK) { return ret; }
 		std::string cmd = "dds amplitude " + chanStr + " " + std::to_string((unsigned long long) asf);
 		return this->tx_(cmd);
 	}
 
 	int CTDriver::setGain(uint8_t chan,  unsigned int gain) {
-		if (gain > 31) { return CT_ERR; }
+		if (gain > 31) { return CT_INVALID_VALUE; }
 		std::string chanStr;
-		int ret = this->getChannelStr(chan, chanStr);
+		int ret = this->getChannelStr(chan, chanStr, true);
 		if (ret!=CT_OK) { return ret; }
 		std::string cmd = "dds gain " + chanStr + " " + std::to_string((unsigned long long) gain);
 		return this->tx_(cmd);
+	}
+
+	int CTDriver::setPhase(uint8_t chan, double phaseDegrees) {
+		if ((phaseDegrees > 360.0) || (phaseDegrees < 0.0)) { return CT_INVALID_VALUE; }
+		std::string chanStr;
+		int ret = this->getChannelStr(chan, chanStr, true);
+		if (ret != CT_OK) { return ret; }
+		unsigned int val = (unsigned int) ((phaseDegrees / 360.0) * 16383);
+		std::string cmd = "dds phase " + chanStr + " " + std::to_string((unsigned long long) val);
+		return this->tx_(cmd);
+	}
+
+	int CTDriver::getPhase(uint8_t chan, double& phaseDegrees) {
+		std::string chanStr;
+		int ret = this->getChannelStr(chan, chanStr, false);
+		if (ret!=CT_OK) { return ret; }
+		std::string cmd = "dds phase " + chanStr;
+		ret = this->tx_(cmd);
+		if (ret!=CT_OK) { return ret; }
+		std::string response;
+		ret = this->rx_(response)
+		if (ret!=CT_OK) { return ret; }
+		//TODO parse the response and set phaseDegrees
+		return CT_OK;
+	}
+
+	int CTDriver::getAmplitude(uint8_t chan, unsigned int& asf) {
+		std::string chanStr;
+		int ret = this->getChannelStr(chan, chanStr, false);
+		if (ret!=CT_OK) { return ret; }
+		std::string cmd = "dds amplitude " + chanStr;
+		ret = this->tx_(cmd);
+		if (ret!=CT_OK) { return ret; }
+		std::string response;
+		ret = this->rx_(response)
+		if (ret!=CT_OK) { return ret; }
+		//TODO parse the response and set asf
+		return CT_OK;
 	}
