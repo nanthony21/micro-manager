@@ -32,6 +32,8 @@
 
 #include "../../MMDevice/MMDevice.h"
 #include "../../MMDevice/DeviceBase.h"
+#include <stdint.h>
+#include <functional>
 
 
 // Device Names
@@ -49,14 +51,100 @@ public:
 	bool SupportsDeviceDetection() { return false; };
 	//Properties
 	int onPort(MM::PropertyBase* pProp, MM::ActionType eAct);
-	dds -> Amplitude, gain
-	calibration -> Identify, Tuning 
-	temperature -> Read {C/O/A}//readonly 3 sensors
-	boardid -> Version, PartNumber, Identify, ModelNumber, CTISerialNumber Date, Options
-	set frequency(nm) -> dds frequency {chan} #{wv}
-	set frequency(mHz) -> dds frequency {chan} {mhz}
+	setChannel
+		view the temperatures
+		set amplitude
+		set gain
+		set frequency
+		set phase
+		set calibration
+		get boardid
+binding:     
+	{
+        using namespace std::placeholders;
+        this->mds_ = new MDS(8, std::bind(&AOTF::sendSerial, this, _1), std::bind(&AOTF::retrieveSerial, this));
+    }
 private:
 	int sendCmd(const char* cmd);
 	int sendCmd(const char* cmd, std::string response);
 	const char* port_;
 }
+
+class CTDriver {
+#define CT_INVALID_CHANNEL 2
+#define CT_ERR 1
+#define CT_OK 0
+	//This class implements all functionality without any reliance on micromanager specific stuff. It can be wrapped into a device adapter.
+public:
+	CTDriver(uint8_t numChannels, std::function<int(std::string)> serialSend, std::function<std::string(void)> serialReceive);
+
+	int setFrequencyMhz(uint8_t chan,  double freq);
+	int setWavelengthNm(uint8_t chan, unsigned int wv);
+	int setAmplitude(uint8_t chan,  unsigned int asf);
+	int setGain(uint8_t chan, unsigned int gain);
+	/*
+	calibration -> Identify, Tuning 
+	temperature -> Read {C/O/A}//readonly 3 sensors
+	boardid -> Version, PartNumber, Identify, ModelNumber, CTISerialNumber Date, Options
+	*/
+private:
+	int getChannelStr(uint8_t chan, std::string& str);
+	int setFreq(uint8_t chan, std::string freqStr);
+	std::function<int(std::string)> tx_;
+	std::function<int(std::string)> rx_;
+	uint8_t numChan_;
+}
+
+	CTDriver::CTDriver(uint8_t numChannels, std::function<int(std::string)> serialSend, std::function<std::string(void)> serialReceive) {
+		tx_ = serialSend;
+		rx_ = serialReceive;
+		numChan_ = numChannels;
+	}
+
+	int CTDriver::setFrequencyMhz(uint8_t chan, double freq) {
+		std::string freqStr = std::to_string((long double) freq); //formatted without any weird characters
+		return this->setFreq(chan, freqStr);
+	}
+
+	int CTDriver::setWavelengthNm(uint8_t chan, unsigned int wv) {
+		std::string freqStr = std::to_string((unsigned long long) wv); 
+		freqStr = "#" + freqStr; //add the wavelength command modifier
+		return this->setFreq(chan, freqStr);
+	}
+
+	int CTDriver::setFreq(uint8_t chan, std::string freqStr) {
+		std::string chanStr;
+		int ret = this->getChannelStr(chan, chanStr);
+		if (ret!=CT_OK) { return ret; }
+		std::string str = "dds frequency " + chanStr + " " + freqStr;
+		return this->tx_(str);
+	}
+
+	int CTDriver::getChannelStr(uint8_t chan, std::string& chanStr) {
+		if (chan==255) {
+			chanStr = "*";
+			return CT_OK;
+		} else if (chan >= numChan_) {
+			return CT_INVALID_CHANNEL;
+		}
+		chanStr = std::to_string((unsigned long long) chan); //This weird datatype is required to satisfy VC2010 implementation of to_string
+		return CT_OK;
+	}
+
+	int CTDriver::setAmplitude(uint8_t chan,  unsigned int asf) {
+		if (asf > 16383) { return CT_ERR; }
+		std::string chanStr;
+		int ret = this->getChannelStr(chan, chanStr);
+		if (ret!=CT_OK) { return ret; }
+		std::string cmd = "dds amplitude " + chanStr + " " + std::to_string((unsigned long long) asf);
+		return this->tx_(cmd);
+	}
+
+	int CTDriver::setGain(uint8_t chan,  unsigned int gain) {
+		if (gain > 31) { return CT_ERR; }
+		std::string chanStr;
+		int ret = this->getChannelStr(chan, chanStr);
+		if (ret!=CT_OK) { return ret; }
+		std::string cmd = "dds gain " + chanStr + " " + std::to_string((unsigned long long) gain);
+		return this->tx_(cmd);
+	}
