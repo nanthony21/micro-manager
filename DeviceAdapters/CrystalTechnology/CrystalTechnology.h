@@ -39,10 +39,11 @@
 // Device Names
 const char* const g_ControllerName = "AOTF Controller";
 
-class CrystalTech: public CGenericBase<CrystalTech> {
+class CTBase: public CGenericBase<CTBase> {
+	//Serves as a base class for micromanager device adapters using the CTDriver class.
 public:
-	CrystalTech();
-	~CrystalTech();
+	CTBase(uint8_t numChans);
+	~CTBase();
 	//Device API
 	int Initialize();
 	int Shutdown();
@@ -51,24 +52,15 @@ public:
 	bool SupportsDeviceDetection() { return false; };
 	//Properties
 	int onPort(MM::PropertyBase* pProp, MM::ActionType eAct);
-	setChannel
-		view the temperatures
-		set amplitude
-		set gain
-		set frequency
-		set phase
-		set calibration
-		get boardid
-binding:     
-	{
-        using namespace std::placeholders;
-        this->mds_ = new MDS(8, std::bind(&AOTF::sendSerial, this, _1), std::bind(&AOTF::retrieveSerial, this));
-    }
 private:
-	int sendCmd(const char* cmd);
-	int sendCmd(const char* cmd, std::string response);
+	uint8_t numChans_;
+	CTDriver* driver_;
+	int tx_(std::string cmd);
+	int rx_(std::string& response);
 	const char* port_;
 }
+
+
 
 class CTDriver {
 	//This class implements all functionality without any reliance on micromanager specific stuff. It can be wrapped into a device adapter.
@@ -95,14 +87,15 @@ public:
 	int getWavelengthNm(uint8_t chan, unsigned int& wv);
 	int getAllTemperatures(std::string& temps);
 	int getBoardInfo(std::string& info);
+	int getTuningCoeff(std::string& coeffs);
 
 	//Unkn
 	//calibration -> Identify, Tuning 
 private:
 	int getChannelStr(uint8_t chan, std::string& str, bool allowWildcard);
 	int setFreq(uint8_t chan, std::string freqStr);
-	std::function<int(std::string)> tx_;
-	std::function<int(std::string)> rx_;
-	uint8_t numChan_;
+	std::function<int(std::string)> tx_; //A function that sends the string over serial and terminates it with \r
+	std::function<int(std::string)> rx_; //A function that reads a \r terminated line from serial 
+	uint8_t numChan_; //The number of channels that the device has.
 }
 
