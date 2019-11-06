@@ -71,13 +71,14 @@ private:
 }
 
 class CTDriver {
-#define CT_INVALID_CHANNEL 2
-#define CT_INVALID_VALUE 3
-#define CT_ERR 1
-#define CT_OK 0
 	//This class implements all functionality without any reliance on micromanager specific stuff. It can be wrapped into a device adapter.
 	//Not all possible functionality is implemented here. It should be enough for many applications though.
 public:
+	static const int INVALID_CHANNEL = 2;
+	static const int INVALID_VALUE = 3;
+	static const int ERR = 1;
+	static const int OK = 0;
+
 	CTDriver(uint8_t numChannels, std::function<int(std::string)> serialSend, std::function<std::string(void)> serialReceive);
 
 	int reset();
