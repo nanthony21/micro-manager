@@ -21,6 +21,12 @@
     <ClCompile Include="CrystalTechnologyModule.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CTDriver.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CTBase.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CrystalTechnology.h">

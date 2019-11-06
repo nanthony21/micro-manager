@@ -30,7 +30,7 @@
 
 #pragma once
 
-#include "../../MMDevice/MMDevice.h"
+//#include "../../MMDevice/MMDevice.h"
 #include "../../MMDevice/DeviceBase.h"
 #include <stdint.h>
 #include <functional>
@@ -52,15 +52,18 @@ public:
 	bool SupportsDeviceDetection() { return false; };
 	//Properties
 	int onPort(MM::PropertyBase* pProp, MM::ActionType eAct);
+protected:
+	CTDriver* driver_;
 private:
 	uint8_t numChans_;
-	CTDriver* driver_;
 	int tx_(std::string cmd);
 	int rx_(std::string& response);
 	const char* port_;
 }
 
+class CTTunableFilter: public CTBase, public CGenericBase<CTTunableFilter> {
 
+}
 
 class CTDriver {
 	//This class implements all functionality without any reliance on micromanager specific stuff. It can be wrapped into a device adapter.
@@ -88,6 +91,8 @@ public:
 	int getAllTemperatures(std::string& temps);
 	int getBoardInfo(std::string& info);
 	int getTuningCoeff(std::string& coeffs);
+
+	//get # of channels.
 
 	//Unkn
 	//calibration -> Identify, Tuning 
