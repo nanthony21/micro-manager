@@ -11,5 +11,5 @@ int CTTunableFilter::Initialize() {
 	CPropertyAction* pAct = new CPropertyAction(this, &CTTunableFilter::onWavelength);
 	this->CreateProperty(
 
-	CPropertyAction* pAct = new CPropertyAction(this, &CTTunableFilter::onBandwidth);
+	pAct = new CPropertyAction(this, &CTTunableFilter::onBandwidth);
 }

@@ -60,7 +60,7 @@ private:
 	int tx_(std::string cmd);
 	int rx_(std::string& response);
 	const char* port_;
-}
+};
 
 class CTTunableFilter: public CTBase<CTTunableFilter> {
 	//Uses the multiple channels of the RF driver to make a tunable filter that can set it center wavelenght and it bandwidth (by spreading the frequencies of the various channels)
@@ -72,7 +72,7 @@ private:
 	//Properties
 	int onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct);
 	int onBandwidth(MM::PropertyBase* pProp, MM::ActionType eAct);
-}
+};
 
 class CTDriver {
 	//This class implements all functionality without any reliance on micromanager specific stuff. It can be wrapped into a device adapter.
