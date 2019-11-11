@@ -39,30 +39,39 @@
 // Device Names
 const char* const g_ControllerName = "AOTF Controller";
 
+
 class CTBase: public CGenericBase<CTBase> {
-	//Serves as a base class for micromanager device adapters using the CTDriver class.
+	//Serves as an abstract base class for micromanager device adapters using the CTDriver class.
 public:
-	CTBase(uint8_t numChans);
+	CTBase();
 	~CTBase();
 	//Device API
 	int Initialize();
 	int Shutdown();
-	void GetName(char* pName) const {strcpy(pName, g_ControllerName);};
+	virtual void GetName(char* pName) const = 0;
 	bool Busy() {return false;}; 
 	bool SupportsDeviceDetection() { return false; };
-	//Properties
-	int onPort(MM::PropertyBase* pProp, MM::ActionType eAct);
+
 protected:
 	CTDriver* driver_;
 private:
-	uint8_t numChans_;
+	//Properties
+	int onPort(MM::PropertyBase* pProp, MM::ActionType eAct);
 	int tx_(std::string cmd);
 	int rx_(std::string& response);
 	const char* port_;
 }
 
-class CTTunableFilter: public CTBase, public CGenericBase<CTTunableFilter> {
-
+class CTTunableFilter: public CTBase<CTTunableFilter> {
+	//Uses the multiple channels of the RF driver to make a tunable filter that can set it center wavelenght and it bandwidth (by spreading the frequencies of the various channels)
+public:
+	CTTunableFilter();
+	int Initialize();
+	void GetName(char* pName) const {strcpy(pName, g_ControllerName);};
+private:
+	//Properties
+	int onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int onBandwidth(MM::PropertyBase* pProp, MM::ActionType eAct);
 }
 
 class CTDriver {
@@ -74,9 +83,10 @@ public:
 	static const int ERR = 1;
 	static const int OK = 0;
 
-	CTDriver(uint8_t numChannels, std::function<int(std::string)> serialSend, std::function<std::string(void)> serialReceive);
+	CTDriver(std::function<int(std::string)> serialSend, std::function<std::string(void)> serialReceive);
 
 	int reset();
+	int numChannels() { return numChan_; };
 	//Setters
 	int setFrequencyMhz(uint8_t chan,  double freq);
 	int setWavelengthNm(uint8_t chan, unsigned int wv);

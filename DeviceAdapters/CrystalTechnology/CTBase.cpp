@@ -4,8 +4,7 @@
 #define BEFOREGET if (eAct == MM::BeforeGet)
 #define AFTERSET if (eAct == MM::AfterSet)
 
-CTBase::CTBase(uint8_t numChans) { 
-	this->numChans_ = numChans;
+CTBase::CTBase() { 
 	CPropertyAction* pAct = new CPropertyAction(this, &CTBase::onPort);
 	this->CreateStringProperty(MM::g_Keyword_Port, "Unkn", false, pAct, true);
 }
@@ -13,7 +12,7 @@ CTBase::CTBase(uint8_t numChans) {
 int CTBase::Initialize() {
 	{
 		using namespace std::placeholders;
-		this->driver_ = new CTDriver(numChans_, std::bind(&CTBase::tx_, this, _1), std::bind(&CTBase::rx_, this, _1));
+		this->driver_ = new CTDriver(std::bind(&CTBase::tx_, this, _1), std::bind(&CTBase::rx_, this, _1));
 	}
 }
 

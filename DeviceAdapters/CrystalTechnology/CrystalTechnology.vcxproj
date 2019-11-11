@@ -137,10 +137,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="CrystalTechnology.cpp" />
     <ClCompile Include="CrystalTechnologyModule.cpp" />
     <ClCompile Include="CTBase.cpp" />
     <ClCompile Include="CTDriver.cpp" />
+    <ClCompile Include="CTTunableFilter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\MMDevice\MMDevice-SharedRuntime.vcxproj">

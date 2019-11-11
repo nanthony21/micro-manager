@@ -1,10 +1,17 @@
 #include "CrystalTechnology.h"
 #define BREAK_ERR if (ret!=CTDriver::OK) { return ret; }
 
-CTDriver::CTDriver(uint8_t numChannels, std::function<int(std::string)> serialSend, std::function<std::string(void)> serialReceive) {
-	tx_ = serialSend;
-	rx_ = serialReceive;
-	numChan_ = numChannels;
+CTDriver::CTDriver(std::function<int(std::string)> serialSend, std::function<std::string(void)> serialReceive):
+	numChan_(1) //Assume one channel so we atleast have a value here if something goes weird while getting the number of channels in the constructor.
+{
+	this->tx_ = serialSend;
+	this->rx_ = serialReceive;
+
+	this->tx_("dds channels *");
+	std::string response;
+	this->rx_(response);
+	//todo parse to determine how many channels we have.
+	//numChan_ = numChannels;
 }
 
 int CTDriver::reset() {
@@ -32,6 +39,7 @@ int CTDriver::setFreq(uint8_t chan, std::string freqStr) {
 }
 
 int CTDriver::getChannelStr(uint8_t chan, std::string& chanStr, bool allowWildcard) {
+	//Used by other methods to get the string used to refer to a channel in a command string. sending 255 chan will result in referring to all channels simultaneously. This is only allowed if `allowWildcard` is true.
 	if ((chan==255) && (allowWildcard)) {
 		chanStr = "*";
 		return CTDriver::OK;
@@ -98,7 +106,7 @@ int CTDriver::getAmplitude(uint8_t chan, unsigned int& asf) {
 	return CTDriver::OK;
 }
 
-/*int CTDriver::getFrequencyMhz(uint8_t chan, double& freq) {
+int CTDriver::getFrequencyMhz(uint8_t chan, double& freq) {
 	std::string chanStr;
 	int ret = this->getChannelStr(chan, chanStr, false);
 	BREAK_ERR
@@ -108,7 +116,7 @@ int CTDriver::getAmplitude(uint8_t chan, unsigned int& asf) {
 	std::string response;
 	ret = this->rx_(response);
 	BREAK_ERR
-	//TODO parse the response and set asf
+	//TODO parse the response and set Freq
 	return CTDriver::OK;
 }
 
@@ -122,9 +130,9 @@ int CTDriver::getWavelengthNm(uint8_t chan, unsigned int& wv) {
 	std::string response;
 	ret = this->rx_(response);
 	BREAK_ERR
-	//TODO parse the response and set asf
+	//TODO parse the response and set Wavelength
 	return CTDriver::OK;
-}*/
+}
 
 int CTDriver::getAllTemperatures(std::string& temps) {
 	std::string cmd = "temperature read *";
