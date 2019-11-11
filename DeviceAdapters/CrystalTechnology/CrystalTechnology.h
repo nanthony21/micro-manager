@@ -39,8 +39,8 @@
 // Device Names
 const char* const g_ControllerName = "AOTF Controller";
 
-
-class CTBase: public CGenericBase<CTBase> {
+template <class T>
+class CTBase: public CGenericBase<T> {
 	//Serves as an abstract base class for micromanager device adapters using the CTDriver class.
 public:
 	CTBase();

@@ -4,18 +4,21 @@
 #define BEFOREGET if (eAct == MM::BeforeGet)
 #define AFTERSET if (eAct == MM::AfterSet)
 
-CTBase::CTBase() { 
+template <class T>
+CTBase<T>::CTBase() { 
 	CPropertyAction* pAct = new CPropertyAction(this, &CTBase::onPort);
 	this->CreateStringProperty(MM::g_Keyword_Port, "Unkn", false, pAct, true);
 }
 
-int CTBase::Initialize() {
+template <class T>
+int CTBase<T>::Initialize() {
 	{
 		using namespace std::placeholders;
 		this->driver_ = new CTDriver(std::bind(&CTBase::tx_, this, _1), std::bind(&CTBase::rx_, this, _1));
 	}
 }
 
+template <class T>
 int CTBase::onPort(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	BEFOREGET {
 		int ret = pProp->Set(this->port_);
@@ -29,17 +32,20 @@ int CTBase::onPort(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	return DEVICE_OK;
 }
 
-int CTBase::Shutdown() {
+template <class T>
+int CTBase<T>::Shutdown() {
 	delete this->driver_; //not sure if this is really necesary.
 }
 
-int CTBase::tx_(std::string cmd) {
+template <class T>
+int CTBase<T>::tx_(std::string cmd) {
 	int ret = this->SendSerialCommand(port_, cmd.c_str(), "\r");
 	BREAK_MM_ERR
 	return CTDriver::OK;
 }
 
-int CTBase::rx_(std::string& response) {
+template <class T>
+int CTBase<T>::rx_(std::string& response) {
 	int ret = this->GetSerialAnswer(port_, "\r", response);
 	BREAK_MM_ERR
 	return CTDriver::OK;
