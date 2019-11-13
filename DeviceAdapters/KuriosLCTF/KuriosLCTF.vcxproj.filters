@@ -27,7 +27,4 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\..\3rdparty\Kurios C++ SDK\KURIOS_COMMAND_LIB_win64.dll" />
-  </ItemGroup>
 </Project>

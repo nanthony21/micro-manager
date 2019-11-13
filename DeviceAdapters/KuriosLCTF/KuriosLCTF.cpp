@@ -31,27 +31,30 @@
 #include "KuriosLCTF.h"
 
 
-KuriosLCTF::KuriosLCTF():
-	port_("Undefined")
+KuriosLCTF::KuriosLCTF()
  {
 	SetErrorText(DEVICE_SERIAL_TIMEOUT, "Serial port timed out without receiving a response.");
 
 	CPropertyAction* pAct = new CPropertyAction(this, &KuriosLCTF::onPort);
-	CreateProperty("Com Port", "Undefined", MM::String, false, pAct, true);
+	CreateProperty("ComPort", "Undefined", MM::String, false, pAct, true);
 
 	//Find ports and add them aa property options
 	unsigned char ports[1024];
-	int ret = common_List(ports);
+	int ret = common_List(ports); //ret in this case is the number of devices detected. For each device found the string is "{serialNo},{description}", each device is also comma delimited.
 	std::string portStr = std::string((const char*)ports);
 	size_t pos = 0;
-	std::string token;
 	std::string delimiter = ",";
+	bool endOfString = false; //tells us when there are no more commas.
 	while (true) {
 		pos = portStr.find(delimiter);
-		token = portStr.substr(0, pos);
+		std::string serialNo = portStr.substr(0, pos);
+		portStr.erase(0, pos + delimiter.length()); //Erase the string we just processed.
+		pos = portStr.find(delimiter); //find the next comma to get the description
+		if (pos == std::string::npos) {endOfString = true;}
+		std::string description = portStr.substr(0, pos);
+		std::string token = serialNo + "::" + description; //We use this :: delimiter later to separate the serialNo
 		AddAllowedValue("ComPort", token.c_str());
-		portStr.erase(0, pos + delimiter.length());
-		if (pos == std::string::npos) {break;}
+		if (endOfString) { break; } else { portStr.erase(0, pos + delimiter.length()); }		
 	}
 }
 
@@ -61,11 +64,19 @@ KuriosLCTF::~KuriosLCTF() {}
 
 //Device API
 int KuriosLCTF::Initialize() {
-	portHandle_ = common_Open((char*) port_.c_str(), 115200, 1); //TODO is the baud right?
-	if (portHandle_<0){return DEVICE_ERR;}
+	char port[1024];
+	this->GetProperty("ComPort", port);
+	std::string Port = std::string(port);
+	size_t pos = Port.find("::");
+	this->port_ = Port.substr(0, pos); //Select out just the serial number without the description.
+	for (int i=0; i<3; i++) {
+		portHandle_ = common_Open((char*) this->port_.c_str(), 115200, 3); //This randomly fails. Just have to keep retrying.
+		if (portHandle_ >= 0) { break; }
+	}
+	if (portHandle_<0){return DEVICE_SERIAL_COMMAND_FAILED;}
 
 	//For some reason Micromanager tries accessing properties before initialization. For this reason we don't create properties until after initialization.
-	unsigned char* id;
+	unsigned char id[1024];
 	int ret = kurios_Get_ID(portHandle_, id);
 	if (ret<0){return DEVICE_ERR;}
 	CreateProperty("ID", (const char*) id, MM::String, true);
@@ -156,9 +167,11 @@ int KuriosLCTF::Initialize() {
 	return DEVICE_OK;
 }
 
-int KuriosLCTF::Shutdown() {
-	int ret = common_Close(portHandle_);
-	if (ret<0) {return DEVICE_ERR;}
+int KuriosLCTF::Shutdown() { //This sometimes get run twice.
+	if (common_IsOpen((char*) this->port_.c_str())) {
+		int ret = common_Close(portHandle_);
+		if (ret<0) {return DEVICE_ERR;}
+	}
 	return DEVICE_OK;
 }
 
