@@ -31,16 +31,17 @@
 #include "KuriosLCTF.h"
 
 
-KuriosLCTF::KuriosLCTF() {
+KuriosLCTF::KuriosLCTF():
+	port_("Undefined")
+ {
 	SetErrorText(DEVICE_SERIAL_TIMEOUT, "Serial port timed out without receiving a response.");
 
 	CPropertyAction* pAct = new CPropertyAction(this, &KuriosLCTF::onPort);
-	CreateProperty("ComPort", "Undefined", MM::String, false, pAct, true);
-
+	CreateProperty("Com Port", "Undefined", MM::String, false, pAct, true);
 
 	//Find ports and add them aa property options
 	unsigned char ports[1024];
-	common_List(ports);
+	int ret = common_List(ports);
 	std::string portStr = std::string((const char*)ports);
 	size_t pos = 0;
 	std::string token;
@@ -170,12 +171,12 @@ void KuriosLCTF::GetName(char* name) const {
 
 //Properties
 int KuriosLCTF::onPort(MM::PropertyBase* pProp, MM::ActionType eAct) {
-	if (eAct == MM::BeforeGet) {
+	/*if (eAct == MM::BeforeGet) {
 		pProp->Set(port_.c_str());
 	}
 	else if (eAct == MM::AfterSet) {
 		pProp->Get(port_);
-	}
+	}*/
 	return DEVICE_OK;
 }
 
