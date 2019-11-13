@@ -5,7 +5,10 @@
 #define AFTERSET if (eAct == MM::AfterSet)
 
 template <class T>
-CTBase<T>::CTBase() { 
+CTBase<T>::CTBase():
+	port_("Undefined"),
+	driver_(NULL)
+{ 
 	CPropertyAction* pAct = new CPropertyAction(this, &CTBase::onPort);
 	this->CreateStringProperty(MM::g_Keyword_Port, "Unkn", false, pAct, true);
 }

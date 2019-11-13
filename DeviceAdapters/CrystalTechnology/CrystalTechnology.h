@@ -30,7 +30,6 @@
 
 #pragma once
 
-//#include "../../MMDevice/MMDevice.h"
 #include "../../MMDevice/DeviceBase.h"
 #include <stdint.h>
 #include <functional>
@@ -72,6 +71,12 @@ private:
 	//Properties
 	int onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct);
 	int onBandwidth(MM::PropertyBase* pProp, MM::ActionType eAct);
+	void setWavelength(double wv);
+	void setBandwidth(double bw);
+	int updateWvs();
+	int wv;
+	int wvs[8]; //all 8 may not be used.
+	int bw;
 };
 
 class CTDriver {
@@ -97,7 +102,7 @@ public:
 	int getPhase(uint8_t chan, double& phaseDegrees);
 	int getAmplitude(uint8_t chan, unsigned int& asf);
 	int getFrequencyMhz(uint8_t chan, double& freq);
-	int getWavelengthNm(uint8_t chan, unsigned int& wv);
+	int getWavelengthNm(uint8_t chan, unsigned int& wv); //Does this really need to be int?
 	int getAllTemperatures(std::string& temps);
 	int getBoardInfo(std::string& info);
 	int getTuningCoeff(std::string& coeffs);
