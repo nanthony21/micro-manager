@@ -22,7 +22,7 @@ int CTBase<T>::Initialize() {
 }
 
 template <class T>
-int CTBase::onPort(MM::PropertyBase* pProp, MM::ActionType eAct) {
+int CTBase<T>::onPort(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	BEFOREGET {
 		int ret = pProp->Set(this->port_);
 		BREAK_MM_ERR
@@ -36,9 +36,7 @@ int CTBase::onPort(MM::PropertyBase* pProp, MM::ActionType eAct) {
 }
 
 template <class T>
-int CTBase<T>::Shutdown() {
-	delete this->driver_; //not sure if this is really necesary.
-}
+int CTBase<T>::Shutdown() {}
 
 template <class T>
 int CTBase<T>::tx_(std::string cmd) {

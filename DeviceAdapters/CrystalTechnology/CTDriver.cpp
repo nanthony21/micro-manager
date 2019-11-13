@@ -151,8 +151,8 @@ int CTDriver::getBoardInfo(std::string& info) {
 	ret = this->rx_(partNo);
 	BREAK_ERR
 
-	std::string cmd = "boardid ctiserialnumber";
-	int ret = this->tx_(cmd);
+	cmd = "boardid ctiserialnumber";
+	ret = this->tx_(cmd);
 	BREAK_ERR
 	std::string serial;
 	ret = this->rx_(serial);

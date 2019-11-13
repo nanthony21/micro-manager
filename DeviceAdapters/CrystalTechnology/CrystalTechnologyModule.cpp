@@ -52,7 +52,7 @@ MODULE_API MM::Device* CreateDevice(const char* deviceName)
 	return 0;
 	}
 	else if (strcmp(deviceName, g_ControllerName) == 0) {
-		CrystalTech* p = new CrystalTech();
+		CTTunableFilter* p = new CTTunableFilter();
 		return p;
 	}
 	else {

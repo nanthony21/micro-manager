@@ -38,46 +38,6 @@
 // Device Names
 const char* const g_ControllerName = "AOTF Controller";
 
-template <class T>
-class CTBase: public CGenericBase<T> {
-	//Serves as an abstract base class for micromanager device adapters using the CTDriver class.
-public:
-	CTBase();
-	~CTBase();
-	//Device API
-	int Initialize();
-	int Shutdown();
-	virtual void GetName(char* pName) const = 0;
-	bool Busy() {return false;}; 
-	bool SupportsDeviceDetection() { return false; };
-
-protected:
-	CTDriver driver_;
-private:
-	//Properties
-	int onPort(MM::PropertyBase* pProp, MM::ActionType eAct);
-	int tx_(std::string cmd);
-	int rx_(std::string& response);
-	const char* port_;
-};
-
-class CTTunableFilter: public CTBase<CTTunableFilter> {
-	//Uses the multiple channels of the RF driver to make a tunable filter that can set it center wavelenght and it bandwidth (by spreading the frequencies of the various channels)
-public:
-	CTTunableFilter();
-	int Initialize();
-	void GetName(char* pName) const {strcpy(pName, g_ControllerName);};
-private:
-	//Properties
-	int onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct);
-	int onBandwidth(MM::PropertyBase* pProp, MM::ActionType eAct);
-	void setWavelength(double wv);
-	void setBandwidth(double bw);
-	int updateWvs();
-	int wv;
-	int wvs[8]; //all 8 may not be used.
-	int bw;
-};
 
 class CTDriver {
 	//This class implements all functionality without any reliance on micromanager specific stuff. It can be wrapped into a device adapter.
@@ -117,5 +77,49 @@ private:
 	std::function<int(std::string)> tx_; //A function that sends the string over serial and terminates it with \r
 	std::function<int(std::string)> rx_; //A function that reads a \r terminated line from serial 
 	uint8_t numChan_; //The number of channels that the device has.
-}
+};
+
+
+template <class T>
+class CTBase: public CGenericBase<T> {
+	//Serves as an abstract base class for micromanager device adapters using the CTDriver class.
+public:
+	CTBase();
+	~CTBase();
+	//Device API
+	int Initialize();
+	int Shutdown();
+	virtual void GetName(char* pName) const = 0;
+	bool Busy() {return false;}; 
+	bool SupportsDeviceDetection() { return false; };
+
+protected:
+	CTDriver driver_;
+private:
+	//Properties
+	int onPort(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int tx_(std::string cmd);
+	int rx_(std::string& response);
+	const char* port_;
+};
+
+class CTTunableFilter: public CTBase<CTTunableFilter> {
+	//Uses the multiple channels of the RF driver to make a tunable filter that can set it center wavelenght and it bandwidth (by spreading the frequencies of the various channels)
+public:
+	CTTunableFilter();
+	int Initialize();
+	void GetName(char* pName) const {strcpy(pName, g_ControllerName);};
+private:
+	//Properties
+	int onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int onBandwidth(MM::PropertyBase* pProp, MM::ActionType eAct);
+	void setWavelength(double wv);
+	void setBandwidth(double bw);
+	int updateWvs();
+	double wv_;
+	double wvs_[8]; //all 8 may not be used.
+	double bw_;
+};
+
+
 

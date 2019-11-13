@@ -4,10 +4,14 @@
 #define BEFOREGET if (eAct == MM::BeforeGet)
 #define AFTERSET if (eAct == MM::AfterSet)
 
-CTTunableFilter::CTTunableFilter(): CTBase() {}
+CTTunableFilter::CTTunableFilter():
+	CTBase(),
+	wv_(0),
+	bw_(0)
+{}
 
 int CTTunableFilter::Initialize() {
-	int ret = CTBase.Initialize();
+	int ret = CTBase::Initialize();
 	BREAKERR
 
 	CPropertyAction* pAct = new CPropertyAction(this, &CTTunableFilter::onWavelength);
