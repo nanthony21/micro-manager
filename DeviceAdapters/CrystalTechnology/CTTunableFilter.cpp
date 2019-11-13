@@ -23,10 +23,10 @@ int CTTunableFilter::Initialize() {
 
 int CTTunableFilter::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	BEFOREGET {
-		pProp->Set((long)this->wv);
+		pProp->Set((long)this->wv_);
 	} else AFTERSET {
 		int wavelength;
-		pProp->Get(wavelength);
+		pProp->Get((long&) wavelength);
 		this->setWavelength(wavelength);
 	}
 	return DEVICE_OK;
@@ -34,10 +34,10 @@ int CTTunableFilter::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) 
 
 int CTTunableFilter::onBandwidth(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	BEFOREGET {
-		pProp->Set(this->bw);
+		pProp->Set((long)this->bw_);
 	} else AFTERSET {
 		int bandwidth;
-		pProp->Get(bandwidth);
+		pProp->Get((long&)bandwidth);
 		this->setBandwidth(bandwidth);
 	}
 	return DEVICE_OK;
@@ -45,16 +45,28 @@ int CTTunableFilter::onBandwidth(MM::PropertyBase* pProp, MM::ActionType eAct) {
 }
 
 void CTTunableFilter::setWavelength(double wv) {
-	this->wv = wv;
+	int chans = driver_.numChannels();
+	for (int i=0; i<chans; i++) {
+		int newWv = wv - bw_/2 + (bw_ * (double) i / (chans-1));
+		this->wvs_[i] = newWv;
+		driver_.setWavelengthNm(i, newWv);
+	}
+	this->wv_ = wv;
 }
 
-void CTTunableFilter::setBandwidth(double wv) {
-
+void CTTunableFilter::setBandwidth(double bw) {
+	int chans = driver_.numChannels();
+	for (int i=0; i<chans; i++) {
+		int newWv = wv_ - bw/2 + (bw * (double) i / (chans-1));
+		this->wvs_[i] = newWv;
+		driver_.setWavelengthNm(i, newWv);
+	}
+	this->bw_ = bw;
 }
 
 int CTTunableFilter::updateWvs() {
-	for (int i=0; i<driver_->numChannels(); i++) {
-		int ret = driver_->getWavelengthNm(i, wvs[i]);
+	for (int i=0; i<driver_.numChannels(); i++) {
+		int ret = driver_.getWavelengthNm(i, wvs_[i]);
 		BREAKERR
 	}
 	return DEVICE_OK;

@@ -17,7 +17,7 @@ template <class T>
 int CTBase<T>::Initialize() {
 	{
 		using namespace std::placeholders;
-		this->driver_ = new CTDriver(std::bind(&CTBase::tx_, this, _1), std::bind(&CTBase::rx_, this, _1));
+		this->driver_ = CTDriver(std::bind(&CTBase::tx_, this, _1), std::bind(&CTBase::rx_, this, _1));
 	}
 }
 

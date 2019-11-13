@@ -52,7 +52,7 @@ public:
 	bool SupportsDeviceDetection() { return false; };
 
 protected:
-	CTDriver* driver_;
+	CTDriver driver_;
 private:
 	//Properties
 	int onPort(MM::PropertyBase* pProp, MM::ActionType eAct);
