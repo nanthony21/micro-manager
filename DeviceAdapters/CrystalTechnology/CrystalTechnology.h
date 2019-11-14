@@ -63,7 +63,7 @@ public:
 	int getAmplitude(uint8_t chan, unsigned int& asf);
 	int getFrequencyMhz(uint8_t chan, double& freq);
 	int getWavelengthNm(uint8_t chan, double& wv); //Does this really need to be int?
-	int getAllTemperatures(std::string& temps);
+	int getTemperature(std::string sensorType, double& temp);
 	int getBoardInfo(std::string& info);
 	int getTuningCoeff(std::string& coeffs);
 private:

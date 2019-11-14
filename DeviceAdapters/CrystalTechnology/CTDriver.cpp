@@ -99,7 +99,9 @@ int CTDriver::getPhase(uint8_t chan, double& phaseDegrees) {
 	std::string response;
 	ret = this->rx_(response);
 	BREAK_ERR
-	//TODO parse the response and set phaseDegrees
+	//response is in form "Channel {x} @ {phaseDegrees}
+	response = response.substr(12); //get rid of the prefix
+	phaseDegrees = strtod(response); //0 could indicate an actual 0 or an error, oh well
 	return CTDriver::OK;
 }
 
@@ -113,7 +115,9 @@ int CTDriver::getAmplitude(uint8_t chan, unsigned int& asf) {
 	std::string response;
 	ret = this->rx_(response);
 	BREAK_ERR
-	//TODO parse the response and set asf
+	//response is in form "Channel {x} @ {asf}
+	response = response.substr(12); //get rid of the prefix
+	asf = atoi(response);
 	return CTDriver::OK;
 }
 
@@ -127,7 +131,11 @@ int CTDriver::getFrequencyMhz(uint8_t chan, double& freq) {
 	std::string response;
 	ret = this->rx_(response);
 	BREAK_ERR
-	//TODO parse the response and set Freq
+	//response is in form "Channel {x} profile {x} frequency {freq scientific notation}Hz (Ftw {xxxxxx variable length})"
+	response = response.substr(30); //remove prefix
+	site_t pos = response.find("Hz");
+	response = response.substr(0, pos); //remove suffix
+	freq = strtod(response); //0 could be an error or actual value.
 	return CTDriver::OK;
 }
 
@@ -147,20 +155,33 @@ int CTDriver::getWavelengthNm(uint8_t chan, double& wv) {
 	//Response is in the form "Wavelength {scientific notation number} nm" TODO parse the response and set Wavelength
 	response = response.substr(11); //Get rid of "Wavelength " prefix
 	response = response.substr(0, response.length()-3); //Get rid of " nm" suffix
-    //std::istringstream os(response);
-    //os >> wv;
 	double wavelength = strtod(response.c_str());
 	if (wavelength == 0.0) { return DEVICE_ERR; } //Conversion failed
 	else { wv = wavelength; }
 	return CTDriver::OK;
 }
 
-int CTDriver::getAllTemperatures(std::string& temps) {
-	std::string cmd = "temperature read *";
+int CTDriver::getTemperature(std::string sensorType, double& temp) {
+	if ((sensorType.compare("o")!=0) || (sensorType.compare("a")!=0) || (sensorType.compare("c")!=0)) {
+		return CTDriver::INVALID_VALUE;//sensor type must be "o"scillator, "a"mplifier, "c"rystal
+	}
+	//oscillator temp
+	std::string cmd = "temperature read " + sensorType;
 	int ret = this->tx_(cmd);
 	BREAK_ERR
-	ret = this->rx_(temps);
+	ret = this->rx_(response);
 	BREAK_ERR
+	size_t pos = response.find(" "); //find the first space
+	response.erase(0, pos);
+	pos = response.find(" "); //find the second space
+	response.erase(0, pos);
+	pos = response.find(" "); //find the third space
+	double t = strtod(response.substr(pos);
+	if (t==0.0) {
+		return CTDriver::ERR;
+	} else {
+		temp = t;
+	}
 	return CTDriver::OK;
 }
 
