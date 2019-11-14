@@ -7,11 +7,22 @@ CTDriver::CTDriver(std::function<int(std::string)> serialSend, std::function<std
 	this->tx_ = serialSend;
 	this->rx_ = serialReceive;
 
-	this->tx_("dds channels *");
+	this->tx_("dds freq *");
 	std::string response;
-	this->rx_(response);
-	//todo parse to determine how many channels we have.
-	//numChan_ = numChannels;
+	int i = 0;
+	while (true) {
+		this->rx_(response);
+		try {
+			response = response.substr(0, 7);
+		} catch (std::out_of_range& oor) {
+			break; //This is likely what will happen when we reach the end of the response.
+		}
+		if (response.compare("Channel") == 0) {
+			i++
+		} else {
+			break; //This is not expected to ever  happen.
+		}
+	this->numChan_ = i;
 }
 
 int CTDriver::reset() {

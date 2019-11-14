@@ -66,11 +66,6 @@ public:
 	int getAllTemperatures(std::string& temps);
 	int getBoardInfo(std::string& info);
 	int getTuningCoeff(std::string& coeffs);
-
-	//get # of channels.
-
-	//Unkn
-	//calibration -> Identify, Tuning 
 private:
 	int getChannelStr(uint8_t chan, std::string& str, bool allowWildcard);
 	int setFreq(uint8_t chan, std::string freqStr);
