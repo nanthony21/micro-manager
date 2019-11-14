@@ -54,7 +54,7 @@ public:
 	int numChannels() { return numChan_; };
 	//Setters
 	int setFrequencyMhz(uint8_t chan,  double freq);
-	int setWavelengthNm(uint8_t chan, unsigned int wv);
+	int setWavelengthNm(uint8_t chan, double wv);
 	int setAmplitude(uint8_t chan,  unsigned int asf);
 	int setGain(uint8_t chan, unsigned int gain);
 	int setPhase(uint8_t chan, double phaseDegrees);
@@ -62,7 +62,7 @@ public:
 	int getPhase(uint8_t chan, double& phaseDegrees);
 	int getAmplitude(uint8_t chan, unsigned int& asf);
 	int getFrequencyMhz(uint8_t chan, double& freq);
-	int getWavelengthNm(uint8_t chan, unsigned int& wv); //Does this really need to be int?
+	int getWavelengthNm(uint8_t chan, double& wv); //Does this really need to be int?
 	int getAllTemperatures(std::string& temps);
 	int getBoardInfo(std::string& info);
 	int getTuningCoeff(std::string& coeffs);

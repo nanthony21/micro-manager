@@ -24,8 +24,8 @@ int CTDriver::setFrequencyMhz(uint8_t chan, double freq) {
 	return this->setFreq(chan, freqStr);
 }
 
-int CTDriver::setWavelengthNm(uint8_t chan, unsigned int wv) {
-	std::string freqStr = std::to_string((unsigned long long) wv); 
+int CTDriver::setWavelengthNm(uint8_t chan, double wv) {
+	std::string freqStr = std::to_string((long double) wv); 
 	freqStr = "#" + freqStr; //add the wavelength command modifier
 	return this->setFreq(chan, freqStr);
 }
@@ -120,17 +120,27 @@ int CTDriver::getFrequencyMhz(uint8_t chan, double& freq) {
 	return CTDriver::OK;
 }
 
-int CTDriver::getWavelengthNm(uint8_t chan, unsigned int& wv) {
+int CTDriver::getWavelengthNm(uint8_t chan, double& wv) {
+	double freq;
+	int ret = this->getFrequencyMhz(chan, freq);
+	BREAK_ERR
 	std::string chanStr;
 	int ret = this->getChannelStr(chan, chanStr, false);
 	BREAK_ERR
-	std::string cmd = "dds wavelength " + chanStr;
+	std::string cmd = "calibration wave " + std::to_string((long double) freq);
 	ret = this->tx_(cmd);
 	BREAK_ERR
 	std::string response;
 	ret = this->rx_(response);
 	BREAK_ERR
-	//TODO parse the response and set Wavelength
+	//Response is in the form "Wavelength {scientific notation number} nm" TODO parse the response and set Wavelength
+	response = response.substr(11); //Get rid of "Wavelength " prefix
+	response = response.substr(0, response.length()-3); //Get rid of " nm" suffix
+    //std::istringstream os(response);
+    //os >> wv;
+	double wavelength = strtod(response.c_str());
+	if (wavelength == 0.0) { return DEVICE_ERR; } //Conversion failed
+	else { wv = wavelength; }
 	return CTDriver::OK;
 }
 
