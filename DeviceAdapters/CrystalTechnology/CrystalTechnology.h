@@ -48,7 +48,7 @@ public:
 	static const int ERR = 1;
 	static const int OK = 0;
 
-	CTDriver(std::function<int(std::string)> serialSend, std::function<std::string(void)> serialReceive);
+	CTDriver(std::function<int(std::string)> serialSend, std::function<int(std::string&)> serialReceive);
 
 	int reset();
 	int numChannels() { return numChan_; };
@@ -73,7 +73,7 @@ private:
 	int getChannelStr(uint8_t chan, std::string& str, bool allowWildcard);
 	int setFreq(uint8_t chan, std::string freqStr);
 	std::function<int(std::string)> tx_; //A function that sends the string over serial and terminates it with \r
-	std::function<int(std::string)> rx_; //A function that reads a \r terminated line from serial 
+	std::function<int(std::string&)> rx_; //A function that reads a \r terminated line from serial 
 	uint8_t numChan_; //The number of channels that the device has.
 };
 

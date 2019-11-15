@@ -1,7 +1,7 @@
 #include "CrystalTechnology.h"
 #define BREAK_ERR if (ret!=CTDriver::OK) { return ret; }
 
-CTDriver::CTDriver(std::function<int(std::string)> serialSend, std::function<std::string(void)> serialReceive):
+CTDriver::CTDriver(std::function<int(std::string)> serialSend, std::function<int(std::string&)> serialReceive):
 	numChan_(1) //Assume one channel so we atleast have a value here if something goes weird while getting the number of channels in the constructor.
 {
 	this->tx_ = serialSend;
@@ -229,8 +229,8 @@ int CTDriver::wavelengthToFreq(double wavelength, double& freq) {
 	response = response.substr(response.find(" ")); //Get rid of "Frequency " prefix
 	response = response.substr(0, response.find(" ")); //Get rid of " (Ftw {XX})" suffix
 	response = response.substr(0, response.length()-2); //Get rid of "Hz" suffix
-	double wv = strtod(response.c_str(), NULL);
-	if (wv == 0.0) { return CTDriver::ERR; } //Conversion failed
-	wavelength = wv;
+	double f = strtod(response.c_str(), NULL);
+	if (f == 0.0) { return CTDriver::ERR; } //Conversion failed
+	freq = f;
 	return CTDriver::OK;
 }
