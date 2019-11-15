@@ -28,6 +28,7 @@ int CTTunableFilter::Initialize() {
 	//ret = this->CreateProperty("Bandwidth", "0", MM::Float, false, pAct, false);
 	//BREAKERR
 	//TODO set limits
+	return DEVICE_OK;
 }
 
 int CTTunableFilter::onFrequency(MM::PropertyBase* pProp, MM::ActionType eAct) {

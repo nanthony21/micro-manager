@@ -38,6 +38,11 @@ CTBase<T>::CTBase():
 }
 
 template <class T>
+CTBase<T>::~CTBase() {
+	delete this->driver_;
+}
+
+template <class T>
 int CTBase<T>::Initialize() {
 	{
 		using namespace std::placeholders;
