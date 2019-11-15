@@ -32,5 +32,8 @@
     <ClInclude Include="CrystalTechnology.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CTBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -77,29 +77,7 @@ private:
 	uint8_t numChan_; //The number of channels that the device has.
 };
 
-
-template <class T>
-class CTBase: public CGenericBase<T> {
-	//Serves as an abstract base class for micromanager device adapters using the CTDriver class.
-public:
-	CTBase();
-	~CTBase();
-	//Device API
-	int Initialize();
-	int Shutdown();
-	virtual void GetName(char* pName) const = 0;
-	bool Busy() {return false;}; 
-	bool SupportsDeviceDetection() { return false; };
-
-protected:
-	CTDriver driver_;
-private:
-	//Properties
-	int onPort(MM::PropertyBase* pProp, MM::ActionType eAct);
-	int tx_(std::string cmd);
-	int rx_(std::string& response);
-	const char* port_;
-};
+#include "CTBase.h" //Since CTBase is a template class we have to define everything in a header
 
 class CTTunableFilter: public CTBase<CTTunableFilter> {
 	//Uses the multiple channels of the RF driver to make a tunable filter that can set it center wavelenght and it bandwidth (by spreading the frequencies of the various channels)

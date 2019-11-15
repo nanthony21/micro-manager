@@ -11,7 +11,7 @@ CTTunableFilter::CTTunableFilter():
 {}
 
 int CTTunableFilter::Initialize() {
-	int ret = CTBase::Initialize();
+	int ret = CTBase<CTTunableFilter>::Initialize();
 	BREAKERR
 
 	CPropertyAction* pAct = new CPropertyAction(this, &CTTunableFilter::onFrequency);
@@ -33,12 +33,12 @@ int CTTunableFilter::Initialize() {
 int CTTunableFilter::onFrequency(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	BEFOREGET {
 		double freq;
-		driver_.wavelengthToFreq(this->wv_, freq);
+		driver_->wavelengthToFreq(this->wv_, freq);
 		pProp->Set(freq);
 	} else AFTERSET {
 		double freq;
 		pProp->Get(freq);
-		driver_.setFrequencyMhz(0, freq);
+		driver_->setFrequencyMhz(0, freq);
 	}
 	return DEVICE_OK;
 }
@@ -50,7 +50,7 @@ int CTTunableFilter::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) 
 		double wavelength;
 		double freq;
 		pProp->Get(wavelength);
-		driver_.wavelengthToFreq(wavelength, freq);
+		driver_->wavelengthToFreq(wavelength, freq);
 		this->SetProperty("Frequency (MHz)", std::to_string((long double)freq).c_str());
 	}
 	return DEVICE_OK;
@@ -91,8 +91,8 @@ int CTTunableFilter::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) 
 }*/
 
 int CTTunableFilter::updateWvs() {
-	for (int i=0; i<driver_.numChannels(); i++) {
-		int ret = driver_.getWavelengthNm(i, wvs_[i]);
+	for (int i=0; i<driver_->numChannels(); i++) {
+		int ret = driver_->getWavelengthNm(i, wvs_[i]);
 		BREAKERR
 	}
 	return DEVICE_OK;
