@@ -66,6 +66,9 @@ public:
 	int getTemperature(std::string sensorType, double& temp);
 	int getBoardInfo(std::string& info);
 	int getTuningCoeff(std::string& coeffs);
+	//Calculators
+	int freqToWavelength(double freq, double& wavelength);
+	int wavelengthToFreq(double wavelength, double& freq);
 private:
 	int getChannelStr(uint8_t chan, std::string& str, bool allowWildcard);
 	int setFreq(uint8_t chan, std::string freqStr);
@@ -107,9 +110,10 @@ public:
 private:
 	//Properties
 	int onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct);
-	int onBandwidth(MM::PropertyBase* pProp, MM::ActionType eAct);
+	//int onBandwidth(MM::PropertyBase* pProp, MM::ActionType eAct);
 	void setWavelength(double wv);
-	void setBandwidth(double bw);
+	//void setBandwidth(double bw);
+	int onFrequency(MM::PropertyBase* pProp, MM::ActionType eAct);
 	int updateWvs();
 	double wv_;
 	double wvs_[8]; //all 8 may not be used.

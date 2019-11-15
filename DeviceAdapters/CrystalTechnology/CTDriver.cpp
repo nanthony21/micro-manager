@@ -18,10 +18,11 @@ CTDriver::CTDriver(std::function<int(std::string)> serialSend, std::function<std
 			break; //This is likely what will happen when we reach the end of the response.
 		}
 		if (response.compare("Channel") == 0) {
-			i++
+			i++;
 		} else {
-			break; //This is not expected to ever  happen.
+			break; //This is not expected to ever happen.
 		}
+	}
 	this->numChan_ = i;
 }
 
@@ -101,7 +102,7 @@ int CTDriver::getPhase(uint8_t chan, double& phaseDegrees) {
 	BREAK_ERR
 	//response is in form "Channel {x} @ {phaseDegrees}
 	response = response.substr(12); //get rid of the prefix
-	phaseDegrees = strtod(response); //0 could indicate an actual 0 or an error, oh well
+	phaseDegrees = strtod(response.c_str(), NULL); //0 could indicate an actual 0 or an error, oh well
 	return CTDriver::OK;
 }
 
@@ -117,7 +118,7 @@ int CTDriver::getAmplitude(uint8_t chan, unsigned int& asf) {
 	BREAK_ERR
 	//response is in form "Channel {x} @ {asf}
 	response = response.substr(12); //get rid of the prefix
-	asf = atoi(response);
+	asf = atoi(response.c_str());
 	return CTDriver::OK;
 }
 
@@ -133,9 +134,9 @@ int CTDriver::getFrequencyMhz(uint8_t chan, double& freq) {
 	BREAK_ERR
 	//response is in form "Channel {x} profile {x} frequency {freq scientific notation}Hz (Ftw {xxxxxx variable length})"
 	response = response.substr(30); //remove prefix
-	site_t pos = response.find("Hz");
+	size_t pos = response.find("Hz");
 	response = response.substr(0, pos); //remove suffix
-	freq = strtod(response); //0 could be an error or actual value.
+	freq = strtod(response.c_str(), NULL); //0 could be an error or actual value.
 	return CTDriver::OK;
 }
 
@@ -143,21 +144,10 @@ int CTDriver::getWavelengthNm(uint8_t chan, double& wv) {
 	double freq;
 	int ret = this->getFrequencyMhz(chan, freq);
 	BREAK_ERR
-	std::string chanStr;
-	int ret = this->getChannelStr(chan, chanStr, false);
+	
+	ret = this->freqToWavelength(freq, wv);
 	BREAK_ERR
-	std::string cmd = "calibration wave " + std::to_string((long double) freq);
-	ret = this->tx_(cmd);
-	BREAK_ERR
-	std::string response;
-	ret = this->rx_(response);
-	BREAK_ERR
-	//Response is in the form "Wavelength {scientific notation number} nm" TODO parse the response and set Wavelength
-	response = response.substr(11); //Get rid of "Wavelength " prefix
-	response = response.substr(0, response.length()-3); //Get rid of " nm" suffix
-	double wavelength = strtod(response.c_str());
-	if (wavelength == 0.0) { return DEVICE_ERR; } //Conversion failed
-	else { wv = wavelength; }
+
 	return CTDriver::OK;
 }
 
@@ -169,6 +159,7 @@ int CTDriver::getTemperature(std::string sensorType, double& temp) {
 	std::string cmd = "temperature read " + sensorType;
 	int ret = this->tx_(cmd);
 	BREAK_ERR
+	std::string response;
 	ret = this->rx_(response);
 	BREAK_ERR
 	size_t pos = response.find(" "); //find the first space
@@ -176,7 +167,7 @@ int CTDriver::getTemperature(std::string sensorType, double& temp) {
 	pos = response.find(" "); //find the second space
 	response.erase(0, pos);
 	pos = response.find(" "); //find the third space
-	double t = strtod(response.substr(pos);
+	double t = strtod(response.substr(pos).c_str(), NULL);
 	if (t==0.0) {
 		return CTDriver::ERR;
 	} else {
@@ -208,5 +199,38 @@ int CTDriver::getTuningCoeff(std::string& coeffs) {
 	BREAK_ERR
 	ret = this->rx_(coeffs);
 	BREAK_ERR
+	return CTDriver::OK;
+}
+
+int CTDriver::freqToWavelength(double freq, double& wavelength) {
+	std::string cmd = "calibration wave " + std::to_string((long double) freq);
+	int ret = this->tx_(cmd);
+	BREAK_ERR
+	std::string response;
+	ret = this->rx_(response);
+	BREAK_ERR
+	//Response is in the form "Wavelength {scientific notation number} nm" TODO parse the response and set Wavelength
+	response = response.substr(11); //Get rid of "Wavelength " prefix
+	response = response.substr(0, response.length()-3); //Get rid of " nm" suffix
+	double wv = strtod(response.c_str(), NULL);
+	if (wv == 0.0) { return CTDriver::ERR; } //Conversion failed
+	wavelength = wv;
+	return CTDriver::OK;
+}
+
+int CTDriver::wavelengthToFreq(double wavelength, double& freq) {
+	std::string cmd = "calibration tune " + std::to_string((long double) wavelength);
+	int ret = this->tx_(cmd);
+	BREAK_ERR
+	std::string response;
+	ret = this->rx_(response);
+	BREAK_ERR
+	//Response is in the form "Frequency {scientific notation number}Hz (FTW {ftw})" TODO parse the response and set Wavelength
+	response = response.substr(response.find(" ")); //Get rid of "Frequency " prefix
+	response = response.substr(0, response.find(" ")); //Get rid of " (Ftw {XX})" suffix
+	response = response.substr(0, response.length()-2); //Get rid of "Hz" suffix
+	double wv = strtod(response.c_str(), NULL);
+	if (wv == 0.0) { return CTDriver::ERR; } //Conversion failed
+	wavelength = wv;
 	return CTDriver::OK;
 }
