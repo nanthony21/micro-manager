@@ -79,7 +79,7 @@ private:
 
 #include "CTBase.h" //Since CTBase is a template class we have to define everything in a header
 
-class CTTunableFilter: public CTBase<CTTunableFilter> {
+class CTTunableFilter: public CTBase<CShutterBase<CTTunableFilter>, CTTunableFilter>  {
 	//Uses the multiple channels of the RF driver to make a tunable filter that can set it center wavelenght and it bandwidth (by spreading the frequencies of the various channels)
 public:
 	CTTunableFilter();
@@ -92,6 +92,9 @@ private:
 	void setWavelength(double wv);
 	//void setBandwidth(double bw);
 	int onFrequency(MM::PropertyBase* pProp, MM::ActionType eAct);
+	//ShutterAPI
+    int SetOpen(bool open = true);
+	int GetOpen(bool& open);
 	int updateWvs();
 	double wv_;
 	double wvs_[8]; //all 8 may not be used.

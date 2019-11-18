@@ -11,7 +11,7 @@ CTTunableFilter::CTTunableFilter():
 {}
 
 int CTTunableFilter::Initialize() {
-	int ret = CTBase<CTTunableFilter>::Initialize();
+	int ret = CTBase::Initialize();
 	BREAKERR
 
 	CPropertyAction* pAct = new CPropertyAction(this, &CTTunableFilter::onFrequency);

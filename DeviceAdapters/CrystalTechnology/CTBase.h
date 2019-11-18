@@ -4,8 +4,8 @@
 #define BEFOREGET if (eAct == MM::BeforeGet)
 #define AFTERSET if (eAct == MM::AfterSet)
 
-template <class T>
-class CTBase: public CGenericBase<T> {
+template <class T, class U>
+class CTBase: public T {
 	//Serves as an abstract base class for micromanager device adapters using the CTDriver class.
 public:
 	CTBase();
@@ -28,22 +28,22 @@ private:
 };
 
 
-template <class T>
-CTBase<T>::CTBase():
+template <class T, class U>
+CTBase<T, U>::CTBase():
 	port_("Undefined"),
 	driver_(NULL)
 { 
-	CPropertyAction* pAct = new CPropertyAction((T*)this, &CTBase::onPort); //This casting to T is needed to prevent errors.
+	CPropertyAction* pAct = new CPropertyAction((U*)this, &CTBase::onPort); //This casting to T is needed to prevent errors.
 	this->CreateStringProperty(MM::g_Keyword_Port, "Unkn", false, pAct, true);
 }
 
-template <class T>
-CTBase<T>::~CTBase() {
+template <class T, class U>
+CTBase<T, U>::~CTBase() {
 	delete this->driver_;
 }
 
-template <class T>
-int CTBase<T>::Initialize() {
+template <class T, class U>
+int CTBase<T, U>::Initialize() {
 	{
 		using namespace std::placeholders;
 		this->driver_ = new CTDriver(std::bind(&CTBase::tx_, this, _1), std::bind(&CTBase::rx_, this, _1));
@@ -51,8 +51,8 @@ int CTBase<T>::Initialize() {
 	return DEVICE_OK;
 }
 
-template <class T>
-int CTBase<T>::onPort(MM::PropertyBase* pProp, MM::ActionType eAct) {
+template <class T, class U>
+int CTBase<T, U>::onPort(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	BEFOREGET {
 		int ret = pProp->Set(this->port_);
 		BREAK_MM_ERR
@@ -65,18 +65,18 @@ int CTBase<T>::onPort(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	return DEVICE_OK;
 }
 
-template <class T>
-int CTBase<T>::Shutdown() { return DEVICE_OK;}
+template <class T, class U>
+int CTBase<T, U>::Shutdown() { return DEVICE_OK;}
 
-template <class T>
-int CTBase<T>::tx_(std::string cmd) {
+template <class T, class U>
+int CTBase<T, U>::tx_(std::string cmd) {
 	int ret = this->SendSerialCommand(port_, cmd.c_str(), "\r");
 	BREAK_MM_ERR
 	return CTDriver::OK;
 }
 
-template <class T>
-int CTBase<T>::rx_(std::string& response) {
+template <class T, class U>
+int CTBase<T, U>::rx_(std::string& response) {
 	int ret = this->GetSerialAnswer(port_, "\r", response);
 	BREAK_MM_ERR
 	return CTDriver::OK;
