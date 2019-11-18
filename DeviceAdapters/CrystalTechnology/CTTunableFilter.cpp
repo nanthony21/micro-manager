@@ -7,7 +7,8 @@
 CTTunableFilter::CTTunableFilter():
 	CTBase(),
 	wv_(0),
-	bw_(0)
+	bw_(0),
+	asf_(0)
 {}
 
 int CTTunableFilter::Initialize() {
@@ -57,6 +58,34 @@ int CTTunableFilter::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) 
 	return DEVICE_OK;
 }
 
+int CTTunableFilter::onAmplitude(MM::PropertyBase* pProp, MM::ActionType eAct) {
+	BEFOREGET {
+		pProp->Set((long) this->asf_);
+	} else AFTERSET {
+		long amp;
+		pProp->Get(amp);
+		this->asf_ = amp;
+		if (this->shutterOpen_) {
+			int ret = driver_->setAmplitude(0, this->asf_);
+			BREAKERR
+		}
+	}
+	return DEVICE_OK;
+}
+
+int CTTunableFilter::SetOpen(bool open) {
+	this->shutterOpen_ = open;
+	unsigned int amp = open ? this->asf_ : 0;
+	int ret = driver_->setAmplitude(0, amp);
+	BREAKERR
+	return DEVICE_OK;
+}
+
+int CTTunableFilter::GetOpen(bool& open) {
+	open = this->shutterOpen_;
+	return DEVICE_OK;
+}
+
 //Amplitude
 
 /*int CTTunableFilter::onBandwidth(MM::PropertyBase* pProp, MM::ActionType eAct) {
@@ -89,7 +118,7 @@ int CTTunableFilter::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) 
 		driver_.setWavelengthNm(i, newWv);
 	}
 	this->bw_ = bw; //todo
-}*/
+}
 
 int CTTunableFilter::updateWvs() {
 	for (int i=0; i<driver_->numChannels(); i++) {
@@ -97,4 +126,4 @@ int CTTunableFilter::updateWvs() {
 		BREAKERR
 	}
 	return DEVICE_OK;
-}
+}*/

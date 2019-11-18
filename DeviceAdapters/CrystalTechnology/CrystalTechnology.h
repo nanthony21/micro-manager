@@ -37,6 +37,7 @@
 
 // Device Names
 const char* const g_ControllerName = "AOTF Controller";
+const char* const g_TFName = "Tunable Filter";
 
 
 class CTDriver {
@@ -84,7 +85,7 @@ class CTTunableFilter: public CTBase<CShutterBase<CTTunableFilter>, CTTunableFil
 public:
 	CTTunableFilter();
 	int Initialize();
-	void GetName(char* pName) const {strcpy(pName, g_ControllerName);};
+	void GetName(char* pName) const {strcpy(pName, g_TFName);};
 private:
 	//Properties
 	int onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct);
@@ -92,13 +93,17 @@ private:
 	void setWavelength(double wv);
 	//void setBandwidth(double bw);
 	int onFrequency(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int onAmplitude(MM::PropertyBase* pProp, MM::ActionType eAct);
 	//ShutterAPI
     int SetOpen(bool open = true);
 	int GetOpen(bool& open);
+	int Fire(double deltaT) { deltaT; return DEVICE_UNSUPPORTED_COMMAND; };
 	int updateWvs();
 	double wv_;
+	unsigned int asf_;
 	double wvs_[8]; //all 8 may not be used.
 	double bw_;
+	bool shutterOpen_;
 };
 
 

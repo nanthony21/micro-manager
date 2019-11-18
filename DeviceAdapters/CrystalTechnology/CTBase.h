@@ -54,12 +54,10 @@ int CTBase<T, U>::Initialize() {
 template <class T, class U>
 int CTBase<T, U>::onPort(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	BEFOREGET {
-		int ret = pProp->Set(this->port_);
-		BREAK_MM_ERR
+		pProp->Set(this->port_);
 	} else AFTERSET {
 		std::string str;
-		int ret = pProp->Get(str);
-		BREAK_MM_ERR
+		pProp->Get(str);
 		this->port_ = str.c_str();
 	}
 	return DEVICE_OK;

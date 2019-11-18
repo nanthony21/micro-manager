@@ -38,7 +38,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 MODULE_API void InitializeModuleData()
 {
-	RegisterDevice(g_ControllerName, MM::GenericDevice, g_ControllerName);
+	RegisterDevice(g_TFName, MM::ShutterDevice, g_TFName);
 }
 
 MODULE_API void DeleteDevice(MM::Device* pDevice)
@@ -51,7 +51,7 @@ MODULE_API MM::Device* CreateDevice(const char* deviceName)
 	if (deviceName == 0) {
 	return 0;
 	}
-	else if (strcmp(deviceName, g_ControllerName) == 0) {
+	else if (strcmp(deviceName, g_TFName) == 0) {
 		CTTunableFilter* p = new CTTunableFilter();
 		return p;
 	}
