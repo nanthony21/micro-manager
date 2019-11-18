@@ -31,6 +31,7 @@
 #pragma once
 
 #include "../../MMDevice/DeviceBase.h"
+#include "CyAPI.h"
 #include <stdint.h>
 #include <functional>
 
@@ -76,6 +77,19 @@ private:
 	std::function<int(std::string)> tx_; //A function that sends the string over serial and terminates it with \r
 	std::function<int(std::string&)> rx_; //A function that reads a \r terminated line from serial 
 	uint8_t numChan_; //The number of channels that the device has.
+};
+
+
+class CTDriverCyAPI: public CTDriver {
+	//This class implements all functionality without any reliance on micromanager specific stuff. It can be wrapped into a device adapter.
+	//Not all possible functionality is implemented here. It should be enough for many applications though.
+public:
+	CTDriverCyAPI();
+private:
+	std::vector<int> handles;
+	int tx(std::string cmd);
+	int rx(std::string& response);
+	CCyUSBDevice* usbDev;
 };
 
 #include "CTBase.h" //Since CTBase is a template class we have to define everything in a header

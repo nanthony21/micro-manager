@@ -234,3 +234,32 @@ int CTDriver::wavelengthToFreq(double wavelength, double& freq) {
 	freq = f;
 	return CTDriver::OK;
 }
+
+CTDriverCyAPI::CTDriverCyAPI():
+	CTDriver(std::bind(&CTDriverCyAPI::tx, this, std::placeholders::_1), std::bind(&CTDriverCyAPI::rx, this, std::placeholders::_1)),
+	usbDev(NULL)
+{
+	this->usbDev = new CCyUSBDevice();
+	int devices = this->usbDev->DeviceCount();
+
+	for (int i=0; i<devices; i++) {
+		if (this->usbDev->Open(i)) {   // Open automatically  calls Close() if necessary
+			if (this->usbDev->VendorID == 5831) { //Crystal technologies "AOTF Utilities Release Notes" states that this is the VID for their AOTF controllers
+				int pid = this->usbDev->ProductID;//PIDs (old, new): OctalChannel (1, 17), QuadChannel (3, 19), SingleChannel (2, 18)
+				if ((pid==1)||(pid==2)||(pid==3)||(pid==17)||(pid==18)||(pid==19)) {
+					this->handles.push_back(i);
+				}
+			}
+		}
+	}
+}
+
+int CTDriverCyAPI::tx(std::string cmd) {
+	CCyControlEndPoint* ep = this->usbDev->ControlEndPt;
+	ep->
+	return 0;
+}
+
+int CTDriverCyAPI::rx(std::string& response) {
+	return 0;
+}
