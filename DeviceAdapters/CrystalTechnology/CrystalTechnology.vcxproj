@@ -150,7 +150,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CrystalTechnologyModule.cpp" />
-    <ClCompile Include="CTBase.cpp" />
     <ClCompile Include="CTDriver.cpp" />
     <ClCompile Include="CTTunableFilter.cpp" />
   </ItemGroup>

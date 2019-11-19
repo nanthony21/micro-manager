@@ -21,9 +21,6 @@
     <ClCompile Include="CTDriver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CTBase.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="CTTunableFilter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
