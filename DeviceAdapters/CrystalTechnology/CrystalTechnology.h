@@ -34,6 +34,7 @@
 #include "CyAPI.h"
 #include <stdint.h>
 #include <functional>
+#include <map>
 
 
 // Device Names
@@ -49,6 +50,8 @@ public:
 	static const int INVALID_VALUE = 3;
 	static const int ERR = 1;
 	static const int OK = 0;
+
+	static const enum DriverType { SingleType, QuadType, OctalType };
 
 	CTDriver(std::function<int(std::string)> serialSend, std::function<int(std::string&)> serialReceive);
 
@@ -81,10 +84,10 @@ private:
 
 
 class CTDriverCyAPI: public CTDriver {
-	//This class implements all functionality without any reliance on micromanager specific stuff. It can be wrapped into a device adapter.
-	//Not all possible functionality is implemented here. It should be enough for many applications though.
+	//This class implements all functionality without of CTDriver using the Cypress CyAPI for USB communication. CyAPI can be statically linked which is nice.
 public:
-	CTDriverCyAPI();
+	CTDriverCyAPI(uint8_t handle);
+	static std::map<int, CTDriver::DriverType> getConnectedDevices();
 private:
 	std::vector<int> handles;
 	int tx(std::string cmd);
