@@ -18,7 +18,7 @@ public:
 	bool SupportsDeviceDetection() { return false; };
 
 protected:
-	CTDriver* driver_;
+	CTDriverCyAPI* driver_;
 private:
 	//Properties
 	int onPort(MM::PropertyBase* pProp, MM::ActionType eAct);
@@ -39,14 +39,18 @@ CTBase<T, U>::CTBase():
 
 template <class T, class U>
 CTBase<T, U>::~CTBase() {
-	delete this->driver_;
+	delete this->driver_; //Not sure if this is necessary
 }
 
 template <class T, class U>
 int CTBase<T, U>::Initialize() {
 	{
 		using namespace std::placeholders;
-		this->driver_ = new CTDriver(std::bind(&CTBase::tx_, this, _1), std::bind(&CTBase::rx_, this, _1));
+		try {
+			this->driver_ = new CTDriverCyAPI(this->devSerialNumber);
+		} catch {
+			return DEVICE_NOT_CONNECTED;
+		}
 	}
 	return DEVICE_OK;
 }
