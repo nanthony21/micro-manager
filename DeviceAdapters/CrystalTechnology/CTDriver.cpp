@@ -256,10 +256,23 @@ CTDriverCyAPI::CTDriverCyAPI():
 
 int CTDriverCyAPI::tx(std::string cmd) {
 	CCyControlEndPoint* ep = this->usbDev->ControlEndPt;
-	ep->
-	return 0;
+	cmd.append("\r");
+	LONG length = cmd.length();
+	if (ep->Write((PUCHAR) cmd.c_str(), length)) {//Blocking synchronous transfer of data
+		return CTDriver::OK;
+	} else {
+		return CTDriver::ERR;
+	}
 }
 
 int CTDriverCyAPI::rx(std::string& response) {
-	return 0;
+	CCyControlEndPoint* ep = this->usbDev->ControlEndPt;
+	unsigned char buf[1024];
+	LONG numRead;
+	if (ep->Read(buf, numRead)) {
+		response = std::string((char*) buf);
+		return CTDriver::OK;
+	} else {
+		return CTDriver::ERR;
+	}
 }
