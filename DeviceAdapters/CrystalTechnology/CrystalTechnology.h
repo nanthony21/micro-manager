@@ -93,6 +93,7 @@ private:
 	int tx(std::string cmd);
 	int rx(std::string& response);
 	CCyUSBDevice* usbDev;
+	static GUID usbDriverGuid; //This is the GUID found in the `Strings` section of Crystal Technologies usb driver .inf file. If this isn't set in the CCyUSBDevice constructor it will not find any devices.
 };
 
 #include "CTBase.h" //Since CTBase is a template class we have to define everything in a header

@@ -34,11 +34,15 @@ CTBase<T, U>::CTBase():
 	CPropertyAction* pAct = new CPropertyAction((U*)this, &CTBase::onSelDev); //This casting to T is needed to prevent errors.
 	this->CreateStringProperty("Serial No.", "Unkn", false, pAct, true);
 	std::map<std::string, CTDriver::DriverType> devMap = CTDriverCyAPI::getConnectedDevices();
-	std::map<std::string, CTDriver::DriverType>::iterator it;
-	for ( it=devMap.begin(); it!=devMap.end(); it++) {
-		std::string devDescrip;
-		std::string serialNum = it->first;
-		this->AddAllowedValue("Serial No.", serialNum.c_str());
+	if (devMap.size()==0) {
+		this->AddAllowedValue("Serial No.", "No Devices Found");
+	} else {
+		std::map<std::string, CTDriver::DriverType>::iterator it;
+		for ( it=devMap.begin(); it!=devMap.end(); it++) {
+			std::string devDescrip;
+			std::string serialNum = it->first;
+			this->AddAllowedValue("Serial No.", serialNum.c_str());
+		}
 	}
 }
 
