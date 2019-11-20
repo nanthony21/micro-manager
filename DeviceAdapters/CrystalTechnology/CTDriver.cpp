@@ -235,15 +235,20 @@ int CTDriver::wavelengthToFreq(double wavelength, double& freq) {
 	return CTDriver::OK;
 }
 
-CTDriverCyAPI::CTDriverCyAPI(uint8_t handle):
+CTDriverCyAPI::CTDriverCyAPI(std::string deviceSerial):
 	CTDriver(std::bind(&CTDriverCyAPI::tx, this, std::placeholders::_1), std::bind(&CTDriverCyAPI::rx, this, std::placeholders::_1)),
 	usbDev(NULL)
 {
 	this->usbDev = new CCyUSBDevice();
-	bool success = this->usbDev->Open(handle);
-	if (!success) {
-		int a = 1; //IDK what to do here
+	int devices = this->usbDev->DeviceCount();
+	for (int i=0; i<devices; i++) {
+		if (this->usbDev->Open(i)) {   // Open automatically  calls Close() when a new handle is opened.
+			if (this->usbDev->SerialNumber == deviceSerial) { //We found the matching device.
+				return;
+			}
+		}
 	}
+	throw "Could not find a CyAPI usb device matching the serial number:" + deviceSerial; //If we got to the end of the list without finding our device then raise an error
 }
 
 int CTDriverCyAPI::tx(std::string cmd) {
@@ -269,20 +274,23 @@ int CTDriverCyAPI::rx(std::string& response) {
 	}
 }
 
-std::map<int, CTDriver::DriverType> CTDriverCyAPI::getConnectedDevices() {
+std::map<std::string, CTDriver::DriverType> CTDriverCyAPI::getConnectedDevices() {
+	//Returns a map of all found devices that match the vID of crystal technologies and the pID of an AODS RF driver. Map pairs are device serial number, device type
 	CCyUSBDevice* usbDev = new CCyUSBDevice();
 	int devices = usbDev->DeviceCount();
-	std::map<int, CTDriver::DriverType> m = std::map<int, CTDriver::DriverType>();
+	std::map<std::string, CTDriver::DriverType> m = std::map<std::string, CTDriver::DriverType>();
 	for (int i=0; i<devices; i++) {
 		if (usbDev->Open(i)) {   // Open automatically  calls Close() if necessary
 			if (usbDev->VendorID == 5831) { //Crystal technologies "AOTF Utilities Release Notes" states that this is the VID for their AOTF controllers
+				std::wstring wstr = std::wstring(usbDev->SerialNumber);
+				std::string serialNum = std::string(wstr.begin(), wstr.end()); // This is a dangerous conversion from wstring to string which could totally mangle things. However we want to use this number in string form later so idk what to do about it.
 				int pid = usbDev->ProductID;//PIDs (old, new): OctalChannel (1, 17), QuadChannel (3, 19), SingleChannel (2, 18)
 				if ((pid==1)||(pid==17)) {
-					m[i] = CTDriver::OctalType;
+					m[serialNum] = CTDriver::OctalType;
 				} else if ((pid==2)||(pid==18)) {
-					m[i] = CTDriver::SingleType;
+					m[serialNum] = CTDriver::SingleType;
 				} else if ((pid==3)||(pid==19)) {
-					m[i] = CTDriver::QuadType;
+					m[serialNum] = CTDriver::QuadType;
 				}
 			}
 		}

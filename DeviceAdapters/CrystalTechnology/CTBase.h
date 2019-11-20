@@ -21,10 +21,8 @@ protected:
 	CTDriverCyAPI* driver_;
 private:
 	//Properties
-	int onPort(MM::PropertyBase* pProp, MM::ActionType eAct);
-	int tx_(std::string cmd);
-	int rx_(std::string& response);
-	const char* port_;
+	int onSelDev(MM::PropertyBase* pProp, MM::ActionType eAct);
+	const char* devSerialNumber;
 };
 
 
@@ -33,8 +31,15 @@ CTBase<T, U>::CTBase():
 	port_("Undefined"),
 	driver_(NULL)
 { 
-	CPropertyAction* pAct = new CPropertyAction((U*)this, &CTBase::onPort); //This casting to T is needed to prevent errors.
-	this->CreateStringProperty(MM::g_Keyword_Port, "Unkn", false, pAct, true);
+	CPropertyAction* pAct = new CPropertyAction((U*)this, &CTBase::onSelDev); //This casting to T is needed to prevent errors.
+	this->CreateStringProperty("Serial No.", "Unkn", false, pAct, true);
+	std::map<std::string, CTDriver::DriverType> devMap = CTDriverCyAPI::getConnectedDevices();
+	for ( std::pair<std::string, CTDriver::DriverType> pair : devMap) {
+		std::string devDescrip;
+		std::string serialNum = pair.first;
+		CTDriver::DriverType dType = pair.second;
+		this->AddAllowedValue("Serial No.", serialNum);
+	}
 }
 
 template <class T, class U>
@@ -56,33 +61,19 @@ int CTBase<T, U>::Initialize() {
 }
 
 template <class T, class U>
-int CTBase<T, U>::onPort(MM::PropertyBase* pProp, MM::ActionType eAct) {
+int CTBase<T, U>::onSelDev(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	BEFOREGET {
-		pProp->Set(this->port_);
+		pProp->Set(this->devSerialNumber);
 	} else AFTERSET {
 		std::string str;
 		pProp->Get(str);
-		this->port_ = str.c_str();
+		this->devSerialNumber = str.c_str();
 	}
 	return DEVICE_OK;
 }
 
 template <class T, class U>
 int CTBase<T, U>::Shutdown() { return DEVICE_OK;}
-
-template <class T, class U>
-int CTBase<T, U>::tx_(std::string cmd) {
-	int ret = this->SendSerialCommand(port_, cmd.c_str(), "\r");
-	BREAK_MM_ERR
-	return CTDriver::OK;
-}
-
-template <class T, class U>
-int CTBase<T, U>::rx_(std::string& response) {
-	int ret = this->GetSerialAnswer(port_, "\r", response);
-	BREAK_MM_ERR
-	return CTDriver::OK;
-}
 	
 
 
