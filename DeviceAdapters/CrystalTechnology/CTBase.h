@@ -28,17 +28,17 @@ private:
 
 template <class T, class U>
 CTBase<T, U>::CTBase():
-	port_("Undefined"),
+	devSerialNumber("Undefined"),
 	driver_(NULL)
 { 
 	CPropertyAction* pAct = new CPropertyAction((U*)this, &CTBase::onSelDev); //This casting to T is needed to prevent errors.
 	this->CreateStringProperty("Serial No.", "Unkn", false, pAct, true);
 	std::map<std::string, CTDriver::DriverType> devMap = CTDriverCyAPI::getConnectedDevices();
-	for ( std::pair<std::string, CTDriver::DriverType> pair : devMap) {
+	std::map<std::string, CTDriver::DriverType>::iterator it;
+	for ( it=devMap.begin(); it!=devMap.end(); it++) {
 		std::string devDescrip;
-		std::string serialNum = pair.first;
-		CTDriver::DriverType dType = pair.second;
-		this->AddAllowedValue("Serial No.", serialNum);
+		std::string serialNum = it->first;
+		this->AddAllowedValue("Serial No.", serialNum.c_str());
 	}
 }
 
@@ -53,7 +53,7 @@ int CTBase<T, U>::Initialize() {
 		using namespace std::placeholders;
 		try {
 			this->driver_ = new CTDriverCyAPI(this->devSerialNumber);
-		} catch {
+		} catch (...) {
 			return DEVICE_NOT_CONNECTED;
 		}
 	}

@@ -239,11 +239,12 @@ CTDriverCyAPI::CTDriverCyAPI(std::string deviceSerial):
 	CTDriver(std::bind(&CTDriverCyAPI::tx, this, std::placeholders::_1), std::bind(&CTDriverCyAPI::rx, this, std::placeholders::_1)),
 	usbDev(NULL)
 {
+	std::wstring wideDeviceSerial = std::wstring(deviceSerial.begin(), deviceSerial.end()); //We have to convert back up to wstring for the string comparison to work.
 	this->usbDev = new CCyUSBDevice();
 	int devices = this->usbDev->DeviceCount();
 	for (int i=0; i<devices; i++) {
 		if (this->usbDev->Open(i)) {   // Open automatically  calls Close() when a new handle is opened.
-			if (this->usbDev->SerialNumber == deviceSerial) { //We found the matching device.
+			if (this->usbDev->SerialNumber == wideDeviceSerial) { //We found the matching device.
 				return;
 			}
 		}
