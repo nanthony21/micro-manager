@@ -87,7 +87,7 @@ class CTDriverCyAPI: public CTDriver {
 	//This class implements all functionality without of CTDriver using the Cypress CyAPI for USB communication. CyAPI can be statically linked which is nice.
 public:
 	CTDriverCyAPI(std::string serialNumber);
-	static std::map<std::string, CTDriver::DriverType> getConnectedDevices();
+	static std::vector<std::string> getConnectedDevices();
 private:
 	std::vector<int> handles;
 	int tx(std::string cmd);

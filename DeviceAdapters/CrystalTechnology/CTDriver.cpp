@@ -296,27 +296,22 @@ int CTDriverCyAPI::rx(std::string& response) {
 	}
 }
 
-std::map<std::string, CTDriver::DriverType> CTDriverCyAPI::getConnectedDevices() {
+std::vector<std::string> CTDriverCyAPI::getConnectedDevices() {
 	//Returns a map of all found devices that match the vID of crystal technologies and the pID of an AODS RF driver. Map pairs are device serial number, device type
 	CCyUSBDevice* usbDev = new CCyUSBDevice(NULL, CTDriverCyAPI::usbDriverGuid);
 	int devices = usbDev->DeviceCount();
-	std::map<std::string, CTDriver::DriverType> m = std::map<std::string, CTDriver::DriverType>();
+	std::vector<std::string> v = std::vector<std::string>();
 	for (int i=0; i<devices; i++) {
 		if (usbDev->Open(i)) {   // Open automatically  calls Close() if necessary
 			if (usbDev->VendorID == 5831) { //Crystal technologies "AOTF Utilities Release Notes" states that this is the VID for their AOTF controllers
-				std::wstring wstr = std::wstring(usbDev->SerialNumber);
-				std::string serialNum = std::string(wstr.begin(), wstr.end()); // This is a dangerous conversion from wstring to string which could totally mangle things. However we want to use this number in string form later so idk what to do about it.
+				std::string name = usbDev->FriendlyName;
 				int pid = usbDev->ProductID;//PIDs (old, new): OctalChannel (1, 17), QuadChannel (3, 19), SingleChannel (2, 18)
-				if ((pid==1)||(pid==17)) {
-					m[serialNum] = CTDriver::OctalType;
-				} else if ((pid==2)||(pid==18)) {
-					m[serialNum] = CTDriver::SingleType;
-				} else if ((pid==3)||(pid==19)) {
-					m[serialNum] = CTDriver::QuadType;
+				if ((pid==1)||(pid==17)||(pid==2)||(pid==18)||(pid==3)||(pid==19)) {
+					v.push_back(name);
 				}
 			}
 		}
 	}
 	usbDev->Close();
-	return m;
+	return v;
 }
