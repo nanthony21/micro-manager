@@ -121,7 +121,7 @@ private:
 	int updateWvs();
 	double wv_;
 	unsigned int asf_;
-	double wvs_[8]; //all 8 may not be used.
+	double wvs_[8]; //all 8 might not be used.
 	double bw_;
 	bool shutterOpen_;
 };

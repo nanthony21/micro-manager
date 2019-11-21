@@ -14,7 +14,7 @@ int CTDriver::initialize() {
 	int ret = this->tx_("dds freq *");
 	BREAK_ERR
 	std::string response;
-	int i = 0;
+	uint8_t i = 0;
 	while (true) {
 		ret = this->rx_(response);
 		BREAK_ERR
@@ -277,22 +277,20 @@ inline GUID createCrystalTechnologyGUID(/*args*/)
 
 GUID CTDriverCyAPI::usbDriverGuid = createCrystalTechnologyGUID();
 
-CTDriverCyAPI::CTDriverCyAPI(std::string deviceSerial):
+CTDriverCyAPI::CTDriverCyAPI(std::string deviceName):
 	CTDriver(std::bind(&CTDriverCyAPI::tx, this, std::placeholders::_1), std::bind(&CTDriverCyAPI::rx, this, std::placeholders::_1)),
 	usbDev(NULL)
 {
-
-	std::wstring wideDeviceSerial = std::wstring(deviceSerial.begin(), deviceSerial.end()); //We have to convert back up to wstring for the string comparison to work.
 	this->usbDev = new CCyUSBDevice(NULL, CTDriverCyAPI::usbDriverGuid);
 	int devices = this->usbDev->DeviceCount();
-	for (int i=0; i<devices; i++) {
+	for (uint8_t i=0; i<devices; i++) {
 		if (this->usbDev->Open(i)) {   // Open automatically  calls Close() when a new handle is opened.
-			if (this->usbDev->SerialNumber == wideDeviceSerial) { //We found the matching device.
+			if (this->usbDev->FriendlyName == deviceName) { //We found the matching device.
 				return;
 			}
 		}
 	}
-	throw "Could not find a CyAPI usb device matching the serial number:" + deviceSerial; //If we got to the end of the list without finding our device then raise an error
+	throw "Could not find a CyAPI usb device matching the name:" + deviceName; //If we got to the end of the list without finding our device then raise an error
 }
 
 int CTDriverCyAPI::tx(std::string cmd) {

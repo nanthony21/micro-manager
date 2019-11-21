@@ -22,25 +22,25 @@ protected:
 private:
 	//Properties
 	int onSelDev(MM::PropertyBase* pProp, MM::ActionType eAct);
-	const char* devSerialNumber;
+	std::string devName; //This stores the `friendly name` of the USB device through the CyAPI
 };
 
 
 template <class T, class U>
 CTBase<T, U>::CTBase():
-	devSerialNumber("Undefined"),
+	devName("Undefined"),
 	driver_(NULL)
 { 
 	CPropertyAction* pAct = new CPropertyAction((U*)this, &CTBase::onSelDev); //This casting to T is needed to prevent errors.
-	this->CreateStringProperty("Serial No.", "Unkn", false, pAct, true);
+	this->CreateStringProperty("Device", "Unkn", false, pAct, true);
 	std::vector<std::string> devs = CTDriverCyAPI::getConnectedDevices();
 	if (devs.size()==0) {
-		this->AddAllowedValue("Serial No.", "No Devices Found");
+		this->AddAllowedValue("Device", "No Devices Found");
 	} else {
 		std::map<std::string, CTDriver::DriverType>::iterator it;
 		for (std::vector<std::string>::iterator it = devs.begin() ; it != devs.end(); ++it) {
 			std::string devDescrip = *it;
-			this->AddAllowedValue("Serial No.", devDescrip.c_str());
+			this->AddAllowedValue("Device", devDescrip.c_str());
 		}
 	}
 }
@@ -54,12 +54,12 @@ template <class T, class U>
 int CTBase<T, U>::Initialize() {
 	{
 		try {
-			this->driver_ = new CTDriverCyAPI(this->devSerialNumber);
+			this->driver_ = new CTDriverCyAPI(this->devName);
 		} catch (...) {
 			return DEVICE_NOT_CONNECTED;
 		}
-		int ret = this->driver_->initialize)();
-		BREAKERR
+		int ret = this->driver_->initialize();
+		BREAK_MM_ERR
 	}
 	return DEVICE_OK;
 }
@@ -67,11 +67,11 @@ int CTBase<T, U>::Initialize() {
 template <class T, class U>
 int CTBase<T, U>::onSelDev(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	BEFOREGET {
-		pProp->Set(this->devSerialNumber);
+		pProp->Set(this->devName.c_str());
 	} else AFTERSET {
 		std::string str;
 		pProp->Get(str);
-		this->devSerialNumber = str.c_str();
+		this->devName = str;
 	}
 	return DEVICE_OK;
 }
