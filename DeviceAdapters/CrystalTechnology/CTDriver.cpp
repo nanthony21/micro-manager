@@ -294,6 +294,7 @@ CTDriverCyAPI::CTDriverCyAPI(std::string deviceName):
 }
 
 int CTDriverCyAPI::tx(std::string cmd) {
+	//It appears that in order for this to work we need to set the reqCode, index, and value of the endpoint. No idea what these should be though.
 	CCyControlEndPoint* ep = this->usbDev->ControlEndPt;
 	cmd.append("\r");
 	LONG length = cmd.length();
@@ -305,6 +306,7 @@ int CTDriverCyAPI::tx(std::string cmd) {
 }
 
 int CTDriverCyAPI::rx(std::string& response) {
+	//It appears that in order for this to work we need to set the reqCode, index, and value of the endpoint. No idea what these should be though.
 	CCyControlEndPoint* ep = this->usbDev->ControlEndPt;
 	unsigned char buf[1024];
 	LONG numRead;
