@@ -295,10 +295,10 @@ CTDriverCyAPI::CTDriverCyAPI(std::string deviceName):
 
 int CTDriverCyAPI::tx(std::string cmd) {
 	//It appears that in order for this to work we need to set the reqCode, index, and value of the endpoint. No idea what these should be though.
-	CCyControlEndPoint* ep = this->usbDev->ControlEndPt;
+	CCyBulkEndPoint* ep = this->usbDev->BulkInEndPt;
 	cmd.append("\r");
 	LONG length = cmd.length();
-	if (ep->Write((PUCHAR) cmd.c_str(), length)) {//Blocking synchronous transfer of data
+	if (ep->XferData((PUCHAR) cmd.c_str(), length)) {//Blocking synchronous transfer of data
 		return CTDriver::OK;
 	} else {
 		return CTDriver::ERR;
@@ -307,10 +307,10 @@ int CTDriverCyAPI::tx(std::string cmd) {
 
 int CTDriverCyAPI::rx(std::string& response) {
 	//It appears that in order for this to work we need to set the reqCode, index, and value of the endpoint. No idea what these should be though.
-	CCyControlEndPoint* ep = this->usbDev->ControlEndPt;
+	CCyBulkEndPoint* ep = this->usbDev->BulkOutEndPt;
 	unsigned char buf[1024];
 	LONG numRead;
-	if (ep->Read(buf, numRead)) {
+	if (ep->XferData(buf, numRead)) {
 		response = std::string((char*) buf);
 		return CTDriver::OK;
 	} else {
