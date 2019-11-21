@@ -2,16 +2,21 @@
 #define BREAK_ERR if (ret!=CTDriver::OK) { return ret; }
 
 CTDriver::CTDriver(std::function<int(std::string)> serialSend, std::function<int(std::string&)> serialReceive):
-	numChan_(1) //Assume one channel so we atleast have a value here if something goes weird while getting the number of channels in the constructor.
+	numChan_(1), //Assume one channel so we atleast have a value here if something goes weird while getting the number of channels in the constructor.
+	initialized(false)
 {
 	this->tx_ = serialSend;
 	this->rx_ = serialReceive;
+}
 
-	this->tx_("dds freq *");
+int CTDriver::initialize() {
+	int ret = this->tx_("dds freq *");
+	BREAK_ERR
 	std::string response;
 	int i = 0;
 	while (true) {
-		this->rx_(response);
+		ret = this->rx_(response);
+		BREAK_ERR
 		try {
 			response = response.substr(0, 7);
 		} catch (std::out_of_range& oor) {
@@ -24,6 +29,8 @@ CTDriver::CTDriver(std::function<int(std::string)> serialSend, std::function<int
 		}
 	}
 	this->numChan_ = i;
+	this->initialized = true;
+	return CTDriver::OK;
 }
 
 int CTDriver::reset() {

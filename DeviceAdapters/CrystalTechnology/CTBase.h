@@ -53,12 +53,13 @@ CTBase<T, U>::~CTBase() {
 template <class T, class U>
 int CTBase<T, U>::Initialize() {
 	{
-		using namespace std::placeholders;
 		try {
 			this->driver_ = new CTDriverCyAPI(this->devSerialNumber);
 		} catch (...) {
 			return DEVICE_NOT_CONNECTED;
 		}
+		int ret = this->driver_->initialize)();
+		BREAKERR
 	}
 	return DEVICE_OK;
 }

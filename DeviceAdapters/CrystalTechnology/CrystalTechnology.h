@@ -54,7 +54,7 @@ public:
 	static const enum DriverType { SingleType, QuadType, OctalType };
 
 	CTDriver(std::function<int(std::string)> serialSend, std::function<int(std::string&)> serialReceive);
-
+	int initialize();
 	int reset();
 	int numChannels() { return numChan_; };
 	//Setters
@@ -80,6 +80,7 @@ private:
 	std::function<int(std::string)> tx_; //A function that sends the string over serial and terminates it with \r
 	std::function<int(std::string&)> rx_; //A function that reads a \r terminated line from serial 
 	uint8_t numChan_; //The number of channels that the device has.
+	bool initialized;
 };
 
 
