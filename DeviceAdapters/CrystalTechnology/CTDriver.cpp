@@ -1,5 +1,6 @@
 #include "CrystalTechnology.h"
 #define BREAK_ERR if (ret!=CTDriver::OK) { return ret; }
+#define CHECKINIT if (!this->initialized) { return CTDriver::NOT_INITIALIZED; }
 
 CTDriver::CTDriver(std::function<int(std::string)> serialSend, std::function<int(std::string&)> serialReceive):
 	numChan_(1), //Assume one channel so we atleast have a value here if something goes weird while getting the number of channels in the constructor.
@@ -34,22 +35,26 @@ int CTDriver::initialize() {
 }
 
 int CTDriver::reset() {
+	CHECKINIT
 	std::string cmd = "dds reset";
 	return this->tx_(cmd);
 }
 
 int CTDriver::setFrequencyMhz(uint8_t chan, double freq) {
+	CHECKINIT
 	std::string freqStr = std::to_string((long double) freq); //formatted without any weird characters
 	return this->setFreq(chan, freqStr);
 }
 
 int CTDriver::setWavelengthNm(uint8_t chan, double wv) {
+	CHECKINIT
 	std::string freqStr = std::to_string((long double) wv); 
 	freqStr = "#" + freqStr; //add the wavelength command modifier
 	return this->setFreq(chan, freqStr);
 }
 
 int CTDriver::setFreq(uint8_t chan, std::string freqStr) {
+	CHECKINIT
 	std::string chanStr;
 	int ret = this->getChannelStr(chan, chanStr, true);
 	BREAK_ERR
@@ -70,6 +75,7 @@ int CTDriver::getChannelStr(uint8_t chan, std::string& chanStr, bool allowWildca
 }
 
 int CTDriver::setAmplitude(uint8_t chan,  unsigned int asf) {
+	CHECKINIT
 	if (asf > 16383) { return CTDriver::INVALID_VALUE; }
 	std::string chanStr;
 	int ret = this->getChannelStr(chan, chanStr, true);
@@ -79,6 +85,7 @@ int CTDriver::setAmplitude(uint8_t chan,  unsigned int asf) {
 }
 
 int CTDriver::setGain(uint8_t chan,  unsigned int gain) {
+	CHECKINIT
 	if (gain > 31) { return CTDriver::INVALID_VALUE; }
 	std::string chanStr;
 	int ret = this->getChannelStr(chan, chanStr, true);
@@ -88,6 +95,7 @@ int CTDriver::setGain(uint8_t chan,  unsigned int gain) {
 }
 
 int CTDriver::setPhase(uint8_t chan, double phaseDegrees) {
+	CHECKINIT
 	if ((phaseDegrees > 360.0) || (phaseDegrees < 0.0)) { return CTDriver::INVALID_VALUE; }
 	std::string chanStr;
 	int ret = this->getChannelStr(chan, chanStr, true);
@@ -98,6 +106,7 @@ int CTDriver::setPhase(uint8_t chan, double phaseDegrees) {
 }
 
 int CTDriver::getPhase(uint8_t chan, double& phaseDegrees) {
+	CHECKINIT
 	std::string chanStr;
 	int ret = this->getChannelStr(chan, chanStr, false);
 	BREAK_ERR
@@ -114,6 +123,7 @@ int CTDriver::getPhase(uint8_t chan, double& phaseDegrees) {
 }
 
 int CTDriver::getAmplitude(uint8_t chan, unsigned int& asf) {
+	CHECKINIT
 	std::string chanStr;
 	int ret = this->getChannelStr(chan, chanStr, false);
 	BREAK_ERR
@@ -130,6 +140,7 @@ int CTDriver::getAmplitude(uint8_t chan, unsigned int& asf) {
 }
 
 int CTDriver::getFrequencyMhz(uint8_t chan, double& freq) {
+	CHECKINIT
 	std::string chanStr;
 	int ret = this->getChannelStr(chan, chanStr, false);
 	BREAK_ERR
@@ -148,6 +159,7 @@ int CTDriver::getFrequencyMhz(uint8_t chan, double& freq) {
 }
 
 int CTDriver::getWavelengthNm(uint8_t chan, double& wv) {
+	CHECKINIT
 	double freq;
 	int ret = this->getFrequencyMhz(chan, freq);
 	BREAK_ERR
@@ -159,6 +171,7 @@ int CTDriver::getWavelengthNm(uint8_t chan, double& wv) {
 }
 
 int CTDriver::getTemperature(std::string sensorType, double& temp) {
+	CHECKINIT
 	if ((sensorType.compare("o")!=0) || (sensorType.compare("a")!=0) || (sensorType.compare("c")!=0)) {
 		return CTDriver::INVALID_VALUE;//sensor type must be "o"scillator, "a"mplifier, "c"rystal
 	}
@@ -184,6 +197,7 @@ int CTDriver::getTemperature(std::string sensorType, double& temp) {
 }
 
 int CTDriver::getBoardInfo(std::string& info) {
+	CHECKINIT
 	std::string cmd = "boardid partnumber";
 	int ret = this->tx_(cmd);
 	BREAK_ERR
@@ -202,6 +216,7 @@ int CTDriver::getBoardInfo(std::string& info) {
 }
 
 int CTDriver::getTuningCoeff(std::string& coeffs) {
+	CHECKINIT
 	int ret = this->tx_("calibration tuning *");
 	BREAK_ERR
 	ret = this->rx_(coeffs);

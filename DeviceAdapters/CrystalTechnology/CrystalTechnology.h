@@ -46,6 +46,7 @@ class CTDriver {
 	//This class implements all functionality without any reliance on micromanager specific stuff. It can be wrapped into a device adapter.
 	//Not all possible functionality is implemented here. It should be enough for many applications though.
 public:
+	static const int NOT_INITIALIZED = 4;
 	static const int INVALID_CHANNEL = 2;
 	static const int INVALID_VALUE = 3;
 	static const int ERR = 1;
