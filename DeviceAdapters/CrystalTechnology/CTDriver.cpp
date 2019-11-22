@@ -257,31 +257,11 @@ int CTDriver::wavelengthToFreq(double wavelength, double& freq) {
 	return CTDriver::OK;
 }
 
-inline GUID createCrystalTechnologyGUID(/*args*/)
-{
-     GUID obj;
-     // assign args to obj;
-     obj.Data1 = 0xC8A3E74A;
-     obj.Data2 = 0xA55B;
-	 obj.Data3 = 0x4dea;
-	 obj.Data4[0] = 0xB7;
-	 obj.Data4[1] = 0x6A;
-	 obj.Data4[2] = 0x32;
-	 obj.Data4[3] = 0xF4;
-	 obj.Data4[4] = 0xDC;
-	 obj.Data4[5] = 0x9F;
-	 obj.Data4[6] = 0x55;
-	 obj.Data4[7] = 0x56;
-     return obj;
-}
-
-GUID CTDriverCyAPI::usbDriverGuid = createCrystalTechnologyGUID();
-
 CTDriverCyAPI::CTDriverCyAPI(std::string deviceName):
 	CTDriver(std::bind(&CTDriverCyAPI::tx, this, std::placeholders::_1), std::bind(&CTDriverCyAPI::rx, this, std::placeholders::_1)),
 	usbDev(NULL)
 {
-	this->usbDev = new CCyUSBDevice(NULL, CTDriverCyAPI::usbDriverGuid);
+	this->usbDev = new CCyUSBDevice(NULL, CTusbDriverGuid);
 	int devices = this->usbDev->DeviceCount();
 	for (uint8_t i=0; i<devices; i++) {
 		if (this->usbDev->Open(i)) {   // Open automatically  calls Close() when a new handle is opened.
@@ -306,7 +286,6 @@ int CTDriverCyAPI::tx(std::string cmd) {
 }
 
 int CTDriverCyAPI::rx(std::string& response) {
-	//It appears that in order for this to work we need to set the reqCode, index, and value of the endpoint. No idea what these should be though.
 	CCyBulkEndPoint* ep = this->usbDev->BulkOutEndPt;
 	unsigned char buf[1024];
 	LONG numRead;
