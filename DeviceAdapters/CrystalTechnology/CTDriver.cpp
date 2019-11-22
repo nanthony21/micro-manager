@@ -265,24 +265,28 @@ AOTFLibCTDriver::AOTFLibCTDriver(uint8_t instance):
 	if (tfHandle == NULL) {
 		throw "AOTFLibrary device was not found.";
 	} else {
-		this->aotfHandle = aotfHandle;
+		this->aotfHandle = tfHandle;
 	}
 }
 
 
 int AOTFLibCTDriver::tx(std::string cmd) {
-	bool ret = AotfWrite(this->aotfHandle, cmd.length(), (void*) cmd.c_str());
+	cmd = cmd + "\r";
+	int l = cmd.length();
+	void* buf = (void*) cmd.c_str();
+	bool ret = AotfWrite(this->aotfHandle, l, buf);
 	if (ret) { return CTDriver::OK; }
 	else {return CTDriver::ERR; }
 }
 
 int AOTFLibCTDriver::rx(std::string& out) {
 	char buf[1024];
+	void* pbuf = buf;
 	unsigned int bytesRead;
-	bool ret = AotfRead(this->aotfHandle, 1024, buf, &bytesRead);
+	bool ret = AotfRead(this->aotfHandle, 1024, pbuf, &bytesRead);
 	if (!ret) { return CTDriver::ERR; }
 	else {
-		std::string str(buf);
+		std::string str(buf, bytesRead);
 		out = str;
 		return CTDriver::OK;
 	}

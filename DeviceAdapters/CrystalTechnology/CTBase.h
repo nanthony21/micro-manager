@@ -32,7 +32,7 @@ CTBase<T, U>::CTBase():
 	driver_(NULL)
 { 
 	CPropertyAction* pAct = new CPropertyAction((U*)this, &CTBase::onSelDev); //This casting to T is needed to prevent errors.
-	this->CreateProperty("Device", "0", MM::Integer, false, pAct, true);
+	this->CreateProperty("Device", "None", MM::Integer, false, pAct, true);
 	
 	for (uint8_t i=0; i<8; i++) { //8 was chosen arbitrarily here.
 		try{
@@ -46,7 +46,7 @@ CTBase<T, U>::CTBase():
 
 template <class T, class U>
 CTBase<T, U>::~CTBase() {
-	delete this->driver_; //Not sure if this is necessary
+	//delete this->driver_; //Not sure if this is necessary
 }
 
 template <class T, class U>
@@ -76,7 +76,10 @@ int CTBase<T, U>::onSelDev(MM::PropertyBase* pProp, MM::ActionType eAct) {
 }
 
 template <class T, class U>
-int CTBase<T, U>::Shutdown() { return DEVICE_OK;}
+int CTBase<T, U>::Shutdown() { 
+	delete this->driver_;	
+	return DEVICE_OK;
+}
 	
 
 

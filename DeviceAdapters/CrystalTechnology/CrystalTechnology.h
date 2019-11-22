@@ -87,7 +87,7 @@ private:
 class AOTFLibCTDriver: public CTDriver {
 public:
 	AOTFLibCTDriver(uint8_t instance);
-	~AOTFLibCTDriver() {};
+	~AOTFLibCTDriver() { AotfClose(this->aotfHandle); };
 private:
 	int tx(std::string);
 	int rx(std::string&);
