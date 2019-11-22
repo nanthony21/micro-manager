@@ -85,20 +85,6 @@ private:
 };
 
 
-static const GUID CTusbDriverGuid = { 0xC8A3E74A, 0xA55B, 0x4dea, { 0xB7, 0x6A, 0x32, 0xF4, 0xDC, 0x9F, 0x55, 0x56 } };//This is the GUID found in the `Strings` section of Crystal Technologies usb driver .inf file. If this isn't set in the CCyUSBDevice constructor it will not find any devices.
-
-class CTDriverCyAPI: public CTDriver {
-	//This class implements all functionality without of CTDriver using the Cypress CyAPI for USB communication. CyAPI can be statically linked which is nice.
-public:
-	CTDriverCyAPI(std::string serialNumber);
-	static std::vector<std::string> getConnectedDevices();
-private:
-	std::vector<int> handles;
-	int tx(std::string cmd);
-	int rx(std::string& response);
-	CCyUSBDevice* usbDev;
-};
-
 #include "CTBase.h" //Since CTBase is a template class we have to define everything in a header
 
 class CTTunableFilter: public CTBase<CShutterBase<CTTunableFilter>, CTTunableFilter>  {
