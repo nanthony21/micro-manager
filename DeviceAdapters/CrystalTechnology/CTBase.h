@@ -22,23 +22,23 @@ protected:
 private:
 	//Properties
 	int onSelDev(MM::PropertyBase* pProp, MM::ActionType eAct);
-	std::string devName; //This stores the `friendly name` of the USB device through the CyAPI
+	uint8_t instNum; 
 };
 
 
 template <class T, class U>
 CTBase<T, U>::CTBase():
-	devName("Undefined"),
+	instNum(0),
 	driver_(NULL)
 { 
 	CPropertyAction* pAct = new CPropertyAction((U*)this, &CTBase::onSelDev); //This casting to T is needed to prevent errors.
-	this->CreateStringProperty("Device", "Unkn", false, pAct, true);
+	this->CreateProperty("Device", "0", MM::Integer, false, pAct, true);
 	
 	for (uint8_t i=0; i<8; i++) { //8 was chosen arbitrarily here.
 		try{
-			AOTFLibCTDriver drv(i)
-			this->AddAllowedValue("Device", std::toString((long long) i);
-		} catch () {
+			AOTFLibCTDriver* drv = new AOTFLibCTDriver(i);
+			this->AddAllowedValue("Device", std::to_string((long long) i).c_str());
+		} catch (...) {
 			break;
 		}
 	}
@@ -66,9 +66,11 @@ int CTBase<T, U>::Initialize() {
 template <class T, class U>
 int CTBase<T, U>::onSelDev(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	BEFOREGET {
-		pProp->Set(this->instNum);
+		pProp->Set((long) this->instNum);
 	} else AFTERSET {
-		pProp->Get(this->instNum);
+		long num;
+		pProp->Get(num);
+		this->instNum = num;
 	}
 	return DEVICE_OK;
 }

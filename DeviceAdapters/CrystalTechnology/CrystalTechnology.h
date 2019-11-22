@@ -31,7 +31,7 @@
 #pragma once
 
 #include "../../MMDevice/DeviceBase.h"
-#include "CyAPI.h"
+#include "AotfLibrary.h"
 #include <stdint.h>
 #include <functional>
 #include <map>
