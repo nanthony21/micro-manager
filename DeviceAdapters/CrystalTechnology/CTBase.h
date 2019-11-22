@@ -18,7 +18,7 @@ public:
 	bool SupportsDeviceDetection() { return false; };
 
 protected:
-	CTDriverCyAPI* driver_;
+	CTDriver* driver_;
 private:
 	//Properties
 	int onSelDev(MM::PropertyBase* pProp, MM::ActionType eAct);
@@ -33,14 +33,13 @@ CTBase<T, U>::CTBase():
 { 
 	CPropertyAction* pAct = new CPropertyAction((U*)this, &CTBase::onSelDev); //This casting to T is needed to prevent errors.
 	this->CreateStringProperty("Device", "Unkn", false, pAct, true);
-	std::vector<std::string> devs = CTDriverCyAPI::getConnectedDevices();
-	if (devs.size()==0) {
-		this->AddAllowedValue("Device", "No Devices Found");
-	} else {
-		std::map<std::string, CTDriver::DriverType>::iterator it;
-		for (std::vector<std::string>::iterator it = devs.begin() ; it != devs.end(); ++it) {
-			std::string devDescrip = *it;
-			this->AddAllowedValue("Device", devDescrip.c_str());
+	
+	for (uint8_t i=0; i<8; i++) { //8 was chosen arbitrarily here.
+		try{
+			AOTFLibCTDriver drv(i)
+			this->AddAllowedValue("Device", std::toString((long long) i);
+		} catch () {
+			break;
 		}
 	}
 }
@@ -54,7 +53,7 @@ template <class T, class U>
 int CTBase<T, U>::Initialize() {
 	{
 		try {
-			this->driver_ = new CTDriverCyAPI(this->devName);
+			this->driver_ = new AOTFLibCTDriver(this->instNum);
 		} catch (...) {
 			return DEVICE_NOT_CONNECTED;
 		}
@@ -67,11 +66,9 @@ int CTBase<T, U>::Initialize() {
 template <class T, class U>
 int CTBase<T, U>::onSelDev(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	BEFOREGET {
-		pProp->Set(this->devName.c_str());
+		pProp->Set(this->instNum);
 	} else AFTERSET {
-		std::string str;
-		pProp->Get(str);
-		this->devName = str;
+		pProp->Get(this->instNum);
 	}
 	return DEVICE_OK;
 }

@@ -84,6 +84,15 @@ private:
 	bool initialized;
 };
 
+class AOTFLibCTDriver: public CTDriver {
+public:
+	AOTFLibCTDriver(uint8_t instance);
+	~AOTFLibCTDriver() {};
+private:
+	int tx(std::string);
+	int rx(std::string&);
+	HANDLE aotfHandle;
+};
 
 #include "CTBase.h" //Since CTBase is a template class we have to define everything in a header
 

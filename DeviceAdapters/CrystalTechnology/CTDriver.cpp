@@ -256,3 +256,33 @@ int CTDriver::wavelengthToFreq(double wavelength, double& freq) {
 	freq = f;
 	return CTDriver::OK;
 }
+
+AOTFLibCTDriver::AOTFLibCTDriver(uint8_t instance):
+	CTDriver(std::bind(&AOTFLibCTDriver::tx, this, std::placeholders::_1), std::bind(&AOTFLibCTDriver::rx, this, std::placeholders::_1)),
+	aotfHandle(NULL)
+{
+	HANDLE tfHandle = AotfOpen(instance);
+	if (tfHandle == NULL) {
+		throw "AOTFLibrary device was not found."
+	} else {
+		this->aotfHandle = aotfHandle;
+}
+
+
+int AOTFLibCTDriver::tx(std::string cmd) {
+	bool ret = AotfWrite(this->aotfHandle, cmd.length, cmd.c_str());
+	if (ret) { return CTDriver::OK; }
+	else {return CTDriver::ERR; }
+}
+
+int AOTFLibCTDriver::rx(std::string& out) {
+	char buf[1024];
+	unsigned int bytesRead;
+	bool ret = AotfRead(this->aotfHandle, 1024, buf, bytesRead);
+	if (!ret) { return CTDriver::ERR; }
+	else {
+		std::string str(buf);
+		out = str;
+		return CTDriver::OK;
+	}
+}
