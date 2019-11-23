@@ -272,7 +272,7 @@ AOTFLibCTDriver::AOTFLibCTDriver(uint8_t instance):
 }
 
 AOTFLibCTDriver::~AOTFLibCTDriver() {
-	int ret = AotfClose(this->aotfHandle);
+	int ret = AotfClose(this->aotfHandle); //This is boolean, so should be 1 for success.
 	int a = 1; //just for a debug point
 }
 
@@ -305,6 +305,7 @@ int AOTFLibCTDriver::rx(std::string& out) {
 				std::string str(bigbuf, i);
 				out = str;
 				return CTDriver::SERIAL_TIMEOUT;
+			}
 		}
 		char buf[2];
 		void* pbuf = buf;
