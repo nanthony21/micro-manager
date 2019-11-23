@@ -38,6 +38,7 @@ CTBase<T, U>::CTBase():
 		try{
 			AOTFLibCTDriver* drv = new AOTFLibCTDriver(i);
 			this->AddAllowedValue("Device", std::to_string((long long) i).c_str());
+			delete drv;
 		} catch (...) {
 			break;
 		}
