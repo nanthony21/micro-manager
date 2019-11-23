@@ -299,8 +299,13 @@ int AOTFLibCTDriver::rx(std::string& out) {
 	int i = 0;
 	char bigbuf[1024];
 	MM::MMTime startTime = GetMMTimeNow();
-	while ((GetMMTimeNow() - startTime).getMsec()<1000) { //1 second timeout
-		
+	while (true) {
+		while (!AotfIsReadDataAvailable(this->aotfHandle)) {//Don't try to read unless there's something to read
+			if ((GetMMTimeNow() - startTime).getMsec()>3000) { //3 second timeout
+				std::string str(bigbuf, i);
+				out = str;
+				return CTDriver::SERIAL_TIMEOUT;
+		}
 		char buf[2];
 		void* pbuf = buf;
 		unsigned int bytesRead;
@@ -318,9 +323,6 @@ int AOTFLibCTDriver::rx(std::string& out) {
 			}	
 		} 
 	}
-	std::string str(bigbuf, i);
-	out = str;
-	return CTDriver::ERR; //we timed out
 }
 
 void AOTFLibCTDriver::clearPort() {
