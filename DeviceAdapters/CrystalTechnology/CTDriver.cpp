@@ -11,6 +11,7 @@ CTDriver::CTDriver(std::function<int(std::string)> serialSend, std::function<int
 }
 
 int CTDriver::initialize() {
+	this->clearPort();
 	int ret = this->tx_("dds freq *");
 	BREAK_ERR
 	std::string response;
@@ -18,7 +19,7 @@ int CTDriver::initialize() {
 	while (true) {
 		ret = this->rx_(response);
 		BREAK_ERR
-			if (response.compare("\n")==0) { continue; } //Sometimes it sends a new line for no reason.
+		if (response.compare("\n")==0) { continue; } //Sometimes it sends a new line for no reason.
 		try {
 			response = response.substr(0, 7);
 		} catch (std::out_of_range& oor) {
@@ -299,6 +300,7 @@ int AOTFLibCTDriver::rx(std::string& out) {
 	char bigbuf[1024];
 	MM::MMTime startTime = GetMMTimeNow();
 	while ((GetMMTimeNow() - startTime).getMsec()<1000) { //1 second timeout
+		
 		char buf[2];
 		void* pbuf = buf;
 		unsigned int bytesRead;
@@ -319,4 +321,13 @@ int AOTFLibCTDriver::rx(std::string& out) {
 	std::string str(bigbuf, i);
 	out = str;
 	return CTDriver::ERR; //we timed out
+}
+
+void AOTFLibCTDriver::clearPort() {
+	while (AotfIsReadDataAvailable(this->aotfHandle)) {
+		char buf[1024];
+		void* pbuf = buf;
+		unsigned int bytesRead;
+		AotfRead(this->aotfHandle, 1000, pbuf, &bytesRead);
+	}
 }
