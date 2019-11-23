@@ -56,7 +56,7 @@ public:
 
 	static const enum DriverType { SingleType, QuadType, OctalType };
 
-	CTDriver(std::function<int(std::string)> serialSend, std::function<int(std::string&)> serialReceive);
+	CTDriver();
 	virtual ~CTDriver() {};
 	int initialize();
 	int reset();
@@ -81,8 +81,8 @@ public:
 private:
 	int getChannelStr(uint8_t chan, std::string& str, bool allowWildcard);
 	int setFreq(uint8_t chan, std::string freqStr);
-	std::function<int(std::string)> tx_; //A function that sends the string over serial and terminates it with \r
-	std::function<int(std::string&)> rx_; //A function that reads a \r terminated line from serial 
+	virtual int tx(std::string str) = 0; //A function that sends the string over serial and terminates it with \r
+	virtual int rx(std::string& str) = 0; //A function that reads a \r terminated line from serial 
 	virtual void clearPort()=0;
 	uint8_t numChan_; //The number of channels that the device has.
 	bool initialized;

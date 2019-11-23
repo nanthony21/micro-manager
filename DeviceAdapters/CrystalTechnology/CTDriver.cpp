@@ -2,16 +2,29 @@
 #define BREAK_ERR if (ret!=CTDriver::OK) { return ret; }
 #define CHECKINIT if (!this->initialized) { return CTDriver::NOT_INITIALIZED; }
 
-CTDriver::CTDriver(std::function<int(std::string)> serialSend, std::function<int(std::string&)> serialReceive):
+CTDriver::CTDriver():
 	numChan_(1), //Assume one channel so we atleast have a value here if something goes weird while getting the number of channels in the constructor.
 	initialized(false)
-{
-	this->tx_ = serialSend;
-	this->rx_ = serialReceive;
-}
+{}
 
 int CTDriver::initialize() {
+	uint8_t num=0;
 	this->clearPort();
+	for (uint8_t i=0; i<8; i++) {
+		int ret = this->tx("dds freq " + std::to_string((long long) i+1));
+		BREAK_ERR
+		std::string response;
+		ret = this->rx(response);
+		BREAK_ERR
+		response = response.substr(0, 7);
+		if (response.compare("Channel") == 0) {
+			num++;
+		} else {
+			//break;
+		}
+	}
+
+	/*
 	int ret = this->tx_("dds freq *");
 	BREAK_ERR
 	std::string response;
@@ -30,8 +43,8 @@ int CTDriver::initialize() {
 		} else {
 			break; //This is not expected to ever happen.
 		}
-	}
-	this->numChan_ = i;
+	}*/
+	this->numChan_ = num;
 	this->initialized = true;
 	return CTDriver::OK;
 }
@@ -39,7 +52,7 @@ int CTDriver::initialize() {
 int CTDriver::reset() {
 	CHECKINIT
 	std::string cmd = "dds reset";
-	return this->tx_(cmd);
+	return this->tx(cmd);
 }
 
 int CTDriver::setFrequencyMhz(uint8_t chan, double freq) {
@@ -61,7 +74,7 @@ int CTDriver::setFreq(uint8_t chan, std::string freqStr) {
 	int ret = this->getChannelStr(chan, chanStr, true);
 	BREAK_ERR
 	std::string str = "dds frequency " + chanStr + " " + freqStr;
-	return this->tx_(str);
+	return this->tx(str);
 }
 
 int CTDriver::getChannelStr(uint8_t chan, std::string& chanStr, bool allowWildcard) {
@@ -83,7 +96,7 @@ int CTDriver::setAmplitude(uint8_t chan,  unsigned int asf) {
 	int ret = this->getChannelStr(chan, chanStr, true);
 	BREAK_ERR
 	std::string cmd = "dds amplitude " + chanStr + " " + std::to_string((unsigned long long) asf);
-	return this->tx_(cmd);
+	return this->tx(cmd);
 }
 
 int CTDriver::setGain(uint8_t chan,  unsigned int gain) {
@@ -93,7 +106,7 @@ int CTDriver::setGain(uint8_t chan,  unsigned int gain) {
 	int ret = this->getChannelStr(chan, chanStr, true);
 	BREAK_ERR
 	std::string cmd = "dds gain " + chanStr + " " + std::to_string((unsigned long long) gain);
-	return this->tx_(cmd);
+	return this->tx(cmd);
 }
 
 int CTDriver::setPhase(uint8_t chan, double phaseDegrees) {
@@ -104,7 +117,7 @@ int CTDriver::setPhase(uint8_t chan, double phaseDegrees) {
 	if (ret != CTDriver::OK) { return ret; }
 	unsigned int val = (unsigned int) ((phaseDegrees / 360.0) * 16383);
 	std::string cmd = "dds phase " + chanStr + " " + std::to_string((unsigned long long) val);
-	return this->tx_(cmd);
+	return this->tx(cmd);
 }
 
 int CTDriver::getPhase(uint8_t chan, double& phaseDegrees) {
@@ -113,10 +126,10 @@ int CTDriver::getPhase(uint8_t chan, double& phaseDegrees) {
 	int ret = this->getChannelStr(chan, chanStr, false);
 	BREAK_ERR
 	std::string cmd = "dds phase " + chanStr;
-	ret = this->tx_(cmd);
+	ret = this->tx(cmd);
 	BREAK_ERR
 	std::string response;
-	ret = this->rx_(response);
+	ret = this->rx(response);
 	BREAK_ERR
 	//response is in form "Channel {x} @ {phaseDegrees}
 	response = response.substr(12); //get rid of the prefix
@@ -130,10 +143,10 @@ int CTDriver::getAmplitude(uint8_t chan, unsigned int& asf) {
 	int ret = this->getChannelStr(chan, chanStr, false);
 	BREAK_ERR
 	std::string cmd = "dds amplitude " + chanStr;
-	ret = this->tx_(cmd);
+	ret = this->tx(cmd);
 	BREAK_ERR
 	std::string response;
-	ret = this->rx_(response);
+	ret = this->rx(response);
 	BREAK_ERR
 	//response is in form "Channel {x} @ {asf}
 	response = response.substr(12); //get rid of the prefix
@@ -147,10 +160,10 @@ int CTDriver::getFrequencyMhz(uint8_t chan, double& freq) {
 	int ret = this->getChannelStr(chan, chanStr, false);
 	BREAK_ERR
 	std::string cmd = "dds frequency " + chanStr;
-	ret = this->tx_(cmd);
+	ret = this->tx(cmd);
 	BREAK_ERR
 	std::string response;
-	ret = this->rx_(response);
+	ret = this->rx(response);
 	BREAK_ERR
 	//response is in form "Channel {x} profile {x} frequency {freq scientific notation}Hz (Ftw {xxxxxx variable length})"
 	response = response.substr(30); //remove prefix
@@ -179,10 +192,10 @@ int CTDriver::getTemperature(std::string sensorType, double& temp) {
 	}
 	//oscillator temp
 	std::string cmd = "temperature read " + sensorType;
-	int ret = this->tx_(cmd);
+	int ret = this->tx(cmd);
 	BREAK_ERR
 	std::string response;
-	ret = this->rx_(response);
+	ret = this->rx(response);
 	BREAK_ERR
 	size_t pos = response.find(" "); //find the first space
 	response.erase(0, pos);
@@ -201,17 +214,17 @@ int CTDriver::getTemperature(std::string sensorType, double& temp) {
 int CTDriver::getBoardInfo(std::string& info) {
 	CHECKINIT
 	std::string cmd = "boardid partnumber";
-	int ret = this->tx_(cmd);
+	int ret = this->tx(cmd);
 	BREAK_ERR
 	std::string partNo;
-	ret = this->rx_(partNo);
+	ret = this->rx(partNo);
 	BREAK_ERR
 
 	cmd = "boardid ctiserialnumber";
-	ret = this->tx_(cmd);
+	ret = this->tx(cmd);
 	BREAK_ERR
 	std::string serial;
-	ret = this->rx_(serial);
+	ret = this->rx(serial);
 	BREAK_ERR
 	info = partNo + serial;
 	return CTDriver::OK;
@@ -219,19 +232,19 @@ int CTDriver::getBoardInfo(std::string& info) {
 
 int CTDriver::getTuningCoeff(std::string& coeffs) {
 	CHECKINIT
-	int ret = this->tx_("calibration tuning *");
+	int ret = this->tx("calibration tuning *");
 	BREAK_ERR
-	ret = this->rx_(coeffs);
+	ret = this->rx(coeffs);
 	BREAK_ERR
 	return CTDriver::OK;
 }
 
 int CTDriver::freqToWavelength(double freq, double& wavelength) {
 	std::string cmd = "calibration wave " + std::to_string((long double) freq);
-	int ret = this->tx_(cmd);
+	int ret = this->tx(cmd);
 	BREAK_ERR
 	std::string response;
-	ret = this->rx_(response);
+	ret = this->rx(response);
 	BREAK_ERR
 	//Response is in the form "Wavelength {scientific notation number} nm" TODO parse the response and set Wavelength
 	response = response.substr(11); //Get rid of "Wavelength " prefix
@@ -244,10 +257,10 @@ int CTDriver::freqToWavelength(double freq, double& wavelength) {
 
 int CTDriver::wavelengthToFreq(double wavelength, double& freq) {
 	std::string cmd = "calibration tune " + std::to_string((long double) wavelength);
-	int ret = this->tx_(cmd);
+	int ret = this->tx(cmd);
 	BREAK_ERR
 	std::string response;
-	ret = this->rx_(response);
+	ret = this->rx(response);
 	BREAK_ERR
 	//Response is in the form "Frequency {scientific notation number}Hz (FTW {ftw})" TODO parse the response and set Wavelength
 	response = response.substr(response.find(" ")); //Get rid of "Frequency " prefix
@@ -260,7 +273,7 @@ int CTDriver::wavelengthToFreq(double wavelength, double& freq) {
 }
 
 AOTFLibCTDriver::AOTFLibCTDriver(uint8_t instance):
-	CTDriver(std::bind(&AOTFLibCTDriver::tx, this, std::placeholders::_1), std::bind(&AOTFLibCTDriver::rx, this, std::placeholders::_1)),
+	CTDriver(),
 	aotfHandle(NULL)
 {
 	HANDLE tfHandle = AotfOpen(instance);
@@ -286,7 +299,7 @@ int AOTFLibCTDriver::tx(std::string cmd) {
 }
 
 int AOTFLibCTDriver::rx(std::string& out) {
-	/*char buf[1024];
+	char buf[1024];
 	void* pbuf = buf;
 	unsigned int bytesRead;
 	bool ret = AotfRead(this->aotfHandle, 1024, pbuf, &bytesRead);
@@ -295,7 +308,8 @@ int AOTFLibCTDriver::rx(std::string& out) {
 		std::string str(buf, bytesRead);
 		out = str;
 		return CTDriver::OK;
-	}*/
+	}
+	/*
 	int i = 0;
 	char bigbuf[1024];
 	MM::MMTime startTime = GetMMTimeNow();
@@ -323,7 +337,7 @@ int AOTFLibCTDriver::rx(std::string& out) {
 				i++;
 			}	
 		} 
-	}
+	}*/
 }
 
 void AOTFLibCTDriver::clearPort() {
