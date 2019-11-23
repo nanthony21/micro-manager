@@ -18,6 +18,7 @@ int CTDriver::initialize() {
 	while (true) {
 		ret = this->rx_(response);
 		BREAK_ERR
+			if (response.compare("\n")==0) { continue; } //Sometimes it sends a new line for no reason.
 		try {
 			response = response.substr(0, 7);
 		} catch (std::out_of_range& oor) {
@@ -269,6 +270,10 @@ AOTFLibCTDriver::AOTFLibCTDriver(uint8_t instance):
 	}
 }
 
+AOTFLibCTDriver::~AOTFLibCTDriver() {
+	int ret = AotfClose(this->aotfHandle);
+	int a = 1; //just for a debug point
+}
 
 int AOTFLibCTDriver::tx(std::string cmd) {
 	cmd = cmd + "\r";
@@ -280,7 +285,7 @@ int AOTFLibCTDriver::tx(std::string cmd) {
 }
 
 int AOTFLibCTDriver::rx(std::string& out) {
-	char buf[1024];
+	/*char buf[1024];
 	void* pbuf = buf;
 	unsigned int bytesRead;
 	bool ret = AotfRead(this->aotfHandle, 1024, pbuf, &bytesRead);
@@ -289,5 +294,29 @@ int AOTFLibCTDriver::rx(std::string& out) {
 		std::string str(buf, bytesRead);
 		out = str;
 		return CTDriver::OK;
+	}*/
+	int i = 0;
+	char bigbuf[1024];
+	MM::MMTime startTime = GetMMTimeNow();
+	while ((GetMMTimeNow() - startTime).getMsec()<1000) { //1 second timeout
+		char buf[2];
+		void* pbuf = buf;
+		unsigned int bytesRead;
+		bool ret = AotfRead(this->aotfHandle, 1, pbuf, &bytesRead);
+		if (!ret) {
+			return CTDriver::ERR; 
+		} else if ( bytesRead == 1) {
+			if (buf[0] == 13) {//carriage return
+				std::string str(bigbuf, i);
+				out = str;
+				return CTDriver::OK;
+			} else {
+				bigbuf[i] = buf[0];
+				i++;
+			}	
+		} 
 	}
+	std::string str(bigbuf, i);
+	out = str;
+	return CTDriver::ERR; //we timed out
 }

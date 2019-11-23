@@ -31,6 +31,7 @@
 #pragma once
 
 #include "../../MMDevice/DeviceBase.h"
+#include "../../MMCore/CoreUtils.h"
 #include "AotfLibrary.h"
 #include <stdint.h>
 #include <functional>
@@ -55,6 +56,7 @@ public:
 	static const enum DriverType { SingleType, QuadType, OctalType };
 
 	CTDriver(std::function<int(std::string)> serialSend, std::function<int(std::string&)> serialReceive);
+	virtual ~CTDriver() = 0;
 	int initialize();
 	int reset();
 	int numChannels() { return numChan_; };
@@ -87,7 +89,7 @@ private:
 class AOTFLibCTDriver: public CTDriver {
 public:
 	AOTFLibCTDriver(uint8_t instance);
-	~AOTFLibCTDriver() { AotfClose(this->aotfHandle); };
+	~AOTFLibCTDriver();
 private:
 	int tx(std::string);
 	int rx(std::string&);
