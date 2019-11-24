@@ -1,4 +1,5 @@
 #include "CrystalTechnology.h"
+
 #define BREAK_ERR if (ret!=CTDriver::OK) { return ret; }
 #define CHECKINIT if (!this->initialized) { return CTDriver::NOT_INITIALIZED; }
 
@@ -8,42 +9,30 @@ CTDriver::CTDriver():
 {}
 
 int CTDriver::initialize() {
-	uint8_t num=0;
 	this->clearPort();
-	for (uint8_t i=0; i<8; i++) {
-		int ret = this->tx("dds freq " + std::to_string((long long) i+1));
-		BREAK_ERR
-		std::string response;
-		ret = this->rx(response);
-		BREAK_ERR
-		response = response.substr(0, 7);
-		if (response.compare("Channel") == 0) {
-			num++;
-		} else {
-			//break;
-		}
-	}
-
-	/*
-	int ret = this->tx_("dds freq *");
+	int ret = this->tx("");//The first time the device starts it will respond to any command with a bunch of ID info. prompt the info and toss it.
+	MM::MMTime sTime = GetMMTimeNow();
+	while ((GetMMTimeNow() - sTime).getMsec() < 100) {} //wait for the response;
+	this->clearPort();
+	ret = this->tx("dds freq *");
 	BREAK_ERR
 	std::string response;
-	uint8_t i = 0;
+	ret = this->rx(response);
+	BREAK_ERR
+	uint8_t num=0;
 	while (true) {
-		ret = this->rx_(response);
-		BREAK_ERR
-		if (response.compare("\n")==0) { continue; } //Sometimes it sends a new line for no reason.
-		try {
-			response = response.substr(0, 7);
-		} catch (std::out_of_range& oor) {
-			break; //This is likely what will happen when we reach the end of the response.
+		size_t pos = response.find("\r\n");
+		if (pos==string::npos) {//The last time we come through there should be nothing else. this means we're done.
+			break;
 		}
-		if (response.compare("Channel") == 0) {
-			i++;
+		std::string sub = response.substr(0, pos);
+		response.erase(0, pos+2);
+		if (sub.substr(0,7).compare("Channel")==0) {
+			num++;
 		} else {
 			break; //This is not expected to ever happen.
 		}
-	}*/
+	}
 	this->numChan_ = num;
 	this->initialized = true;
 	return CTDriver::OK;
@@ -290,54 +279,61 @@ AOTFLibCTDriver::~AOTFLibCTDriver() {
 }
 
 int AOTFLibCTDriver::tx(std::string cmd) {
-	cmd = cmd + "\r";
-	int l = cmd.length();
-	void* buf = (void*) cmd.c_str();
+	std::string termcmd = cmd + "\r";
+	int l = termcmd.length();
+	void* buf = (void*) termcmd.c_str();
 	bool ret = AotfWrite(this->aotfHandle, l, buf);
-	if (ret) { return CTDriver::OK; }
-	else {return CTDriver::ERR; }
+	if (!ret) { return CTDriver::ERR; }
+	//Read the echo
+	std::string response; 
+	this->readUntil("\r\n", response);//TODO get ret
+	if (response.compare(cmd)==0) {
+		return CTDriver::OK;
+	} else {
+		return CTDriver::NOECHO;
+	}
 }
 
 int AOTFLibCTDriver::rx(std::string& out) {
-	char buf[1024];
-	void* pbuf = buf;
-	unsigned int bytesRead;
-	bool ret = AotfRead(this->aotfHandle, 1024, pbuf, &bytesRead);
-	if (!ret) { return CTDriver::ERR; }
-	else {
-		std::string str(buf, bytesRead);
-		out = str;
-		return CTDriver::OK;
-	}
-	/*
-	int i = 0;
-	char bigbuf[1024];
+	std::string response;
+	int ret = this->readUntil("* ", response);
+	out = response;
+	return ret;
+}
+
+int AOTFLibCTDriver::readUntil(std::string delim, std::string& out) {
+	uint8_t lenDelim = delim.length();
 	MM::MMTime startTime = GetMMTimeNow();
+	char bigBuff[1024];
+	char buf[2];
+	void* pbuf = buf;
+	unsigned int bytesRead=0;
+	int i = 0;
+	
 	while (true) {
 		while (!AotfIsReadDataAvailable(this->aotfHandle)) {//Don't try to read unless there's something to read
-			if ((GetMMTimeNow() - startTime).getMsec()>3000) { //3 second timeout
-				std::string str(bigbuf, i);
-				out = str;
-				return CTDriver::SERIAL_TIMEOUT;
-			}
+			//if ((GetMMTimeNow() - startTime).getMsec()>1000) { //1 second timeout
+			//	return CTDriver::SERIAL_TIMEOUT;
+			//}
 		}
-		char buf[2];
-		void* pbuf = buf;
-		unsigned int bytesRead;
 		bool ret = AotfRead(this->aotfHandle, 1, pbuf, &bytesRead);
 		if (!ret) {
-			return CTDriver::ERR; 
-		} else if ( bytesRead == 1) {
-			if (buf[0] == 13) {//carriage return
-				std::string str(bigbuf, i);
-				out = str;
-				return CTDriver::OK;
-			} else {
-				bigbuf[i] = buf[0];
-				i++;
-			}	
-		} 
-	}*/
+			std::string str(bigBuff, i);
+			out = str;
+			return CTDriver::ERR;
+		} else if (bytesRead == 1) {
+			bigBuff[i] = buf[0];
+			i++;
+			if (i>=lenDelim) { //Don't check for delimiter if we haven't gathered enough bytes yet.
+				char* delimPtr = bigBuff + (i-lenDelim);
+				std::string testStr(delimPtr, lenDelim);
+				if (delim.compare(testStr)==0) {
+					out = std::string(bigBuff, i-lenDelim);
+					return CTDriver::OK;
+				}
+			}
+		}
+	}
 }
 
 void AOTFLibCTDriver::clearPort() {

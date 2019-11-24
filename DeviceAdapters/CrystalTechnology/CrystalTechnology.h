@@ -51,6 +51,7 @@ public:
 	static const int NOT_INITIALIZED = 4;
 	static const int INVALID_CHANNEL = 2;
 	static const int INVALID_VALUE = 3;
+	static const int NOECHO = 6;
 	static const int ERR = 1;
 	static const int OK = 0;
 
@@ -96,6 +97,7 @@ private:
 	int tx(std::string);
 	int rx(std::string&);
 	void clearPort();
+	int readUntil(std::string delim, std::string& out);
 	HANDLE aotfHandle;
 };
 
