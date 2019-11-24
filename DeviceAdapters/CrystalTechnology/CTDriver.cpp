@@ -22,7 +22,7 @@ int CTDriver::initialize() {
 	uint8_t num=0;
 	while (true) {
 		size_t pos = response.find("\r\n");
-		if (pos==string::npos) {//The last time we come through there should be nothing else. this means we're done.
+		if (pos==std::string::npos) {//The last time we come through there should be nothing else. this means we're done.
 			break;
 		}
 		std::string sub = response.substr(0, pos);
