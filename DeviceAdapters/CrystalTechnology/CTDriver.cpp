@@ -251,7 +251,7 @@ int CTDriver::sendCmd(std::string cmd) {
 }
 
 int CTDriver::sendCmd(std::string cmd, std::string& responseOut) {
-	int ret = this->sendCmd(cmd);
+	int ret = this->tx(cmd);
 	//Read the echo
 	std::string response; 
 	ret = this->readUntil("\r\n", response);
