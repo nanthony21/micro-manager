@@ -122,10 +122,10 @@ private:
 	int GetOpen(bool& open);
 	int Fire(double deltaT) { deltaT; return DEVICE_UNSUPPORTED_COMMAND; };
 	int updateWvs();
-	double wv_;
+	double freq_;
 	unsigned int asf_;
-	double wvs_[8]; //all 8 might not be used.
-	double bw_;
+	//double wvs_[8]; //all 8 might not be used.
+	//double bw_;
 	bool shutterOpen_;
 };
 

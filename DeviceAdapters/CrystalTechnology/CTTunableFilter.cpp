@@ -6,8 +6,7 @@
 
 CTTunableFilter::CTTunableFilter():
 	CTBase(),
-	wv_(0),
-	bw_(0),
+	freq_(0),
 	asf_(0)
 {}
 
@@ -25,34 +24,45 @@ int CTTunableFilter::Initialize() {
 	BREAKERR
 	//TODO set limits
 
-	//pAct = new CPropertyAction(this, &CTTunableFilter::onBandwidth);
-	//ret = this->CreateProperty("Bandwidth", "0", MM::Float, false, pAct, false);
-	//BREAKERR
-	//TODO set limits
+	pAct = new CPropertyAction(this, &CTTunableFilter::onAmplitude);
+	ret = this->CreateProperty("Amplitude", "0", MM::Integer, false, pAct, false);
+	BREAKERR
+	this->SetPropertyLimits("Amplitude", 0, 16383);
+
 	return DEVICE_OK;
 }
 
 int CTTunableFilter::onFrequency(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	BEFOREGET {
 		double freq;
-		driver_->wavelengthToFreq(this->wv_, freq);
-		pProp->Set(freq);
+		int ret = driver_->getFrequencyMhz(0, freq);
+		BREAKERR
+		this->freq_ = freq;
+		pProp->Set(this->freq_);
 	} else AFTERSET {
 		double freq;
 		pProp->Get(freq);
-		driver_->setFrequencyMhz(0, freq);
+		this->freq_ = freq;
+		int ret = driver_->setFrequencyMhz(0, freq);
+		BREAKERR
 	}
 	return DEVICE_OK;
 }
 
 int CTTunableFilter::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	BEFOREGET {
-		pProp->Set(this->wv_);
+		double freq;
+		this->GetProperty("Frequency (MHz)", freq);
+		double wv;
+		int ret = driver_->freqToWavelength(freq, wv); 
+		BREAKERR
+		pProp->Set(wv);
 	} else AFTERSET {
 		double wavelength;
 		double freq;
 		pProp->Get(wavelength);
-		driver_->wavelengthToFreq(wavelength, freq);
+		int ret = driver_->wavelengthToFreq(wavelength, freq);
+		BREAKERR
 		this->SetProperty("Frequency (MHz)", std::to_string((long double)freq).c_str());
 	}
 	return DEVICE_OK;
