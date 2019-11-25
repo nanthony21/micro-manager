@@ -16,12 +16,17 @@ int CTTunableFilter::Initialize() {
 	CPropertyAction* pAct = new CPropertyAction(this, &CTTunableFilter::onFrequency);
 	ret = this->CreateProperty("Frequency (MHz)", "0", MM::Float, false, pAct, false);
 	BREAKERR
-	//this->SetPropertyLimits
+	this->SetPropertyLimits("Frequency (MHz)", 20, 200); //I couldn't find a good way to query the device for this information. It varies from different models. 200 seems to be the max though.
 
 	pAct = new CPropertyAction(this, &CTTunableFilter::onWavelength);
 	ret = this->CreateProperty("Wavelength", "0", MM::Float, false, pAct, false);
 	BREAKERR
-	//TODO set limits
+	double wvHigh; double wvLow;
+	ret = this->driver_->freqToWavelength(20, wvHigh); //We base the range off of the frequency range of the driver. realistically the workable range of the AOTF will be much narrower, We have no way of getting this information though.
+	BREAKERR
+	ret = this->driver_->freqToWavelength(200, wvLow);
+	BREAKERR
+	this->SetPropertyLimits("Wavelength", wvLow, wvHigh);
 
 	pAct = new CPropertyAction(this, &CTTunableFilter::onAmplitude);
 	ret = this->CreateProperty("Amplitude", "0", MM::Integer, false, pAct, false);
