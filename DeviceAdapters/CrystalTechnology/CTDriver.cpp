@@ -114,7 +114,7 @@ int CTDriver::getPhase(uint8_t chan, double& phaseDegrees) {
 	BREAK_ERR
 	std::string cmd = "dds phase " + chanStr;
 	std::string response;
-	ret = this->tx(cmd, response);
+	ret = this->sendCmd(cmd, response);
 	BREAK_ERR
 	//response is in form "Channel {x} @ {phaseDegrees}
 	response = response.substr(12); //get rid of the prefix
@@ -254,7 +254,7 @@ int CTDriver::sendCmd(std::string cmd, std::string& responseOut) {
 	int ret = this->sendCmd(cmd);
 	//Read the echo
 	std::string response; 
-	int ret = this->readUntil("\r\n", response);
+	ret = this->readUntil("\r\n", response);
 	BREAK_ERR
 	if (!response.compare(cmd)==0) {
 		return CTDriver::NOECHO;

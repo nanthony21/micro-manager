@@ -85,9 +85,11 @@ public:
 private:
 	int getChannelStr(uint8_t chan, std::string& str, bool allowWildcard);
 	int setFreq(uint8_t chan, std::string freqStr);
+	int sendCmd(std::string cmd); //Sends a command and checks that the response is a correct acknowledgement. assumes there is no return string
+	int sendCmd(std::string cmd, std::string& response); //Sends a command and check the correct acknowledgement. returns the return string as `response`.
 	virtual int tx(std::string str) = 0; //A function that sends the string over serial and terminates it with \r
-	virtual int readUntil(std::string& delimiter, std::string& out) = 0; //A function that reads a string from the device up until it hits the delimiter. The delimiter itself is not included in `out`
-	virtual void clearPort()=0;
+	virtual int readUntil(std::string delimiter, std::string& out) = 0; //A function that reads a string from the device up until it hits the delimiter. The delimiter itself is not included in `out`
+	virtual void clearPort() = 0;
 	uint8_t numChan_; //The number of channels that the device has.
 	bool initialized;
 };
@@ -98,7 +100,6 @@ public:
 	~AOTFLibCTDriver();
 private:
 	int tx(std::string);
-	int rx(std::string&);
 	void clearPort();
 	int readUntil(std::string delim, std::string& out);
 	HANDLE aotfHandle;
