@@ -158,7 +158,7 @@ int CTDriver::getFrequencyMhz(uint8_t chan, double& freq) {
 	response = response.substr(30); //remove prefix
 	size_t pos = response.find("Hz");
 	response = response.substr(0, pos); //remove suffix
-	freq = strtod(response.c_str(), NULL); //0 could be an error or actual value.
+	freq = strtod(response.c_str(), NULL) / 1e6; //0 could be an error or actual value. divide to convert from Hz to MHz
 	return CTDriver::OK;
 }
 

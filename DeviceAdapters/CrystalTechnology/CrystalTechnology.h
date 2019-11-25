@@ -48,7 +48,7 @@ class CTDriver {
 	//This class implements all functionality without any reliance on micromanager specific stuff. It can be wrapped into a device adapter.
 	//Not all possible functionality is implemented here. It should be enough for many applications though.
 private:
-	static const int ERR_OFFSET = 5418;
+	static const int ERR_OFFSET = 80;
 public:
 	static const int SERIAL_TIMEOUT = 5 + ERR_OFFSET;
 	static const int NOT_INITIALIZED = 4 + ERR_OFFSET;

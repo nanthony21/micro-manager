@@ -60,7 +60,7 @@ int CTBase<T, U>::Initialize() {
 	int ret = this->driver_->initialize();
 	BREAK_MM_ERR
 
-	this->SetErrorText(CTDriver::ERR, "Unspecified error in the Crystal Technologies 'CTDriver' device interface")
+	this->SetErrorText(CTDriver::ERR, "Unspecified error in the Crystal Technologies 'CTDriver' device interface");
 	this->SetErrorText(CTDriver::SERIAL_TIMEOUT, "Serial timout error in the Crystal Technologies 'CTDriver' device interface");
 	this->SetErrorText(CTDriver::NOT_INITIALIZED, "Not initialized error in the Crystal Technologies 'CTDriver' device interface");
 	this->SetErrorText(CTDriver::INVALID_CHANNEL, "Invalid channel error in the Crystal Technologies 'CTDriver' device interface");

@@ -69,6 +69,8 @@ int CTTunableFilter::onWavelength(MM::PropertyBase* pProp, MM::ActionType eAct) 
 
 int CTTunableFilter::onAmplitude(MM::PropertyBase* pProp, MM::ActionType eAct) {
 	BEFOREGET {
+		int ret = driver_->getAmplitude(0, this->asf_);
+		BREAKERR
 		pProp->Set((long) this->asf_);
 	} else AFTERSET {
 		long amp;
