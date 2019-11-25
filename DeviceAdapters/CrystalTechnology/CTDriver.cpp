@@ -302,9 +302,9 @@ int AOTFLibCTDriver::readUntil(std::string delim, std::string& out) {
 	
 	while (true) {
 		while (!AotfIsReadDataAvailable(this->aotfHandle)) {//Don't try to read unless there's something to read
-			//if ((GetMMTimeNow() - startTime).getMsec()>1000) { //1 second timeout
-			//	return CTDriver::SERIAL_TIMEOUT;
-			//}
+			if ((GetMMTimeNow() - startTime).getMsec()>1000) { //1 second timeout
+				return CTDriver::SERIAL_TIMEOUT;
+			}
 		}
 		bool ret = AotfRead(this->aotfHandle, 1, pbuf, &bytesRead);
 		if (!ret) {
