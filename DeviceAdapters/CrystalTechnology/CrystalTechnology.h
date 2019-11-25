@@ -37,6 +37,7 @@
 #include <functional>
 #include <map>
 
+#define SET_CT_ERRS 
 
 // Device Names
 const char* const g_ControllerName = "AOTF Controller";
@@ -46,13 +47,15 @@ const char* const g_TFName = "Tunable Filter";
 class CTDriver {
 	//This class implements all functionality without any reliance on micromanager specific stuff. It can be wrapped into a device adapter.
 	//Not all possible functionality is implemented here. It should be enough for many applications though.
+private:
+	static const int ERR_OFFSET = 5418;
 public:
-	static const int SERIAL_TIMEOUT = 5;
-	static const int NOT_INITIALIZED = 4;
-	static const int INVALID_CHANNEL = 2;
-	static const int INVALID_VALUE = 3;
-	static const int NOECHO = 6;
-	static const int ERR = 1;
+	static const int SERIAL_TIMEOUT = 5 + ERR_OFFSET;
+	static const int NOT_INITIALIZED = 4 + ERR_OFFSET;
+	static const int INVALID_CHANNEL = 2 + ERR_OFFSET;
+	static const int INVALID_VALUE = 3 + ERR_OFFSET;
+	static const int NOECHO = 6 + ERR_OFFSET;
+	static const int ERR = 1 + ERR_OFFSET;
 	static const int OK = 0;
 
 	static const enum DriverType { SingleType, QuadType, OctalType };

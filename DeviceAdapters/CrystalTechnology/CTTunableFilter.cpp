@@ -13,7 +13,6 @@ CTTunableFilter::CTTunableFilter():
 int CTTunableFilter::Initialize() {
 	int ret = CTBase::Initialize();
 	BREAKERR
-
 	CPropertyAction* pAct = new CPropertyAction(this, &CTTunableFilter::onFrequency);
 	ret = this->CreateProperty("Frequency (MHz)", "0", MM::Float, false, pAct, false);
 	BREAKERR

@@ -52,15 +52,20 @@ CTBase<T, U>::~CTBase() {
 
 template <class T, class U>
 int CTBase<T, U>::Initialize() {
-	{
-		try {
-			this->driver_ = new AOTFLibCTDriver(this->instNum);
-		} catch (...) {
-			return DEVICE_NOT_CONNECTED;
-		}
-		int ret = this->driver_->initialize();
-		BREAK_MM_ERR
+	try {
+		this->driver_ = new AOTFLibCTDriver(this->instNum);
+	} catch (...) {
+		return DEVICE_NOT_CONNECTED;
 	}
+	int ret = this->driver_->initialize();
+	BREAK_MM_ERR
+
+	this->SetErrorText(CTDriver::ERR, "Unspecified error in the Crystal Technologies 'CTDriver' device interface")
+	this->SetErrorText(CTDriver::SERIAL_TIMEOUT, "Serial timout error in the Crystal Technologies 'CTDriver' device interface");
+	this->SetErrorText(CTDriver::NOT_INITIALIZED, "Not initialized error in the Crystal Technologies 'CTDriver' device interface");
+	this->SetErrorText(CTDriver::INVALID_CHANNEL, "Invalid channel error in the Crystal Technologies 'CTDriver' device interface");
+	this->SetErrorText(CTDriver::NOECHO, "No serial echo error in the Crystal Technologies 'CTDriver' device interface");
+
 	return DEVICE_OK;
 }
 
