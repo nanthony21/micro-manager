@@ -205,7 +205,7 @@ int CTDriver::getBoardInfo(std::string& info) {
 	return CTDriver::OK;
 }
 
-int CTDriver::getTuningCoeffs(std::vector<double> coeffs) {
+int CTDriver::getTuningCoeffs(std::vector<double>& coeffs) {
 	CHECKINIT
 	std::string response;
 	int ret = this->sendCmd("calibration tuning *", response);

@@ -81,7 +81,7 @@ public:
 	int getWavelengthNm(uint8_t chan, double& wv); //Does this really need to be int?
 	int getTemperature(std::string sensorType, double& temp);
 	int getBoardInfo(std::string& info);
-	int getTuningCoeffs(std::vector<double> coeffs);
+	int getTuningCoeffs(std::vector<double>& coeffs);
 	//Calculators
 	int freqToWavelength(double freq, double& wavelength);
 	int wavelengthToFreq(double wavelength, double& freq);
