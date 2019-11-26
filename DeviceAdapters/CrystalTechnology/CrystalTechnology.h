@@ -36,6 +36,8 @@
 #include <stdint.h>
 #include <functional>
 #include <map>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/classification.hpp>
 
 #define SET_CT_ERRS 
 
@@ -71,6 +73,7 @@ public:
 	int setAmplitude(uint8_t chan,  unsigned int asf);
 	int setGain(uint8_t chan, unsigned int gain);
 	int setPhase(uint8_t chan, double phaseDegrees);
+	int setTuningCoeffs(std::vector<double> coeffs);
 	//Getters
 	int getPhase(uint8_t chan, double& phaseDegrees);
 	int getAmplitude(uint8_t chan, unsigned int& asf);
@@ -78,7 +81,7 @@ public:
 	int getWavelengthNm(uint8_t chan, double& wv); //Does this really need to be int?
 	int getTemperature(std::string sensorType, double& temp);
 	int getBoardInfo(std::string& info);
-	int getTuningCoeff(std::string& coeffs);
+	int getTuningCoeffs(std::vector<double> coeffs);
 	//Calculators
 	int freqToWavelength(double freq, double& wavelength);
 	int wavelengthToFreq(double wavelength, double& freq);

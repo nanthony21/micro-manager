@@ -205,10 +205,34 @@ int CTDriver::getBoardInfo(std::string& info) {
 	return CTDriver::OK;
 }
 
-int CTDriver::getTuningCoeff(std::string& coeffs) {
+int CTDriver::getTuningCoeffs(std::vector<double> coeffs) {
 	CHECKINIT
-	int ret = this->sendCmd("calibration tuning *", coeffs);
+	std::string response;
+	int ret = this->sendCmd("calibration tuning *", response);
 	BREAK_ERR
+	std::vector<std::string> lines;
+	boost::split(lines, response, boost::is_any_of("\r\n"), boost::token_compress_on); //Split each line into a separate string
+	if (lines.size() != 6) { //There should always be 5 coeffients and one empty trailing line since the string ends witht eh delimiter. They are returned in this order: 0 order, 1st order (x), 2nd order (x^2), etc.
+		return CTDriver::INVALID_VALUE;
+	}
+	for (int i=0; i<5; i++) {
+		std::string line = lines.at(i);
+		double coeff = strtod(line.substr(35).c_str(), NULL);//Each line is in the form "Tuning Polynomial Coefficient {chanNum} is {freqScientific)"
+		coeffs.at(i) = coeff;
+	}
+	return CTDriver::OK;
+}
+
+int CTDriver::setTuningCoeffs(std::vector<double> coeffs) {
+	CHECKINIT
+	for (int i=0; i<5; i++) {
+		std::ostringstream streamObj;
+		streamObj << coeffs.at(i); //This should format as scientific when needed.
+		std::string coeffstr = streamObj.str();
+		std::string cmd = "calibration tuning " + std::to_string((long long) i) + std::string(" ") + coeffstr;
+		int ret = this->sendCmd(cmd);
+		BREAK_ERR
+	}
 	return CTDriver::OK;
 }
 
@@ -243,7 +267,8 @@ int CTDriver::wavelengthToFreq(double wavelength, double& freq) {
 
 int CTDriver::sendCmd(std::string cmd) {
 	std::string response;
-	this->sendCmd(cmd, response); //This will read the "* " command terminator, but we expect the response to be totally empty.
+	int ret = this->sendCmd(cmd, response); //This will read the "* " command terminator, but we expect the response to be totally empty.
+	BREAK_ERR
 	if (response.length()!=0) {
 		return CTDriver::ERR;
 	}
