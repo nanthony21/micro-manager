@@ -256,12 +256,12 @@ int CTDriver::wavelengthToFreq(double wavelength, double& freq) {
 	int ret = this->sendCmd(cmd, response);
 	BREAK_ERR
 	//Response is in the form "Frequency {scientific notation number}Hz (FTW {ftw})" TODO parse the response and set Wavelength
-	response = response.substr(response.find(" ")); //Get rid of "Frequency " prefix
+	response = response.substr(10); //Get rid of "Frequency " prefix
 	response = response.substr(0, response.find(" ")); //Get rid of " (Ftw {XX})" suffix
 	response = response.substr(0, response.length()-2); //Get rid of "Hz" suffix
 	double f = strtod(response.c_str(), NULL);
 	if (f == 0.0) { return CTDriver::ERR; } //Conversion failed
-	freq = f;
+	freq = f / 1e6; //Make sure to convert back to MHz from Hz
 	return CTDriver::OK;
 }
 
