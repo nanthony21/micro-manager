@@ -168,7 +168,7 @@ int CTDriver::getWavelengthNm(uint8_t chan, double& wv) {
 
 int CTDriver::getTemperature(std::string sensorType, double& temp) {
 	CHECKINIT
-	if ((sensorType.compare("o")!=0) || (sensorType.compare("a")!=0) || (sensorType.compare("c")!=0)) {
+	if ((sensorType.compare("o")!=0) && (sensorType.compare("a")!=0) && (sensorType.compare("c")!=0)) {
 		return CTDriver::INVALID_VALUE;//sensor type must be "o"scillator, "a"mplifier, "c"rystal
 	}
 	//oscillator temp
@@ -176,12 +176,13 @@ int CTDriver::getTemperature(std::string sensorType, double& temp) {
 	std::string response;
 	int ret = this->sendCmd(cmd, response);
 	BREAK_ERR
-	size_t pos = response.find(" "); //find the first space
-	response.erase(0, pos);
-	pos = response.find(" "); //find the second space
-	response.erase(0, pos);
-	pos = response.find(" "); //find the third space
-	double t = strtod(response.substr(pos).c_str(), NULL);
+	//The numeric value comes after the word "Temperature"
+	std::string Temperature = "Temperature";
+	size_t pos = response.find(Temperature); //find the word "Temperature " and erase it
+	response.erase(0, pos+Temperature.size()+1); //We add 1 here to get rid of the space
+	pos = response.find(" "); //find the next space
+	response = response.substr(0, pos); //Should just be numbers now.
+	double t = strtod(response.c_str(), NULL);
 	if (t==0.0) {
 		return CTDriver::ERR;
 	} else {
@@ -192,12 +193,12 @@ int CTDriver::getTemperature(std::string sensorType, double& temp) {
 
 int CTDriver::getBoardInfo(std::string& info) {
 	CHECKINIT
-	std::string cmd = "boardid partnumber";
+	std::string cmd = "boardid version";
 	std::string partNo;
 	int ret = this->sendCmd(cmd, partNo);
 	BREAK_ERR
 
-	cmd = "boardid ctiserialnumber";
+	cmd = "boardid serial";
 	std::string serial;
 	ret = this->sendCmd(cmd, serial);
 	BREAK_ERR
