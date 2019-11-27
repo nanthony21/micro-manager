@@ -25,6 +25,9 @@ private:
 	int onSetTuneCoeffs(MM::PropertyBase* pProp, MM::ActionType eAct);
 	int onReadOnlyTuneCoeffs(MM::PropertyBase* pProp, MM::ActionType eAct);
 	int onBoardInfo(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int onOscTemp(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int onAmpTemp(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int onCrysTemp(MM::PropertyBase* pProp, MM::ActionType eAct);
 	uint8_t instNum; 
 	std::vector<double> coeffs; //Length 5 starting all as zero.
 };
@@ -80,6 +83,18 @@ int CTBase<T, U>::Initialize() {
 
 	CPropertyAction* pAct = new CPropertyAction((U*) this, &CTBase::onReadOnlyTuneCoeffs);
 	this->CreateProperty("Read Tuning Coeffs (space separated: {1} {x} {x^2} {x^3} {x^4})", "0 0 0 0 0", MM::String, true, pAct, false);
+
+	pAct = new CPropertyAction((U*) this, &CTBase::onBoardInfo);
+	this->CreateProperty("Board Info", "Unkn", MM::String, true, pAct, false);
+
+	pAct = new CPropertyAction((U*) this, &CTBase::onOscTemp);
+	this->CreateProperty("Oscillator Temperature (C)", "0", MM::Float, true, pAct, false);
+
+	pAct = new CPropertyAction((U*) this, &CTBase::onAmpTemp);
+	this->CreateProperty("Amplifier Temperature (C)", "0", MM::Float, true, pAct, false);
+
+	pAct = new CPropertyAction((U*) this, &CTBase::onCrysTemp);
+	this->CreateProperty("Crystal Temperature (C)", "0", MM::Float, true, pAct, false);
 
 	return DEVICE_OK;
 }
@@ -148,7 +163,49 @@ int CTBase<T, U>::Shutdown() {
 	this->driver_ = NULL;
 	return DEVICE_OK;
 }
-	
 
+template <class T, class U>
+int CTBase<T, U>::onBoardInfo(MM::PropertyBase* pProp, MM::ActionType eAct) {
+	BEFOREGET {
+		std::string response;
+		int ret = this->driver_->getBoardInfo(response);
+		BREAK_MM_ERR
+		pProp->Set(response.c_str());
+	}
+	return DEVICE_OK;
+}
+	
+template <class T, class U>
+int CTBase<T, U>::onOscTemp(MM::PropertyBase* pProp, MM::ActionType eAct) {
+	BEFOREGET {
+		double temp;
+		int ret = this->driver_->getTemperature("o", temp);
+		BREAK_MM_ERR
+		pProp->Set(temp);
+	}
+	return DEVICE_OK;
+}
+
+template <class T, class U>
+int CTBase<T, U>::onAmpTemp(MM::PropertyBase* pProp, MM::ActionType eAct) {
+	BEFOREGET {
+		double temp;
+		int ret = this->driver_->getTemperature("a", temp);
+		BREAK_MM_ERR
+		pProp->Set(temp);
+	}
+	return DEVICE_OK;
+}
+
+template <class T, class U>
+int CTBase<T, U>::onCrysTemp(MM::PropertyBase* pProp, MM::ActionType eAct) {
+	BEFOREGET {
+		double temp;
+		int ret = this->driver_->getTemperature("c", temp);
+		BREAK_MM_ERR
+		pProp->Set(temp);
+	}
+	return DEVICE_OK;
+}
 
 
