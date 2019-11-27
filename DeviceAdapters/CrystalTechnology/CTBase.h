@@ -24,6 +24,7 @@ private:
 	int onSelDev(MM::PropertyBase* pProp, MM::ActionType eAct);
 	int onSetTuneCoeffs(MM::PropertyBase* pProp, MM::ActionType eAct);
 	int onReadOnlyTuneCoeffs(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int onBoardInfo(MM::PropertyBase* pProp, MM::ActionType eAct);
 	uint8_t instNum; 
 	std::vector<double> coeffs; //Length 5 starting all as zero.
 };
