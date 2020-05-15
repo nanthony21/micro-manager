@@ -122,6 +122,7 @@ import org.micromanager.profile.internal.gui.HardwareConfigurationManager;
 import org.micromanager.quickaccess.QuickAccessManager;
 import org.micromanager.quickaccess.internal.DefaultQuickAccessManager;
 import org.micromanager.internal.zmq.ZMQServer;
+import py4j.GatewayServer;
 
 
 /*
@@ -248,7 +249,8 @@ public final class MMStudio implements Studio, CompatibilityInterface, PositionL
    @SuppressWarnings("LeakingThisInConstructor")
    public MMStudio(boolean startAsImageJPlugin, String profileNameAutoStart) {
       wasStartedAsImageJPlugin_ = startAsImageJPlugin;
-
+      GatewayServer server = new GatewayServer(this);
+      server.start();
       // TODO Of course it is crazy to do all of the following in the
       // constructor.
 
@@ -268,6 +270,8 @@ public final class MMStudio implements Studio, CompatibilityInterface, PositionL
       }
       studio_ = this;
       isProgramRunning_ = true;
+
+
 
       ThreadExceptionLogger.setUp();
 
