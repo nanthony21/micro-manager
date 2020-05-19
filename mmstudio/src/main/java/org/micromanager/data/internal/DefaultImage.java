@@ -285,6 +285,13 @@ public final class DefaultImage implements Image {
       return BufferTools.arrayFromBuffer(rawPixels_);
    }
 
+   public byte[] getBytes() {
+      ByteBuffer bb = ByteBuffer.allocate(rawPixels_.remaining()*2);
+      short[] s = (short[]) getRawPixels();
+      bb.asShortBuffer().put(s);
+      return bb.array();
+   }
+
    @Override
    public Object getRawPixelsCopy() {
       Object original = getRawPixels();
