@@ -129,7 +129,6 @@ public final class DisplayUIController implements
    private final DisplayWindowControlsFactory controlsFactory_;
 
    private JFrame frame_; // Not null iff not closed
-   private JFrame fullScreenFrame_; // Not null iff in full-screen mode
 
    // We place all components in a JPanel, so that they can be transferred
    // en bloc to and from the full screen window.
@@ -141,7 +140,6 @@ public final class DisplayUIController implements
    private JPanel canvasBorderPanel_;
    private JComponent topControlPanel_;
    private JComponent bottomControlPanel_;
-   private JButton fullScreenButton_;
    private JButton zoomInButton_;
    private JButton zoomOutButton_;
    private JLabel pixelInfoLabel_;
@@ -253,7 +251,7 @@ public final class DisplayUIController implements
       displayController_ = parent;
       animationController_ = animationController;
       controlsFactory_ = controlsFactory;
-      frame_ = makeFrame(false);
+      frame_ = makeFrame();
       contentPanel_ = buildInitialUI();
       frame_.add(contentPanel_);
       frame_.validate();
@@ -265,47 +263,39 @@ public final class DisplayUIController implements
    }
 
    @MustCallOnEDT
-   private JFrame makeFrame(boolean fullScreen) {
+   private JFrame makeFrame() {
       JFrame frame;
-      if (!fullScreen) {
-         // TODO LATER Eliminate MMFrame
-         frame = new MMFrame("image display window", false);
-         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-         ((MMFrame) frame).loadPosition(320, 320, 480, 320);
 
-         // TODO Determine initial window bounds using a CascadingWindowPositioner:
-         // - (Setting canvas zoom has been handled by DisplayController (ImageJLink))
-         // - Determine the frame size to show the entire image at current zoom
-         // - Fetch last-used top-left from profile
-         // - If no other viewer frames are open, use the last-used top-left (but
-         //   see below for adjustment when window doesn't fit in screen)
-         // - Add cascading offset to top-left if any other viewer frames are open
-         //   - Normally, offset is x=y=d, where d = frame_.getInsets().top
-         //   - But if that offset would cause window to go off bottom (not right),
-         //     then set absolute y to top of available screen area. In this case,
-         //     the x position should be computed as 2*d plus the intersection of
-         //     the top of the available screen area with the 45-degree line
-         //     extending upper-left from the top-left of the previous (x, y) (with
-         //     a minimum x of 0)
-         //   - If frame's x is <100 from the right edge of available screen area,
-         //     shift down by d and set absolute x to left edge of monitor
-         //   - Finally, if the previous step leaves the vert overlap <100,
-         //     set absolute x and y to top-left of available screen area.
-         // - Having determined the top-left position, set the width and height
-         //   such that bottom of frame does not extend beyond available screen
-         //   area and width of frame is no more than the width of available screen
-         //   area.
-         // - In any case, the screen to use is the screen in which a viewer window
-         //   was last found (not created).
-      }
-      else {
-         frame = new JFrame();
-         frame.setUndecorated(true);
-         frame.setResizable(false);
-         frame.setBounds(
-               GUIUtils.getFullScreenBounds(frame.getGraphicsConfiguration()));
-         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-      }
+    // TODO LATER Eliminate MMFrame
+    frame = new MMFrame("image display window", false);
+    frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+    ((MMFrame) frame).loadPosition(320, 320, 480, 320);
+
+    // TODO Determine initial window bounds using a CascadingWindowPositioner:
+    // - (Setting canvas zoom has been handled by DisplayController (ImageJLink))
+    // - Determine the frame size to show the entire image at current zoom
+    // - Fetch last-used top-left from profile
+    // - If no other viewer frames are open, use the last-used top-left (but
+    //   see below for adjustment when window doesn't fit in screen)
+    // - Add cascading offset to top-left if any other viewer frames are open
+    //   - Normally, offset is x=y=d, where d = frame_.getInsets().top
+    //   - But if that offset would cause window to go off bottom (not right),
+    //     then set absolute y to top of available screen area. In this case,
+    //     the x position should be computed as 2*d plus the intersection of
+    //     the top of the available screen area with the 45-degree line
+    //     extending upper-left from the top-left of the previous (x, y) (with
+    //     a minimum x of 0)
+    //   - If frame's x is <100 from the right edge of available screen area,
+    //     shift down by d and set absolute x to left edge of monitor
+    //   - Finally, if the previous step leaves the vert overlap <100,
+    //     set absolute x and y to top-left of available screen area.
+    // - Having determined the top-left position, set the width and height
+    //   such that bottom of frame does not extend beyond available screen
+    //   area and width of frame is no more than the width of available screen
+    //   area.
+    // - In any case, the screen to use is the screen in which a viewer window
+    //   was last found (not created).
+
       setTitle(frame);
       return frame;
    }
@@ -317,10 +307,6 @@ public final class DisplayUIController implements
       if (ijBridge_ != null) {
          ijBridge_.mm2ijWindowClosed();
          ijBridge_ = null;
-      }
-      if (fullScreenFrame_ != null) {
-         fullScreenFrame_.dispose();
-         fullScreenFrame_ = null;
       }
       if (frame_ != null) {
          frame_.dispose();
@@ -435,13 +421,6 @@ public final class DisplayUIController implements
             new MigLayout("insets 0, gap 1 1, fillx"));
       JPanel buttonPanel = new JPanel(new MigLayout("insets 0, gap 1 1"));
 
-      fullScreenButton_ = new JButton();
-      fullScreenButton_.setFont(GUIUtils.buttonFont);
-      fullScreenButton_.addActionListener((ActionEvent e) -> {
-         setFullScreenMode(!isFullScreenMode());
-      });
-      setFullScreenMode(isFullScreenMode()); // Sync button state
-      buttonPanel.add(fullScreenButton_);
 
       zoomInButton_ = new JButton(
             IconLoader.getIcon("/org/micromanager/icons/zoom_in.png"));
@@ -1158,55 +1137,13 @@ public final class DisplayUIController implements
     @Override
    public void setVisible(boolean visible) {
       frame_.setVisible(visible);
-      // TODO Full screen
    }
 
    @MustCallOnEDT
     @Override
    public void toFront() {
       frame_.toFront();
-      // TODO Full screen
-      // TODO XXX Tell ImageJ
    }
-
-   @MustCallOnEDT
-   boolean isFullScreenMode() {
-      return fullScreenFrame_ != null;
-   }
-
-   @MustCallOnEDT
-   void setFullScreenMode(boolean fullScreen) {
-      if (fullScreen) {
-         if (!isFullScreenMode()) {
-            frame_.setVisible(false);
-            fullScreenFrame_ = makeFrame(true);
-            fullScreenFrame_.add(contentPanel_);
-            fullScreenFrame_.setVisible(true);
-            fullScreenFrame_.addWindowListener(this);
-         }
-         fullScreenButton_.setText("Exit Full Screen");
-         fullScreenButton_.setIcon(IconLoader.getIcon(
-               "/org/micromanager/icons/windowed.png"));
-         fullScreenButton_.setToolTipText("Exit full screen mode");
-      }
-      else {
-         if (isFullScreenMode()) {
-            fullScreenFrame_.removeWindowListener(this);
-            fullScreenFrame_.setVisible(false);
-            frame_.add(contentPanel_);
-            contentPanel_.invalidate();
-            frame_.validate();
-            frame_.setVisible(true);
-            fullScreenFrame_.dispose();
-            fullScreenFrame_ = null;
-         }
-         fullScreenButton_.setText(null);
-         fullScreenButton_.setIcon(IconLoader.getIcon(
-               "/org/micromanager/icons/fullscreen.png"));
-         fullScreenButton_.setToolTipText("View in full screen mode");
-      }
-   }
-   
 
     @Override
    public void updateTitle() {
@@ -1268,12 +1205,7 @@ public final class DisplayUIController implements
    public void canvasNeedsSwap() {
       canvasBorderPanel_.removeAll();
       canvasBorderPanel_.add(ijBridge_.getIJImageCanvas());
-      if (isFullScreenMode()) {
-         fullScreenFrame_.validate();
-      }
-      else {
-         frame_.validate();
-      }
+        frame_.validate();
    }
 
    /**
@@ -1299,42 +1231,25 @@ public final class DisplayUIController implements
       // We can rely on our sanitized canvas to report the max image size as
       // its max size
       Dimension canvasMaxSize = ijBridge_.getIJImageCanvas().getMaximumSize();
-      if (isFullScreenMode()) {
-         Insets frameInsets = fullScreenFrame_.getInsets();
-         final int MARGIN = 16;
-         int newCanvasWidth = Math.min(canvasMaxSize.width,
-               fullScreenFrame_.getWidth() -
-                     frameInsets.left - frameInsets.right - MARGIN);
-         int newCanvasHeight = Math.min(canvasMaxSize.height,
-               canvasPanel_.getHeight() - MARGIN);
-         ijBridge_.getIJImageCanvas().setPreferredSize(
-               new Dimension(newCanvasWidth, newCanvasHeight));
-         ijBridge_.getIJImageCanvas().invalidate();
-         // Although we don't want to pack, it is essential to call validate
-         // here, despite the call to invalidate; otherwise the AWT component
-         // (canvas) is sporadically drawn incorrectly
-         fullScreenFrame_.validate();
-      }
-      else {
-         GraphicsConfiguration gConfig = frame_.getGraphicsConfiguration();
-         Rectangle screenBounds = Geometry.insettedRectangle(
-               gConfig.getBounds(),
-               Toolkit.getDefaultToolkit().getScreenInsets(gConfig));
+        GraphicsConfiguration gConfig = frame_.getGraphicsConfiguration();
+        Rectangle screenBounds = Geometry.insettedRectangle(
+              gConfig.getBounds(),
+              Toolkit.getDefaultToolkit().getScreenInsets(gConfig));
 
-         Insets frameInsets = frame_.getInsets();
-         int newCanvasWidth = Math.min(canvasMaxSize.width,
-               screenBounds.width - frameInsets.left - frameInsets.right -
-                     2 * BORDER_THICKNESS);
-         int newCanvasHeight = Math.min(canvasMaxSize.height,
-               screenBounds.height - frameInsets.top - frameInsets.bottom -
-                     2 * BORDER_THICKNESS -
-                     topControlPanel_.getSize().height -
-                     bottomControlPanel_.getSize().height);
-         ijBridge_.getIJImageCanvas().setPreferredSize(
-               new Dimension(newCanvasWidth, newCanvasHeight));
-         ijBridge_.getIJImageCanvas().invalidate();
+        Insets frameInsets = frame_.getInsets();
+        int newCanvasWidth = Math.min(canvasMaxSize.width,
+              screenBounds.width - frameInsets.left - frameInsets.right -
+                    2 * BORDER_THICKNESS);
+        int newCanvasHeight = Math.min(canvasMaxSize.height,
+              screenBounds.height - frameInsets.top - frameInsets.bottom -
+                    2 * BORDER_THICKNESS -
+                    topControlPanel_.getSize().height -
+                    bottomControlPanel_.getSize().height);
+        ijBridge_.getIJImageCanvas().setPreferredSize(
+              new Dimension(newCanvasWidth, newCanvasHeight));
+        ijBridge_.getIJImageCanvas().invalidate();
 
-         frame_.pack(); // Includes validation
+        frame_.pack(); // Includes validation
 
          // NS: I find the autonomous movement of the window highly annoying
          // Uncomment if you disagree and want the window to move all by itself
@@ -1348,8 +1263,6 @@ public final class DisplayUIController implements
          newFrameY = Math.max(1, newFrameY);
          frame_.setLocation(newFrameX, newFrameY);
          */
-      }
-
       ijBridge_.mm2ijRepaint();
    }
 
@@ -1804,7 +1717,6 @@ public final class DisplayUIController implements
     * @return Human readable String explaining the pixel Type
     * TODO: Formalize these Strings
     */
-   
    public String getPixelType() {
       try {
          int bytesPerPixel = displayController_.getDataProvider().getAnyImage().getBytesPerPixel();
@@ -1965,12 +1877,7 @@ public final class DisplayUIController implements
 
    @Override
    public void windowClosing(WindowEvent e) {
-      if (e.getWindow() == frame_) {
-         displayController_.requestToClose();
-      }
-      else if (e.getWindow() == fullScreenFrame_) {
-         setFullScreenMode(false);
-      }
+        displayController_.requestToClose();
    }
 
    @Override
@@ -2002,12 +1909,6 @@ public final class DisplayUIController implements
    public void scrollBarPanelHeightDidChange(MDScrollBarPanel panel,
          int oldHeight, int newHeight)
    {
-      if (isFullScreenMode()) {
-         // Canvas height will auto-adjust
-         panel.setVisible(true);
-         fullScreenFrame_.validate();
-      }
-      else {
          // Adjust window height
          frame_.setSize(frame_.getWidth(),
                frame_.getHeight() - oldHeight + newHeight);
@@ -2015,7 +1916,7 @@ public final class DisplayUIController implements
          frame_.validate();
          // TODO Move frame up if bottom beyond screen bottom (which means we
          // also need to shrink window if too tall for screen)
-      }
+      
    }
 
    @Override
