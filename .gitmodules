@@ -1,0 +1,3 @@
+[submodule "plugins/PWSPlugin"]
+	path = plugins/PWSPlugin
+	url = https://nickAnthonyNU@bitbucket.org/backmanlab/micromanagerplugins.git
