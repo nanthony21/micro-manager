@@ -53,7 +53,7 @@ public final class UserProfileAdmin {
 
    private static final String GLOBAL_PROFILE_FILE = "MMGlobalProfile.json";
    private static final String OLD_GLOBAL_PROFILE_FILE = "GlobalUserProfile.txt";
-   private static final String PROFILE_DIRECTORY = "UserProfiles";
+   private static final String PROFILE_DIRECTORY = "BackmanLabPWSUserProfiles";
    private static final String INDEX_FILE = "Index.json";
    private static final String OLD_INDEX_FILE = "Profiles.txt";
    private static final String WRITE_LOCK_FILE = "UserProfileWriteLock";
