@@ -261,7 +261,7 @@ public final class DaytimeNighttime implements ApplicationSkin {
    public SkinMode getSkin() {
       return SkinMode.fromString(studio_.profile().
               getSettings(DaytimeNighttime.class).getString(
-            BACKGROUND_MODE, SkinMode.NIGHT.getDesc()));
+            BACKGROUND_MODE, SkinMode.DAY.getDesc())); //Default to DAY mode if no setting is found
    }
 
    /**
