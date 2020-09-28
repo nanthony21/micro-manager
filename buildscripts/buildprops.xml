@@ -32,7 +32,7 @@
 	<property environment="mm.env"/>
 
 	<!-- Whether to skip nonessential components that don't build -->
-	<property name="mm.build.failonerror" value="true"/>
+	<property name="mm.build.failonerror" value="false"/>
 
 	<!-- Whether to use Fiji-compatible directory structure -->
 	<property name="mm.build.for.imagej2updater" value="false"/>
