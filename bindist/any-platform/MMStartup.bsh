@@ -1,0 +1,2 @@
+plugin = mm.plugins().getMenuPlugins().get("edu.bpl.pwsplugin.PWSPlugin");
+plugin.onPluginSelected();
