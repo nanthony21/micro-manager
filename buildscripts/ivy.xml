@@ -81,6 +81,7 @@
       <dependency org="org.micromanager" name="cl-kernel-bindings" rev="0.1.1-SNAPSHOT"/>
 
 		<!-- Twelve Monkeys TIFF plugin needed for the PWSPlugin file saving -->
+		<dependency org="com.twelvemonkeys.imageio" name="imageio-core" rev="3.6"/> <!-- the TIFF plugin should download this on its own but for some reason it doesn't. -->
 		<dependency org="com.twelvemonkeys.imageio" name="imageio-tiff" rev="3.6"/>
 
 		<dependency org="org.boofcv" name="boofcv-ip" rev="0.36"/>
