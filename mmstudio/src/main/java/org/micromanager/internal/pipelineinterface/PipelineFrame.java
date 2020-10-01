@@ -230,7 +230,7 @@ final public class PipelineFrame extends MMFrame
    public void onStartupComplete(StartupCompleteEvent event) {
       try {
          if (getTableModel().restorePipelineFromProfile(studio_)) {
-            setVisible(true);
+            //setVisible(true); //We don't really want the window to open up every time we start the software.
          }
       }
       catch (Exception e) {
