@@ -1,3 +1,8 @@
+set BUILDSCRIPTPATH=%~dp0
+FOR %%a IN ("%BUILDSCRIPTPATH:~0,-1%") DO SET ROOTPATH=%%~dpa
+cd %ROOTPATH%
+
+
 call ant clean
 
 if errorlevel 1 (
