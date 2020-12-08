@@ -55,6 +55,7 @@ public final class AcquisitionWrapperEngine implements AcquisitionEngine {
 
    public void setSequenceSettings(SequenceSettings sequenceSettings) {
       sequenceSettings_ = sequenceSettings;
+      calculateSlices();
       settingsChanged();
    }
 
@@ -458,11 +459,6 @@ public final class AcquisitionWrapperEngine implements AcquisitionEngine {
    }
 
    @Override
-   public int getCurrentFrameCount() {
-      return sequenceSettings_.numFrames();
-   }
-
-   @Override
    public double getFrameIntervalMs() {
       return sequenceSettings_.intervalMs();
    }
@@ -801,7 +797,7 @@ public final class AcquisitionWrapperEngine implements AcquisitionEngine {
 
    @Subscribe
    public void onShutdownCommencing(InternalShutdownCommencingEvent event) {
-      if (!event.getIsCancelled() && isAcquisitionRunning()) {
+      if (!event.isCanceled() && isAcquisitionRunning()) {
          int result = JOptionPane.showConfirmDialog(null,
                "Acquisition in progress. Are you sure you want to exit and discard all data?",
                "Micro-Manager", JOptionPane.YES_NO_OPTION,

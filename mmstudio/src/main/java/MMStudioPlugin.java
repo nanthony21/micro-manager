@@ -41,6 +41,8 @@ import org.micromanager.internal.utils.ReportingUtils;
 
 /**
  * ImageJ plugin wrapper for Micro-Manager.
+ *
+ * Note: This class is <i>not</i> part of the MMStudio API.
  */
 public class MMStudioPlugin implements PlugIn, CommandListener {
    volatile static MMStudio studio_;
@@ -56,7 +58,7 @@ public class MMStudioPlugin implements PlugIn, CommandListener {
          @Override
          public void run() {
             try {
-               if (studio_ == null || !studio_.getIsProgramRunning()) {
+               if (studio_ == null || !studio_.isProgramRunning()) {
                   // OS-specific stuff
                   // TODO Why here and not in MMStudio?
                   if (JavaUtils.isMac()) {

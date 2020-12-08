@@ -540,7 +540,7 @@ public final class DisplayUIController implements Closeable, WindowListener,
       // automatic calculation of minimum size of bottom panel
       // can be misleading because no minimum size for the scrollbars is included.
       // So, help out a bit by setting a reasonable minimum
-      panel.setMinimumSize(new Dimension(345, 10));
+      panel.setMinimumSize(new Dimension(345, 55));
       
       return panel;
    }
@@ -781,8 +781,11 @@ public final class DisplayUIController implements Closeable, WindowListener,
       // redrawing the info line (which may be expensive), check if pixelsize
       // changed (which can happen for the snap/live window) and only redraw the 
       // info label if it changed.
-      if (!cachedPixelSize_.equals(images.getRequest().getImage(0).getMetadata().
-              getPixelSizeUm())) {
+      Double currentPixelSize = images.getRequest().getImage(0).getMetadata().getPixelSizeUm();
+      if (currentPixelSize == null) {
+         currentPixelSize = 0.0;
+      }
+      if (!currentPixelSize.equals(cachedPixelSize_)) {
          infoLabel_.setText(this.getInfoString(images));
          ijBridge_.mm2ijSetMetadata();
          cachedPixelSize_ = images.getRequest().getImage(0).getMetadata().
@@ -1303,12 +1306,13 @@ public final class DisplayUIController implements Closeable, WindowListener,
          Insets frameInsets = frame_.getInsets();
          int newCanvasWidth = Math.min(canvasMaxSize.width,
                screenBounds.width - frameInsets.left - frameInsets.right -
-                     2 * BORDER_THICKNESS);
+                     2 * BORDER_THICKNESS - frame_.getX());
          int newCanvasHeight = Math.min(canvasMaxSize.height,
                screenBounds.height - frameInsets.top - frameInsets.bottom -
                      2 * BORDER_THICKNESS -
                      topControlPanel_.getSize().height -
-                     bottomControlPanel_.getSize().height);
+                     bottomControlPanel_.getSize().height -
+                     frame_.getY());
          ijBridge_.getIJImageCanvas().setPreferredSize(
                new Dimension(newCanvasWidth, newCanvasHeight));
          ijBridge_.getIJImageCanvas().invalidate();
@@ -1832,11 +1836,13 @@ public final class DisplayUIController implements Closeable, WindowListener,
          return "Failed to find image";
       }
 
-      double widthUm = getImageWidth() * pixelSize;
-      double heightUm = getImageHeight() * pixelSize;
-      infoStringB.append(NumberUtils.doubleToDisplayString(widthUm)).append("x").
-              append(NumberUtils.doubleToDisplayString(heightUm)).
-              append("\u00B5").append("m  ");
+      if (pixelSize != null && pixelSize != 0.0) {
+         double widthUm = getImageWidth() * pixelSize;
+         double heightUm = getImageHeight() * pixelSize;
+         infoStringB.append(NumberUtils.doubleToDisplayString(widthUm)).append("x").
+                 append(NumberUtils.doubleToDisplayString(heightUm)).
+                 append("\u00B5").append("m  ");
+      }
 
       infoStringB.append(getImageWidth()).append("x").append(getImageHeight());
       infoStringB.append("px  ");
@@ -2050,7 +2056,7 @@ public final class DisplayUIController implements Closeable, WindowListener,
    @Subscribe
    public void onLiveModeEvent(LiveModeEvent liveModeEvent) {
       // Used to reset counters for camera fps measurements
-      if (liveModeEvent.getIsOn()) {
+      if (liveModeEvent.isOn()) {
          nrLiveFramesReceived_ = 0;
          lastImageNumber_ = 0;
          durationMs_ = 0.0;

@@ -210,7 +210,9 @@ public class PixelCalibratorDialog extends MMFrame {
     */
    @Subscribe
    public void onShutdownCommencing(ShutdownCommencingEvent event) {
-      this.dispose();
+      if (!event.isCanceled()) {
+         dispose();
+      }
    }
 
    
@@ -252,6 +254,14 @@ public class PixelCalibratorDialog extends MMFrame {
          showFailureMessage();
          return;
       }
+
+      // Set translation part zero.
+      double[] m = new double[6];
+      result.getMatrix(m);
+      // See source of AffineTransform.java.  TranslateX has index 4, TranslateY has index 5
+      m[4] = 0;
+      m[5] = 0;
+      result = new AffineTransform(m);
 
       double pixelSize = AffineUtils.deducePixelSize(result);
       double[] measurements = AffineUtils.affineToMeasurements(result);
