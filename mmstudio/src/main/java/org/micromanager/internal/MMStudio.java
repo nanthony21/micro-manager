@@ -496,7 +496,7 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
 
       executeStartupScript();
 
-      updateGUI(true);
+      updateGUI(true, false);
       
       // Give plugins a chance to initialize their state
       events().post(new StartupCompleteEvent());
@@ -1072,7 +1072,7 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
          if (frame_ != null) {
             configureBinningCombo();
             frame_.updateAutofocusButtons(afMgr_.getAutofocusMethod() != null);
-            updateGUI(true);
+            updateGUI(true, false);
          }
       } catch (Exception e) {
          ReportingUtils.showError(e);
@@ -1081,7 +1081,7 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
 
    @Subscribe
    public void onPropertiesChanged(PropertiesChangedEvent event) {
-      updateGUI(true);
+      updateGUI(true, false);
    }
 
    @Subscribe
@@ -1089,10 +1089,6 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
       if (event.getCameraName().equals(StaticInfo.cameraLabel_)) {
          frame_.setDisplayedExposureTime(event.getNewExposureTime());
       }
-   }
-
-   public void updateGUI(boolean updateConfigPadStructure) {
-      updateGUI(updateConfigPadStructure, false);
    }
 
    public void updateGUI(boolean updateConfigPadStructure, boolean fromCache) {
@@ -1561,7 +1557,7 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
 
    @Override
    public void refreshGUI() {
-      updateGUI(true);
+      updateGUI(true, false);
    }
    
    @Override
