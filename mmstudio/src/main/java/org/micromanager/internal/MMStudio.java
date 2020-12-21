@@ -1091,7 +1091,7 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
       }
    }
 
-   public void updateGUI(boolean updateConfigPadStructure, boolean fromCache) {
+   private void updateGUI(boolean updateConfigPadStructure, boolean fromCache) {
       ReportingUtils.logMessage("Updating GUI; config pad = " +
             updateConfigPadStructure + "; from cache = " + fromCache);
       try {
