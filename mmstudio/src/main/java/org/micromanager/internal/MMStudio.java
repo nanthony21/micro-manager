@@ -496,7 +496,7 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
 
       executeStartupScript();
 
-      updateGUI(false);
+      refreshGUI();
       
       // Give plugins a chance to initialize their state
       events().post(new StartupCompleteEvent());
@@ -1072,7 +1072,7 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
          if (frame_ != null) {
             configureBinningCombo();
             frame_.updateAutofocusButtons(afMgr_.getAutofocusMethod() != null);
-            updateGUI(false);
+            refreshGUI();
          }
       } catch (Exception e) {
          ReportingUtils.showError(e);
@@ -1081,7 +1081,7 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
 
    @Subscribe
    public void onPropertiesChanged(PropertiesChangedEvent event) {
-      updateGUI(false);
+      refreshGUI();
    }
 
    @Subscribe
