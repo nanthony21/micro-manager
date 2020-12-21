@@ -72,9 +72,7 @@ public final class ConfigMenu {
               new Runnable() {
                  @Override
                  public void run() {
-                    mmStudio_.loadSystemConfiguration();
-                    // TODO: this is redundant.
-                    mmStudio_.initializeGUI();
+                    mmStudio_.setSysConfigFile(mmStudio_.getSysConfigFile());
                  }
               });
 

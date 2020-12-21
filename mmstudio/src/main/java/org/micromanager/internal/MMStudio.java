@@ -431,7 +431,7 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
       // up GUI elements (but various managers will need to be aware of this)
       if (sysConfigFile_ != null) {  // we do allow running Micro-Manager without 
          // a config file!
-         if (!loadSystemConfiguration()) {
+         if (!setSysConfigFile(sysConfigFile_)) {
             // TODO Do we still need to turn errors off to prevent spurious error messages?
             ReportingUtils.showErrorOn(false);
          }
@@ -846,11 +846,59 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
       return sysConfigFile_;
    }
 
-   public void setSysConfigFile(String newFile) {
+   /**
+    * Loads system configuration from the cfg file.
+    * @return true when successful
+    */
+   public boolean setSysConfigFile(String newFile) {
       sysConfigFile_ = newFile;
       configChanged_ = false;
       frame_.setConfigSaveButtonStatus(configChanged_);
-      loadSystemConfiguration();
+      
+      //Load system configuration
+      boolean result = true;
+
+      final WaitDialog waitDlg = new WaitDialog(
+              "Loading system configuration, please wait...");
+
+      waitDlg.setAlwaysOnTop(true);
+      waitDlg.showDialog();
+      if (frame_ != null) {
+         frame_.setEnabled(false);
+      }
+
+      try {
+         if (sysConfigFile_ != null && sysConfigFile_.length() > 0) {
+            GUIUtils.preventDisplayAdapterChangeExceptions();
+            core_.waitForSystem();
+            coreCallback_.setIgnoring(true);
+            HardwareConfigurationManager.
+                  create(profile(), core_).
+                  loadHardwareConfiguration(sysConfigFile_);
+            coreCallback_.setIgnoring(false);
+            GUIUtils.preventDisplayAdapterChangeExceptions();
+            events().post(new AutofocusPluginShouldInitializeEvent());
+            FileDialogs.storePath(FileDialogs.MM_CONFIG_FILE, new File(sysConfigFile_));
+         }
+      } catch (final Exception err) {
+         GUIUtils.preventDisplayAdapterChangeExceptions();
+
+         waitDlg.closeDialog(); // Prevent from obscuring error alert
+         ReportingUtils.showError(err,
+               "Failed to load hardware configuration",
+               null);
+         result = false;
+      } finally {
+         waitDlg.closeDialog();
+         if (frame_ != null) {
+            frame_.setEnabled(true);
+         }
+
+      }
+
+      initializeGUI();
+
+      return result;
    }
 
    protected void changeBinning() {
@@ -1345,55 +1393,6 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
       ReportingUtils.logMessage("Finished running startup script");
    }
 
-   /**
-    * Loads system configuration from the cfg file.
-    * @return true when successful
-    */
-   public boolean loadSystemConfiguration() {
-      boolean result = true;
-
-      final WaitDialog waitDlg = new WaitDialog(
-              "Loading system configuration, please wait...");
-
-      waitDlg.setAlwaysOnTop(true);
-      waitDlg.showDialog();
-      if (frame_ != null) {
-         frame_.setEnabled(false);
-      }
-
-      try {
-         if (sysConfigFile_ != null && sysConfigFile_.length() > 0) {
-            GUIUtils.preventDisplayAdapterChangeExceptions();
-            core_.waitForSystem();
-            coreCallback_.setIgnoring(true);
-            HardwareConfigurationManager.
-                  create(profile(), core_).
-                  loadHardwareConfiguration(sysConfigFile_);
-            coreCallback_.setIgnoring(false);
-            GUIUtils.preventDisplayAdapterChangeExceptions();
-            events().post(new AutofocusPluginShouldInitializeEvent());
-            FileDialogs.storePath(FileDialogs.MM_CONFIG_FILE, new File(sysConfigFile_));
-         }
-      } catch (final Exception err) {
-         GUIUtils.preventDisplayAdapterChangeExceptions();
-
-         waitDlg.closeDialog(); // Prevent from obscuring error alert
-         ReportingUtils.showError(err,
-               "Failed to load hardware configuration",
-               null);
-         result = false;
-      } finally {
-         waitDlg.closeDialog();
-         if (frame_ != null) {
-            frame_.setEnabled(true);
-         }
-
-      }
-
-      initializeGUI();
-
-      return result;
-   }
 
    public void openAcqControlDialog() {
       try {
