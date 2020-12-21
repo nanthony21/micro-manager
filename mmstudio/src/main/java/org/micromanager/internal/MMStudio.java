@@ -496,7 +496,7 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
 
       executeStartupScript();
 
-      updateGUI(true, false);
+      updateGUI(false);
       
       // Give plugins a chance to initialize their state
       events().post(new StartupCompleteEvent());
@@ -1072,7 +1072,7 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
          if (frame_ != null) {
             configureBinningCombo();
             frame_.updateAutofocusButtons(afMgr_.getAutofocusMethod() != null);
-            updateGUI(true, false);
+            updateGUI(false);
          }
       } catch (Exception e) {
          ReportingUtils.showError(e);
@@ -1081,7 +1081,7 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
 
    @Subscribe
    public void onPropertiesChanged(PropertiesChangedEvent event) {
-      updateGUI(true, false);
+      updateGUI(false);
    }
 
    @Subscribe
@@ -1091,9 +1091,8 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
       }
    }
 
-   private void updateGUI(boolean updateConfigPadStructure, boolean fromCache) {
-      ReportingUtils.logMessage("Updating GUI; config pad = " +
-            updateConfigPadStructure + "; from cache = " + fromCache);
+   private void updateGUI(boolean fromCache) {
+      ReportingUtils.logMessage("Updating GUI; from cache = " + fromCache);
       try {
          staticInfo_.refreshValues();
          afMgr_.refresh();
@@ -1116,7 +1115,7 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
 
          ConfigGroupPad pad = frame_.getConfigPad();
          // state devices
-         if (updateConfigPadStructure && (pad != null)) {
+         if (pad != null) {
             pad.refreshStructure(fromCache);
             // Needed to update read-only properties.  May slow things down...
             if (!fromCache) {
@@ -1557,12 +1556,12 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
 
    @Override
    public void refreshGUI() {
-      updateGUI(true, false);
+      updateGUI(false);
    }
    
    @Override
    public void refreshGUIFromCache() {
-      updateGUI(true, true);
+      updateGUI(true);
    }
 
    public AcquisitionWrapperEngine getAcquisitionEngine() {
