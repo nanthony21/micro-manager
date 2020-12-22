@@ -204,7 +204,7 @@ public final class DefaultPluginManager implements PluginManager {
                configure.addActionListener(new ActionListener() {
                   @Override
                   public void actionPerformed(ActionEvent e) {
-                     ((MMStudio) studio_).showPipelineFrame();
+                     ((MMStudio) studio_).getPipelineFrame().setVisible(true);
                   }
                });
                menu.addUnsorted(configure);

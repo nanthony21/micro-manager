@@ -96,6 +96,7 @@ import org.micromanager.internal.navigation.UiMovesStageManager;
 import org.micromanager.internal.pipelineinterface.PipelineFrame;
 import org.micromanager.internal.pluginmanagement.DefaultPluginManager;
 import org.micromanager.internal.positionlist.MMPositionListDlg;
+import org.micromanager.internal.positionlist.PositionListDlg;
 import org.micromanager.internal.propertymap.DefaultPropertyMap;
 import org.micromanager.internal.script.ScriptPanel;
 import org.micromanager.internal.utils.DaytimeNighttime;
@@ -479,7 +480,7 @@ public final class MMStudio implements Studio {
       // loaded before creating the GUI, so we need to reissue the event.)
       events().post(new SystemConfigurationLoadedEvent());
 
-      executeStartupScript();
+      init_executeStartupScript();
 
       app().refreshGUI();
       
@@ -560,14 +561,34 @@ public final class MMStudio implements Studio {
       acquisitionEngine2010LoadingThread_.start();
    }
   
-   public void showPipelineFrame() {
-      pipelineFrame_.setVisible(true);
+   private void init_executeStartupScript() {
+      String filename = ScriptPanel.getStartupScript(this);
+      if (filename == null || filename.length() <= 0) {
+         logs().logMessage("No startup script to run");
+         return;
+      }
+
+      File f = new File(filename);
+      if (!f.exists()) {
+         logs().logMessage("Startup script (" +
+               f.getAbsolutePath() + ") not present");
+         return;
+      }
+
+      ReportingUtils.logMessage("Running startup script (" +
+               f.getAbsolutePath() + ")...");
+      WaitDialog waitDlg = new WaitDialog(
+            "Executing startup script, please wait...");
+      waitDlg.showDialog();
+      try {
+         scriptPanel_.runFile(f);
+      }
+      finally {
+         waitDlg.closeDialog();
+      }
+      ReportingUtils.logMessage("Finished running startup script");
    }
 
-   public void showScriptPanel() {
-      scriptPanel_.setVisible(true);
-   }
-   
    public SettingsManager getSettingsManager() {
       return settingsManager_;
    }
@@ -729,6 +750,63 @@ public final class MMStudio implements Studio {
       return mmMenuBar_;
    }
 
+   public void openAcqControlDialog() {
+      try {
+         if (acqControlWin_ == null) {
+            acqControlWin_ = new AcqControlDlg(acqEngine_, studio_);
+         }
+         if (acqControlWin_.isActive()) {
+            acqControlWin_.setTopPosition();
+         }
+
+         acqControlWin_.setVisible(true);
+         
+         acqControlWin_.repaint();
+
+      } catch (Exception exc) {
+         ReportingUtils.showError(exc,
+               "\nAcquisition window failed to open due to invalid or corrupted settings.\n"
+               + "Try resetting registry settings to factory defaults (Menu Tools|Options).");
+      }
+   }
+   
+   public PipelineFrame getPipelineFrame() {
+      return pipelineFrame_;
+   }
+   
+   public PositionListDlg getPosListDialog() {
+      return posListDlg_;
+   }
+   
+   public PropertyEditor createPropertyEditor() {
+      if (propertyBrowser_ != null) {
+         propertyBrowser_.dispose();
+      }
+
+      propertyBrowser_ = new PropertyEditor(studio_);
+      this.events().registerForEvents(propertyBrowser_);
+      propertyBrowser_.setVisible(true);
+      propertyBrowser_.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+      return propertyBrowser_;
+   }
+
+   public CalibrationListDlg createCalibrationListDlg() {
+      if (calibrationListDlg_ != null) {
+         calibrationListDlg_.dispose();
+      }
+
+      calibrationListDlg_ = new CalibrationListDlg(core_);
+      calibrationListDlg_.setVisible(true);
+      calibrationListDlg_.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+      calibrationListDlg_.setParentGUI(studio_);
+      return calibrationListDlg_;
+   }
+
+   public void showScriptPanel() {
+      scriptPanel_.setVisible(true);
+   }
+   
+   
    public void promptToSaveConfigPresets() {
       File f = FileDialogs.save(frame_,
             "Save the configuration file", FileDialogs.MM_CONFIG_FILE);
@@ -881,30 +959,6 @@ public final class MMStudio implements Studio {
       }
       live().setSuspended(false);
    }
-
-   public PropertyEditor createPropertyEditor() {
-      if (propertyBrowser_ != null) {
-         propertyBrowser_.dispose();
-      }
-
-      propertyBrowser_ = new PropertyEditor(studio_);
-      this.events().registerForEvents(propertyBrowser_);
-      propertyBrowser_.setVisible(true);
-      propertyBrowser_.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-      return propertyBrowser_;
-   }
-
-   public CalibrationListDlg createCalibrationListDlg() {
-      if (calibrationListDlg_ != null) {
-         calibrationListDlg_.dispose();
-      }
-
-      calibrationListDlg_ = new CalibrationListDlg(core_);
-      calibrationListDlg_.setVisible(true);
-      calibrationListDlg_.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-      calibrationListDlg_.setParentGUI(studio_);
-      return calibrationListDlg_;
-   }
    
   public void runZMQServer() {
       if (zmqServer_ == null) {
@@ -951,28 +1005,6 @@ public final class MMStudio implements Studio {
       }
    }
 
-   public PipelineFrame getPipelineFrame() {
-      return pipelineFrame_;
-   }
-
-   public void updateXYPos(double x, double y) {
-      staticInfo_.updateXYPos(x, y);
-   }
-   public void updateXYPosRelative(double x, double y) {
-      staticInfo_.updateXYPosRelative(x, y);
-   }
-
-   public void updateZPos(double z) {
-      staticInfo_.updateZPos(z);
-   }
-   public void updateZPosRelative(double z) {
-      staticInfo_.updateZPosRelative(z);
-   }
-
-   public void updateXYStagePosition() {
-      staticInfo_.getNewXYStagePosition();
-   }
-
    public void updateCenterAndDragListener(boolean isEnabled) {
       isClickToMoveEnabled_ = isEnabled;
       if (isEnabled) {
@@ -993,22 +1025,6 @@ public final class MMStudio implements Studio {
 
    private boolean isCameraAvailable() {
       return CacheManager.cameraLabel_.length() > 0;
-   }
-
-   /**
-    * Part of Studio API
-    * Opens the XYPositionList when it is not opened
-    * Adds the current position to the list (same as pressing the "Mark"
-    * button)
-    */
-   // @Override
-   public void markCurrentPosition() {
-      if (posListDlg_ == null) {
-         app().showPositionList();
-      }
-      if (posListDlg_ != null) {
-         posListDlg_.markPosition(false);
-      }
    }
 
    private void configureBinningCombo() throws Exception {
@@ -1224,63 +1240,6 @@ public final class MMStudio implements Studio {
       return true;
    }
 
-
-   private void executeStartupScript() {
-      String filename = ScriptPanel.getStartupScript(this);
-      if (filename == null || filename.length() <= 0) {
-         logs().logMessage("No startup script to run");
-         return;
-      }
-
-      File f = new File(filename);
-      if (!f.exists()) {
-         logs().logMessage("Startup script (" +
-               f.getAbsolutePath() + ") not present");
-         return;
-      }
-
-      ReportingUtils.logMessage("Running startup script (" +
-               f.getAbsolutePath() + ")...");
-      WaitDialog waitDlg = new WaitDialog(
-            "Executing startup script, please wait...");
-      waitDlg.showDialog();
-      try {
-         scriptPanel_.runFile(f);
-      }
-      finally {
-         waitDlg.closeDialog();
-      }
-      ReportingUtils.logMessage("Finished running startup script");
-   }
-
-
-   public void openAcqControlDialog() {
-      try {
-         if (acqControlWin_ == null) {
-            acqControlWin_ = new AcqControlDlg(acqEngine_, studio_);
-         }
-         if (acqControlWin_.isActive()) {
-            acqControlWin_.setTopPosition();
-         }
-
-         acqControlWin_.setVisible(true);
-         
-         acqControlWin_.repaint();
-
-      } catch (Exception exc) {
-         ReportingUtils.showError(exc,
-               "\nAcquisition window failed to open due to invalid or corrupted settings.\n"
-               + "Try resetting registry settings to factory defaults (Menu Tools|Options).");
-      }
-   }
-
-   // //////////////////////////////////////////////////////////////////////////
-   // Script interface
-   // //////////////////////////////////////////////////////////////////////////
-   
-   
-
-
    public void setConfigChanged(boolean status) {
       configChanged_ = status;
       frame_.setConfigSaveButtonStatus(configChanged_);
@@ -1339,9 +1298,6 @@ public final class MMStudio implements Studio {
       return core_;
    }
 
-   /**
-    * Returns instance of the core uManager object;
-    */
    @Override
    public CMMCore getCMMCore() {
       return core_;

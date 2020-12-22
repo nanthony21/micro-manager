@@ -63,7 +63,7 @@ public final class HotKeyAction {
                   }
                   return true;
                case MARK:
-                  studio_.markCurrentPosition();
+                  studio_.positions().markCurrentPosition();
                   return true;
                case AUTOSTRETCH:
                   studio_.displays().getCurrentWindow().autostretch();

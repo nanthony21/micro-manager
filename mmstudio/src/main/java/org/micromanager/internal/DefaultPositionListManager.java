@@ -9,7 +9,7 @@ import org.micromanager.events.internal.DefaultNewPositionListEvent;
 public final class DefaultPositionListManager implements PositionListManager {
 
    private PositionList posList_;
-   private Studio studio_;
+   private final Studio studio_;
 
    public DefaultPositionListManager(Studio studio) {
       studio_ = studio;
@@ -23,6 +23,7 @@ public final class DefaultPositionListManager implements PositionListManager {
     * It will open a position list dialog if it was not already open.
     * @param pl PosiionLIst to be made the current one
     */
+   @Override
    public void setPositionList(PositionList pl) { // use serialization to clone the PositionList object
       posList_ = pl; // PositionList.newInstance(pl);
       studio_.events().post(new DefaultNewPositionListEvent(posList_));
@@ -33,6 +34,7 @@ public final class DefaultPositionListManager implements PositionListManager {
     * Acquisition Protocol
     * @return copy of the current PositionList
     */
+   @Override
    public PositionList getPositionList()  {
       return PositionList.newInstance(posList_);
    }
@@ -41,8 +43,11 @@ public final class DefaultPositionListManager implements PositionListManager {
     * Adds the current position to the list (same as pressing the "Mark" button
     * in the XYPositionList with no position selected)
     */
+   @Override
    public void markCurrentPosition() {
-      MMStudio mm = (MMStudio) studio_;
-      mm.markCurrentPosition();
+      if (((MMStudio) studio_).getPosListDialog() == null) {
+         studio_.app().showPositionList();
+         ((MMStudio) studio_).getPosListDialog().markPosition(false);
+      }
    }
 }
