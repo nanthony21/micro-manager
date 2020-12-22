@@ -1305,11 +1305,6 @@ public final class MMStudio implements Studio, CompatibilityInterface {
    // //////////////////////////////////////////////////////////////////////////
    // Script interface
    // //////////////////////////////////////////////////////////////////////////
-
-   @Override
-   public String getVersion() {
-      return MMVersion.VERSION_STRING;
-   }
    
    /**
     * Inserts version info for various components in the Corelog
@@ -1389,6 +1384,8 @@ public final class MMStudio implements Studio, CompatibilityInterface {
       acqEngine_ = eng;
    }
 
+   //Studio API
+   
    @Override
    public AutofocusManager getAutofocusManager() {
       return afMgr_;
@@ -1555,11 +1552,11 @@ public final class MMStudio implements Studio, CompatibilityInterface {
       return alerts();
    }
 
-
    public UiMovesStageManager getUiMovesStageManager () {
       return uiMovesStageManager_;
    }
 
+   // Old compatibility interface methods.
    @Override
    @Deprecated
    public AffineTransform getCameraTransform(String config) {
@@ -1601,7 +1598,13 @@ public final class MMStudio implements Studio, CompatibilityInterface {
       transform.getMatrix(params);
       profile().getSettings(MMStudio.class).putDoubleList(AFFINE_TRANSFORM + config, params);
    }
+   
+   @Override
+   public String getVersion() {
+      return MMVersion.VERSION_STRING;
+   }
 
+   //Cached value accessors
    public double getCachedXPosition() {
       return staticInfo_.getStageX();
    }
