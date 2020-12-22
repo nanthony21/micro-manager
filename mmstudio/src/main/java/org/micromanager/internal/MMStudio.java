@@ -124,7 +124,7 @@ import org.micromanager.quickaccess.internal.DefaultQuickAccessManager;
  * Implements the Studio (i.e. primary API) and does various other
  * tasks that should probably be refactored out at some point.
  */
-public final class MMStudio implements Studio, CompatibilityInterface, Application {
+public final class MMStudio implements Studio, CompatibilityInterface {
 
    private static final long serialVersionUID = 3556500289598574541L;
    
@@ -163,6 +163,7 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
    private UserProfileManager userProfileManager_;
    private PositionListManager posListManager_;
    private UiMovesStageManager uiMovesStageManager_;
+   private final Application application_;
    
    // MMcore
    private CMMCore core_;
@@ -284,6 +285,7 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
       
       // Essential GUI settings in preparation of the intro dialog
       daytimeNighttimeManager_ = DaytimeNighttime.create(studio_);
+      application_ = new DefaultApplication(this, daytimeNighttimeManager_);
       
       // Start loading plugins in the background
       // Note: plugin constructors should not expect a fully constructed Studio!
@@ -1366,7 +1368,7 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
 
    @Override
    public Application app() {
-      return this;
+      return application_;
    }
 
    @Override

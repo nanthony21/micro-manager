@@ -19,7 +19,6 @@ import org.micromanager.internal.hcwizard.MMConfigFileException;
 import org.micromanager.internal.hcwizard.MicroscopeModel;
 import org.micromanager.internal.positionlist.MMPositionListDlg;
 import org.micromanager.internal.positionlist.PositionListDlg;
-import org.micromanager.internal.utils.DaytimeNighttime;
 import org.micromanager.internal.utils.DefaultAutofocusManager;
 import org.micromanager.internal.utils.ReportingUtils;
 
@@ -31,10 +30,10 @@ public class DefaultApplication implements Application {
    private final Studio studio_;
    private static final String EXPOSURE_KEY = "Exposure_";
    private PositionListDlg posListDlg_;
-   private final DaytimeNighttime daytimeNighttimeManager_;
+   private final ApplicationSkin daytimeNighttimeManager_;
    
    
-   public DefaultApplication(Studio studio, DaytimeNighttime daynight) {
+   public DefaultApplication(Studio studio, ApplicationSkin daynight) {
       studio_ = studio;
       daytimeNighttimeManager_ = daynight;
    }
