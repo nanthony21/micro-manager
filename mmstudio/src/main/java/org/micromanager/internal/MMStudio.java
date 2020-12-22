@@ -1344,10 +1344,12 @@ public final class MMStudio implements Studio, CompatibilityInterface {
       frame_.enableRoiButtons(enabled);
    }
 
+   @Deprecated
    public AcquisitionWrapperEngine getAcquisitionEngine() {
       return acqEngine_;
    }
 
+   @Deprecated
    public CMMCore getCore() {
       return core_;
    }
