@@ -40,7 +40,6 @@ import java.util.*;
 import java.util.function.Function;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -53,7 +52,6 @@ import org.micromanager.AutofocusManager;
 import org.micromanager.CompatibilityInterface;
 import org.micromanager.LogManager;
 import org.micromanager.PluginManager;
-import org.micromanager.PositionList;
 import org.micromanager.PositionListManager;
 import org.micromanager.PropertyMap;
 import org.micromanager.ScriptController;
@@ -73,7 +71,6 @@ import org.micromanager.display.DataViewer;
 import org.micromanager.display.DisplayManager;
 import org.micromanager.display.internal.DefaultDisplayManager;
 import org.micromanager.events.AutofocusPluginShouldInitializeEvent;
-import org.micromanager.events.ChannelExposureEvent;
 import org.micromanager.events.EventManager;
 import org.micromanager.events.ExposureChangedEvent;
 import org.micromanager.events.GUIRefreshEvent;
@@ -93,8 +90,6 @@ import org.micromanager.internal.dialogs.IJVersionCheckDlg;
 import org.micromanager.internal.dialogs.IntroDlg;
 import org.micromanager.internal.dialogs.OptionsDlg;
 import org.micromanager.internal.dialogs.RegistrationDlg;
-import org.micromanager.internal.hcwizard.MMConfigFileException;
-import org.micromanager.internal.hcwizard.MicroscopeModel;
 import org.micromanager.internal.logging.LogFileManager;
 import org.micromanager.internal.menus.MMMenuBar;
 import org.micromanager.internal.navigation.UiMovesStageManager;
@@ -337,14 +332,9 @@ public final class MMStudio implements Studio, CompatibilityInterface {
       acqEngine_.setPositionList(posListManager_.getPositionList());
 
       
-      // Tell Core to start logging
-      initializeLogging(core_);
-      
-      // We need to be subscribed to the global event bus for plugin loading
-      events().registerForEvents(this);
-
-      // Start loading acqEngine in the background
-      prepAcquisitionEngine();
+      init_logging(core_);      // Tell Core to start logging
+      events().registerForEvents(this); // We need to be subscribed to the global event bus for plugin loading
+      init_prepAcquisitionEngine(); // Start loading acqEngine in the background
 
       RegistrationDlg.showIfNecessary(this);
       
@@ -469,7 +459,7 @@ public final class MMStudio implements Studio, CompatibilityInterface {
       }
       
       // Load (but do no show) the scriptPanel
-      createScriptPanel();
+      scriptPanel_ = new ScriptPanel(studio_);
       
       // Now create and show the main window
       mmMenuBar_ = MMMenuBar.createMenuBar(studio_);
@@ -509,7 +499,7 @@ public final class MMStudio implements Studio, CompatibilityInterface {
       
    }
 
-   private void initializeLogging(CMMCore core) {
+   private void init_logging(CMMCore core) {
       core.enableStderrLog(true);
       core.enableDebugLog(OptionsDlg.isDebugLoggingEnabled(studio_));
       ReportingUtils.setCore(core);
@@ -550,7 +540,7 @@ public final class MMStudio implements Studio, CompatibilityInterface {
     * takes significant time (TODO: Does it really, not that it is
     * AOT-compiled?).
     */
-   private void prepAcquisitionEngine() {
+   private void init_prepAcquisitionEngine() {
       acquisitionEngine2010LoadingThread_ = new Thread("Pipeline Class loading thread") {
          @Override
          public void run() {
@@ -891,7 +881,7 @@ public final class MMStudio implements Studio, CompatibilityInterface {
       live().setSuspended(false);
    }
 
-   public void createPropertyEditor() {
+   public PropertyEditor createPropertyEditor() {
       if (propertyBrowser_ != null) {
          propertyBrowser_.dispose();
       }
@@ -900,9 +890,10 @@ public final class MMStudio implements Studio, CompatibilityInterface {
       this.events().registerForEvents(propertyBrowser_);
       propertyBrowser_.setVisible(true);
       propertyBrowser_.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+      return propertyBrowser_;
    }
 
-   public void createCalibrationListDlg() {
+   public CalibrationListDlg createCalibrationListDlg() {
       if (calibrationListDlg_ != null) {
          calibrationListDlg_.dispose();
       }
@@ -911,17 +902,7 @@ public final class MMStudio implements Studio, CompatibilityInterface {
       calibrationListDlg_.setVisible(true);
       calibrationListDlg_.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
       calibrationListDlg_.setParentGUI(studio_);
-   }
-
-   public CalibrationListDlg getCalibrationListDlg() {
-      if (calibrationListDlg_ == null) {
-         createCalibrationListDlg();
-      }
       return calibrationListDlg_;
-   }
-
-   private void createScriptPanel() {
-      scriptPanel_ = new ScriptPanel(studio_);
    }
    
   public void runZMQServer() {
