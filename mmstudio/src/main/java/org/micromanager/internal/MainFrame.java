@@ -513,7 +513,7 @@ public final class MainFrame extends MMFrame {
       });
       stagePanel.add(listButton, SMALLBUTTON_SIZE);
 
-      subPanel.add(stagePanel, "gapleft 16");
+      subPanel.add(stagePanel);
 
       // Autofocus
       JPanel autoPanel = new JPanel(new MigLayout("flowx, insets 1, gap 0"));
