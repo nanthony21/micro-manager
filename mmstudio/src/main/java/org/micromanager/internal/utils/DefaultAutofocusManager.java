@@ -123,6 +123,28 @@ public final class DefaultAutofocusManager implements AutofocusManager {
          afDlg_.rebuild();
 
    }
+   
+   @Override
+   public void autofocusNow() {
+      if (getAutofocusMethod() != null) {
+         new Thread() {
+            @Override
+            public void run() {
+               studio_.live().setSuspended(true);
+               try {
+                  getAutofocusMethod().fullFocus();
+               }
+               catch (Exception ex) {
+                  ReportingUtils.showError(ex, "An error occurred during autofocus");
+               }
+               studio_.live().setSuspended(false);
+            }
+         }.start();
+      }
+      else {
+         ReportingUtils.showError("No autofocus device is selected.");
+      }
+   }
       
    public void showOptionsDialog() {
       if (afDlg_ == null)

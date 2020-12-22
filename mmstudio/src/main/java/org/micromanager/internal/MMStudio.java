@@ -1420,27 +1420,6 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
       }
    }
 
-   public void autofocusNow() {
-      if (afMgr_.getAutofocusMethod() != null) {
-         new Thread() {
-            @Override
-            public void run() {
-               live().setSuspended(true);
-               try {
-                  afMgr_.getAutofocusMethod().fullFocus();
-               }
-               catch (Exception ex) {
-                  ReportingUtils.showError(ex, "An error occurred during autofocus");
-               }
-               live().setSuspended(false);
-            }
-         }.start();
-      }
-      else {
-         ReportingUtils.showError("No autofocus device is selected.");
-      }
-   }
-
    // //////////////////////////////////////////////////////////////////////////
    // Script interface
    // //////////////////////////////////////////////////////////////////////////

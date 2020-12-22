@@ -97,7 +97,7 @@ public final class AutofocusButtons extends WidgetPlugin implements SciJavaPlugi
       runButton.addActionListener(new ActionListener() {
          @Override
          public void actionPerformed(ActionEvent event) {
-            ((MMStudio) studio_).autofocusNow();
+            studio_.getAutofocusManager().autofocusNow();
          }
       });
       runButton.setFont(GUIUtils.buttonFont);

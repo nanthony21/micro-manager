@@ -63,4 +63,6 @@ public interface AutofocusManager {
     * for autofocus device adapters and AutofocusPlugins.
     */
    public void refresh();
+   
+   public void autofocusNow();
 }

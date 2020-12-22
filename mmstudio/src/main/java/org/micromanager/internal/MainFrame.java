@@ -549,7 +549,7 @@ public final class MainFrame extends MMFrame {
       // http://www.clker.com/clipart-267005.html
       autofocusNowButton_ = createButton(null, "binoculars.png",
          "Autofocus now", () -> {
-            mmStudio_.autofocusNow();
+            mmStudio_.getAutofocusManager().autofocusNow();
       });
       autoPanel.add(autofocusNowButton_, SMALLBUTTON_SIZE);
 
