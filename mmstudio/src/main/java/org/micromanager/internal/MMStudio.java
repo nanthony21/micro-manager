@@ -513,26 +513,32 @@ public final class MMStudio implements Studio {
                settingsManager_.getCoreLogLifetimeDays(), logFileName);
       }
 
-      logStartupProperties();
+      // logStartupProperties
+      core_.logMessage("User: " + System.getProperty("user.name"));
+      String hostname;
+      try {
+         hostname = java.net.InetAddress.getLocalHost().getHostName();
+      }
+      catch (UnknownHostException e) {
+         hostname = "unknown";
+      }
+      core_.logMessage("Host: " + hostname);
+      core_.logMessage("MM Studio version: " + MMVersion.VERSION_STRING);
+      core_.logMessage(core_.getVersionInfo());
+      core_.logMessage(core_.getAPIVersionInfo());
+      core_.logMessage("Operating System: " + System.getProperty("os.name") +
+              " (" + System.getProperty("os.arch") + ") " + System.getProperty("os.version"));
+      core_.logMessage("JVM: " + System.getProperty("java.vm.name") +
+              ", version " + System.getProperty("java.version") + ", " +
+              System.getProperty("sun.arch.data.model") + "-bit");
 
+      
       // Although our general rule is to perform identical logging regardless
       // of the current log level, we make an exception for UIMonitor, which we
       // enable only when debug logging is turned on (from the GUI).
       UIMonitor.enable(OptionsDlg.isDebugLoggingEnabled(studio_));
    }
-  
-   public void showPipelineFrame() {
-      pipelineFrame_.setVisible(true);
-   }
-
-   public void showScriptPanel() {
-      scriptPanel_.setVisible(true);
-   }
    
-   public SettingsManager getSettingsManager() {
-      return settingsManager_;
-   }
-
    /**
     * Spawn a new thread to load the acquisition engine jar, because this
     * takes significant time (TODO: Does it really, not that it is
@@ -553,9 +559,17 @@ public final class MMStudio implements Studio {
       acquisitionEngine2010LoadingThread_.setContextClassLoader(getClass().getClassLoader());
       acquisitionEngine2010LoadingThread_.start();
    }
+  
+   public void showPipelineFrame() {
+      pipelineFrame_.setVisible(true);
+   }
 
-   public boolean getHideMDADisplayOption() {
-      return AcqControlDlg.getShouldHideMDADisplay();
+   public void showScriptPanel() {
+      scriptPanel_.setVisible(true);
+   }
+   
+   public SettingsManager getSettingsManager() {
+      return settingsManager_;
    }
 
    public void setCenterQuad() {
@@ -689,19 +703,6 @@ public final class MMStudio implements Studio {
       live().setSuspended(false);
    }
 
-   @Override
-   public CMMCore core() {
-      return core_;
-   }
-
-   /**
-    * Returns instance of the core uManager object;
-    */
-   @Override
-   public CMMCore getCMMCore() {
-      return core_;
-   }
-
    /**
     * Returns singleton instance of MMStudio
     * @return singleton instance of MMStudio
@@ -710,6 +711,8 @@ public final class MMStudio implements Studio {
       return studio_;
    }
 
+   //UI methods
+   
    /**
     * Returns singleton instance of MainFrame.
     * @return singleton instance of the mainFrame
@@ -850,10 +853,6 @@ public final class MMStudio implements Studio {
       }
       frame_.setConfigText(getSysConfigFile());
       events().post(new GUIRefreshEvent());
-   }
-   
-   protected void refreshStaticInfo() {
-      staticInfo_.refreshValues();
    }
    
    protected void changeBinning() {
@@ -1275,28 +1274,6 @@ public final class MMStudio implements Studio {
    // Script interface
    // //////////////////////////////////////////////////////////////////////////
    
-   /**
-    * Inserts version info for various components in the Corelog
-    */
-   public void logStartupProperties() {
-      core_.logMessage("User: " + System.getProperty("user.name"));
-      String hostname;
-      try {
-         hostname = java.net.InetAddress.getLocalHost().getHostName();
-      }
-      catch (UnknownHostException e) {
-         hostname = "unknown";
-      }
-      core_.logMessage("Host: " + hostname);
-      core_.logMessage("MM Studio version: " + MMVersion.VERSION_STRING);
-      core_.logMessage(core_.getVersionInfo());
-      core_.logMessage(core_.getAPIVersionInfo());
-      core_.logMessage("Operating System: " + System.getProperty("os.name") +
-              " (" + System.getProperty("os.arch") + ") " + System.getProperty("os.version"));
-      core_.logMessage("JVM: " + System.getProperty("java.vm.name") +
-              ", version " + System.getProperty("java.version") + ", " +
-              System.getProperty("sun.arch.data.model") + "-bit");
-   }
    
 
 
@@ -1351,11 +1328,20 @@ public final class MMStudio implements Studio {
       live().setSuspended(false);
    }
 
-   public void setAcquisitionEngine(AcquisitionWrapperEngine eng) {
-      acqEngine_ = eng;
+   //Studio API
+   
+   @Override
+   public CMMCore core() {
+      return core_;
    }
 
-   //Studio API
+   /**
+    * Returns instance of the core uManager object;
+    */
+   @Override
+   public CMMCore getCMMCore() {
+      return core_;
+   }
    
    @Override
    public AutofocusManager getAutofocusManager() {
@@ -1526,6 +1512,10 @@ public final class MMStudio implements Studio {
    }
 
    //Cached value accessors
+   protected void refreshStaticInfo() {
+      staticInfo_.refreshValues();
+   }
+      
    public double getCachedXPosition() {
       return staticInfo_.getStageX();
    }
