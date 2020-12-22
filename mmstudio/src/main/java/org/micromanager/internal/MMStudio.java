@@ -127,10 +127,6 @@ public final class MMStudio implements Studio, CompatibilityInterface {
    private static final int TOOLTIP_DISPLAY_DURATION_MILLISECONDS = 15000;
    private static final int TOOLTIP_DISPLAY_INITIAL_DELAY_MILLISECONDS = 2000;
    // Note that this property is set by one of the launcher scripts.
-   private static final String SHOULD_DELETE_OLD_CORE_LOGS = "whether or not to delete old MMCore log files";
-   private static final String SHOULD_RUN_ZMQ_SERVER = "run ZQM server";
-   private static final String CORE_LOG_LIFETIME_DAYS = "how many days to keep MMCore log files, before they get deleted";
-   private static final String CIRCULAR_BUFFER_SIZE = "size, in megabytes of the circular buffer used to temporarily store images before they are written to disk";
    private static final String AFFINE_TRANSFORM_LEGACY = "affine transform for mapping camera coordinates to stage coordinates for a specific pixel size config: ";
    private static final String AFFINE_TRANSFORM = "affine transform parameters for mapping camera coordinates to stage coordinates for a specific pixel size config: ";
    
@@ -159,6 +155,7 @@ public final class MMStudio implements Studio, CompatibilityInterface {
    private PositionListManager posListManager_;
    private UiMovesStageManager uiMovesStageManager_;
    private final Application application_;
+   private final SettingsManager settingsManager_ = new SettingsManager(this);
    
    // MMcore
    private CMMCore core_;
@@ -275,7 +272,6 @@ public final class MMStudio implements Studio, CompatibilityInterface {
       }
       
       // Start up multiple managers.  
-      
       userProfileManager_ = new UserProfileManager();       
       
       // Essential GUI settings in preparation of the intro dialog
@@ -437,7 +433,7 @@ public final class MMStudio implements Studio, CompatibilityInterface {
             acqControlWin_);
 
       try {
-         core_.setCircularBufferMemoryFootprint(getCircularBufferSize());
+         core_.setCircularBufferMemoryFootprint(settingsManager_.getCircularBufferSize());
       } catch (Exception ex) {
          ReportingUtils.showError(ex);
       }
@@ -493,7 +489,7 @@ public final class MMStudio implements Studio, CompatibilityInterface {
       events().post(new StartupCompleteEvent());
       
       // start zmq server if so desired
-      if (getShouldRunZMQServer()) {
+      if (settingsManager_.getShouldRunZMQServer()) {
          runZMQServer();
       }
       
@@ -514,9 +510,9 @@ public final class MMStudio implements Studio, CompatibilityInterface {
          // The Core will have logged the error to stderr, so do nothing.
       }
 
-      if (getShouldDeleteOldCoreLogs()) {
+      if (settingsManager_.getShouldDeleteOldCoreLogs()) {
          LogFileManager.deleteLogFilesDaysOld(
-               getCoreLogLifetimeDays(), logFileName);
+               settingsManager_.getCoreLogLifetimeDays(), logFileName);
       }
 
       logStartupProperties();
@@ -533,6 +529,10 @@ public final class MMStudio implements Studio, CompatibilityInterface {
 
    public void showScriptPanel() {
       scriptPanel_.setVisible(true);
+   }
+   
+   public SettingsManager getSettingsManager() {
+      return settingsManager_;
    }
 
    /**
@@ -1629,47 +1629,5 @@ public final class MMStudio implements Studio, CompatibilityInterface {
    
    public AffineTransform getCachedPixelSizeAffine() {
       return staticInfo_.getPixelSizeAffine();
-   }
-
-   public boolean getShouldDeleteOldCoreLogs() {
-      return profile().getSettings(MMStudio.class).getBoolean(
-            SHOULD_DELETE_OLD_CORE_LOGS, false);
-   }
-
-   public void setShouldDeleteOldCoreLogs(boolean shouldDelete) {
-      profile().getSettings(MMStudio.class).putBoolean(
-            SHOULD_DELETE_OLD_CORE_LOGS, shouldDelete);
-   }
-   
-   public boolean getShouldRunZMQServer() {
-      return profile().getSettings(MMStudio.class).getBoolean(
-              SHOULD_RUN_ZMQ_SERVER, false);
-   }
-   
-   public void setShouldRunZMQServer(boolean shouldRun) {
-      profile().getSettings(MMStudio.class).putBoolean(
-              SHOULD_RUN_ZMQ_SERVER, shouldRun);
-   }
-
-   public int getCoreLogLifetimeDays() {
-      return profile().getSettings(MMStudio.class).getInteger(
-            CORE_LOG_LIFETIME_DAYS, 7);
-   }
-
-   public void setCoreLogLifetimeDays(int days) {
-      profile().getSettings(MMStudio.class).putInteger(
-            CORE_LOG_LIFETIME_DAYS, days);
-   }
-
-   public int getCircularBufferSize() {
-      // Default to more MB for 64-bit systems.
-      int defaultVal = System.getProperty("sun.arch.data.model", "32").equals("64") ? 250 : 25;
-      return profile().getSettings(MMStudio.class).getInteger(
-            CIRCULAR_BUFFER_SIZE, defaultVal);
-   }
-
-   public void setCircularBufferSize(int newSize) {
-      profile().getSettings(MMStudio.class).putInteger(
-            CIRCULAR_BUFFER_SIZE, newSize);
    }
 }
