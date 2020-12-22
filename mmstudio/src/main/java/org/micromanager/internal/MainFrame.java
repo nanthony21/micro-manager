@@ -127,10 +127,6 @@ public final class MainFrame extends MMFrame {
 
    private ConfigPadButtonPanel configPadButtonPanel_;
 
-   private AbstractButton setRoiButton_;
-   private AbstractButton clearRoiButton_;
-   private AbstractButton centerQuadButton_;
-
    @SuppressWarnings("LeakingThisInConstructor")
    public MainFrame(MMStudio mmStudio, CMMCore core) {
       super("main micro manager frame");
@@ -483,28 +479,6 @@ public final class MainFrame extends MMFrame {
 
    private JPanel createUtilityButtons() {
       JPanel subPanel = new JPanel(new MigLayout("flowx, insets 1, gap 0"));
-      // ROI
-      JPanel roiPanel = new JPanel(new MigLayout("flowx, insets 1, gap 0"));
-      roiPanel.add(createLabel("ROI", true),
-            "span 2, alignx center, growx, wrap");
-      setRoiButton_ = createButton(null, "shape_handles.png",
-         "Set Region Of Interest to selected rectangle", () -> {
-            mmStudio_.setROI();
-      });
-      roiPanel.add(setRoiButton_, SMALLBUTTON_SIZE);
-      centerQuadButton_ = createButton(null, "center_quad.png",
-         "Set Region Of Interest to center quad of camera", () -> {
-            mmStudio_.setCenterQuad();
-      });
-      roiPanel.add(centerQuadButton_, SMALLBUTTON_SIZE);
-
-      clearRoiButton_ = createButton(null, "arrow_out.png",
-         "Reset Region of Interest to full frame", () -> {
-            mmStudio_.clearROI();
-      });
-      roiPanel.add(clearRoiButton_, SMALLBUTTON_SIZE);
-
-      subPanel.add(roiPanel);
 
       // Stage control
       JPanel stagePanel = new JPanel(new MigLayout("flowx, insets 1, gap 0"));
