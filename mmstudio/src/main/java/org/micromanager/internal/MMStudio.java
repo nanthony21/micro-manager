@@ -138,7 +138,6 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
    private static final String CIRCULAR_BUFFER_SIZE = "size, in megabytes of the circular buffer used to temporarily store images before they are written to disk";
    private static final String AFFINE_TRANSFORM_LEGACY = "affine transform for mapping camera coordinates to stage coordinates for a specific pixel size config: ";
    private static final String AFFINE_TRANSFORM = "affine transform parameters for mapping camera coordinates to stage coordinates for a specific pixel size config: ";
-   private static final String EXPOSURE_KEY = "Exposure_";
    
    // GUI components
    private boolean wasStartedAsImageJPlugin_;
@@ -496,7 +495,7 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
 
       executeStartupScript();
 
-      refreshGUI();
+      app().refreshGUI();
       
       // Give plugins a chance to initialize their state
       events().post(new StartupCompleteEvent());
@@ -565,66 +564,6 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
       acquisitionEngine2010LoadingThread_.start();
    }
 
-   @Override
-   public void setExposure(final double exposureTime) {
-      // Avoid redundantly setting the exposure time.
-      boolean shouldSetInCore = true;
-      try {
-         if (core_ != null && core_.getExposure() == exposureTime) {
-            shouldSetInCore = false;
-         }
-      }
-      catch (Exception e) {
-         ReportingUtils.logError(e, "Error getting core exposure time");
-      }
-      // This is synchronized with the shutdown lock primarily so that
-      // the exposure-time field in MainFrame won't cause issues when it loses
-      // focus during shutdown.
-      synchronized(shutdownLock_) {
-         if (core_ == null) {
-            // Just give up.
-            return;
-         }
-         // Do this prior to updating the Core, so that if the Core posts a
-         // callback resulting in a GUI refresh, we don't have the old
-         // exposure time override the new one (since GUI refreshes result in
-         // resetting the exposure to the old, stored-in-profile exposure time).
-         String channelGroup = "";
-         String channel = "";
-         try {
-            channelGroup = core_.getChannelGroup();
-            channel = core_.getCurrentConfigFromCache(channelGroup);
-            storeChannelExposureTime(channelGroup, channel, exposureTime);
-         }
-         catch (Exception e) {
-            studio_.logs().logError("Unable to determine channel group");
-         }
-
-         if (!core_.getCameraDevice().equals("") && shouldSetInCore) {
-            live().setSuspended(true);
-            try {
-               core_.setExposure(exposureTime);
-               core_.waitForDevice(core_.getCameraDevice());
-            }
-            catch (Exception e) {
-               ReportingUtils.logError(e, "Failed to set core exposure time.");
-            }
-            live().setSuspended(false);
-         }
-
-         // Display the new exposure time
-         double exposure;
-         try {
-            exposure = core_.getExposure();
-            events().post(new ChannelExposureEvent(exposure,
-                     channelGroup, channel, true));
-         }
-         catch (Exception e) {
-            ReportingUtils.logError(e, "Couldn't set exposure time.");
-         }
-      } // End synchronization check
-   }
-
    public boolean getHideMDADisplayOption() {
       return AcqControlDlg.getShouldHideMDADisplay();
    }
@@ -657,11 +596,6 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
    public static MainFrame getFrame() {
       return frame_;
    }
-
-   @Override
-   public JFrame getMainWindow() {
-      return frame_;
-   }
    
    public MMMenuBar getMMMenubar() {
       return mmMenuBar_;
@@ -672,32 +606,12 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
             "Save the configuration file", FileDialogs.MM_CONFIG_FILE);
       if (f != null) {
          try {
-            saveConfigPresets(f.getAbsolutePath(), true);
+            app().saveConfigPresets(f.getAbsolutePath(), true);
          }
          catch (IOException e) {
             // This should be impossible as we set shouldOverwrite to true.
             logs().logError(e, "Error saving config presets");
          }
-      }
-   }
-
-   @Override
-   public void saveConfigPresets(String path, boolean allowOverwrite) throws IOException {
-      if (!allowOverwrite && new File(path).exists()) {
-         throw new IOException("Cannot overwrite existing file at " + path);
-      }
-      MicroscopeModel model = new MicroscopeModel();
-      try {
-         model.loadFromFile(sysConfigFile_);
-         model.createSetupConfigsFromHardware(core_);
-         model.createResolutionsFromHardware(core_);
-         model.saveToFile(path);
-         sysConfigFile_ = path;
-         configChanged_ = false;
-         frame_.setConfigSaveButtonStatus(configChanged_);
-         frame_.setConfigText(sysConfigFile_);
-      } catch (MMConfigFileException e) {
-         ReportingUtils.showError(e);
       }
    }
 
@@ -918,7 +832,7 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
    // @Override
    public void markCurrentPosition() {
       if (posListDlg_ == null) {
-         showPositionList();
+         app().showPositionList();
       }
       if (posListDlg_ != null) {
          posListDlg_.markPosition(false);
@@ -983,7 +897,7 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
          if (frame_ != null) {
             configureBinningCombo();
             frame_.updateAutofocusButtons(afMgr_.getAutofocusMethod() != null);
-            refreshGUI();
+            app().refreshGUI();
          }
       } catch (Exception e) {
          ReportingUtils.showError(e);
@@ -992,7 +906,7 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
 
    @Subscribe
    public void onPropertiesChanged(PropertiesChangedEvent event) {
-      refreshGUI();
+      app().refreshGUI();
    }
 
    @Subscribe
@@ -1000,59 +914,6 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
       if (event.getCameraName().equals(StaticInfo.cameraLabel_)) {
          frame_.setDisplayedExposureTime(event.getNewExposureTime());
       }
-   }
-
-   private void updateGUI(boolean fromCache) {
-      ReportingUtils.logMessage("Updating GUI; from cache = " + fromCache);
-      try {
-         staticInfo_.refreshValues();
-         afMgr_.refresh();
-
-         // camera settings
-         if (isCameraAvailable()) {
-            double exp = core_.getExposure();
-            frame_.setDisplayedExposureTime(exp);
-            configureBinningCombo();
-            String binSize;
-            if (fromCache) {
-               binSize = core_.getPropertyFromCache(StaticInfo.cameraLabel_, MMCoreJ.getG_Keyword_Binning());
-            } else {
-               binSize = core_.getProperty(StaticInfo.cameraLabel_, MMCoreJ.getG_Keyword_Binning());
-            }
-            frame_.setBinSize(binSize);
-         }
-
-         frame_.updateAutofocusButtons(afMgr_.getAutofocusMethod() != null);
-
-         ConfigGroupPad pad = frame_.getConfigPad();
-         // state devices
-         if (pad != null) {
-            pad.refreshStructure(fromCache);
-            // Needed to update read-only properties.  May slow things down...
-            if (!fromCache) {
-               core_.updateSystemStateCache();
-            }
-         }
-
-         // update Channel menus in Multi-dimensional acquisition dialog
-         if (acqControlWin_ != null) {
-            acqControlWin_.updateChannelAndGroupCombo();
-         }
-
-         // update list of pixel sizes in pixel size configuration window
-         if (calibrationListDlg_ != null) {
-            calibrationListDlg_.refreshCalibrations();
-         }
-         if (propertyBrowser_ != null) {
-            propertyBrowser_.refresh(fromCache);
-         }
-
-         ReportingUtils.logMessage("Finished updating GUI");
-      } catch (Exception e) {
-         ReportingUtils.logError(e);
-      }
-      frame_.setConfigText(sysConfigFile_);
-      events().post(new GUIRefreshEvent());
    }
 
    /**
@@ -1302,22 +1163,7 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
               System.getProperty("sun.arch.data.model") + "-bit");
    }
    
-   @Override
-   public void makeActive() {
-      frame_.toFront();
-   }
-   
-   /**
-    * Opens a dialog to record stage positions
-    */
-   @Override
-   public void showPositionList() {
-      if (posListDlg_ == null) {
-         posListDlg_ = new MMPositionListDlg(studio_, posListManager_.getPositionList());
-         posListDlg_.addListeners();
-      }
-      posListDlg_.setVisible(true);
-   }
+
 
    public void setConfigChanged(boolean status) {
       configChanged_ = status;
@@ -1328,68 +1174,8 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
       return configChanged_;
    }
 
-    /**
-    * Returns exposure time for the desired preset in the given channelgroup
-    * Acquires its info from the preferences
-    * Same thing is used in MDA window, but this class keeps its own copy
-    * 
-    * @param channelGroup
-    * @param channel - 
-    * @param defaultExp - default value
-    * @return exposure time
-    */
-   @Override
-   public double getChannelExposureTime(String channelGroup, String channel,
-           double defaultExp) {
-      return this.profile().getSettings(MMStudio.class).getDouble(
-              EXPOSURE_KEY + channelGroup + "_" + channel, defaultExp);
-   }
-
-   public void storeChannelExposureTime(String channelGroup, String channel,
-                                      double exposure) {
-      this.profile().getSettings(MMStudio.class).putDouble(
-              EXPOSURE_KEY + channelGroup + "_" + channel, exposure);
-   }
-
-   /**
-    * Updates the exposure time in the given preset 
-    * Will also update current exposure if it the given channel and channelgroup
-    * are the current one
-    * 
-    * @param channelGroup - 
-    * 
-    * @param channel - preset for which to change exposure time
-    * @param exposure - desired exposure time
-    */
-   @Override
-   public void setChannelExposureTime(String channelGroup, String channel,
-           double exposure) {
-      try {
-         storeChannelExposureTime(channelGroup, channel, exposure);
-         if (channelGroup != null && channelGroup.equals(core_.getChannelGroup())) {
-            if (channel != null && !channel.equals("") && 
-                    channel.equals(core_.getCurrentConfigFromCache(channelGroup))) {
-               setExposure(exposure);
-            }
-         }
-      } catch (Exception ex) {
-         ReportingUtils.logError("Failed to set exposure using Channelgroup: "
-                 + channelGroup + ", channel: " + channel + ", exposure: " + exposure);
-      }
-   }
-
    public void enableRoiButtons(final boolean enabled) {
       frame_.enableRoiButtons(enabled);
-   }
-
-   @Override
-   public void refreshGUI() {
-      updateGUI(false);
-   }
-   
-   @Override
-   public void refreshGUIFromCache() {
-      updateGUI(true);
    }
 
    public AcquisitionWrapperEngine getAcquisitionEngine() {
@@ -1421,14 +1207,6 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
       }
    }
 
-   @Override
-   public void setROI(Rectangle r) throws Exception {
-      live().setSuspended(true);
-      core_.setROI(r.x, r.y, r.width, r.height);
-      staticInfo_.refreshValues();
-      live().setSuspended(false);
-   }
-
    public void setMultiROI(List<Rectangle> rois) throws Exception {
       live().setSuspended(true);
       core_.setMultiROI(rois);
@@ -1438,11 +1216,6 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
 
    public void setAcquisitionEngine(AcquisitionWrapperEngine eng) {
       acqEngine_ = eng;
-   }
-
-   @Override
-   public void showAutofocusDialog() {
-      afMgr_.showOptionsDialog();
    }
 
    @Override
@@ -1599,16 +1372,6 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
    @Override
    public Application getApplication() {
       return app();
-   }
-
-   @Override
-   public ApplicationSkin skin() {
-      return daytimeNighttimeManager_;
-   }
-
-   @Override
-   public ApplicationSkin getApplicationSkin() {
-      return skin();
    }
 
    @Override
