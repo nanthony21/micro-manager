@@ -1555,10 +1555,6 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
       }
    }
 
-   public void enableRoiButtons(final boolean enabled) {
-      frame_.enableRoiButtons(enabled);
-   }
-
    @Override
    public void refreshGUI() {
       updateGUI(true);

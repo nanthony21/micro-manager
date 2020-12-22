@@ -797,12 +797,4 @@ public final class MainFrame extends MMFrame {
       }
       return -1;
    }
-
-   public void enableRoiButtons(final boolean enabled) {
-       SwingUtilities.invokeLater(() -> {
-          setRoiButton_.setEnabled(enabled);
-          clearRoiButton_.setEnabled(enabled);
-          centerQuadButton_.setEnabled(enabled);
-       });
-   }
 }
