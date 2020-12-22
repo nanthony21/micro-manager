@@ -168,7 +168,6 @@ public class DefaultApplication implements Application {
          model.createResolutionsFromHardware(studio_.core());
          model.saveToFile(path);
          ((MMStudio) studio_).setSysConfigFile(path);
-         ((MMStudio) studio_).setConfigChanged(false);
       } catch (MMConfigFileException e) {
          ReportingUtils.showError(e);
       }

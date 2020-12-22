@@ -883,6 +883,15 @@ public final class MMStudio implements Studio {
 
       return result;
    }
+   
+   public void setConfigChanged(boolean status) {
+      configChanged_ = status;
+      frame_.setConfigSaveButtonStatus(configChanged_);
+   }
+
+   public boolean hasConfigChanged() {
+      return configChanged_;
+   }
 
    protected void updateGUI(boolean fromCache) {
       ReportingUtils.logMessage("Updating GUI; from cache = " + fromCache);
@@ -1238,19 +1247,6 @@ public final class MMStudio implements Studio {
       studio_ = null;
 
       return true;
-   }
-
-   public void setConfigChanged(boolean status) {
-      configChanged_ = status;
-      frame_.setConfigSaveButtonStatus(configChanged_);
-   }
-
-   public boolean hasConfigChanged() {
-      return configChanged_;
-   }
-
-   public void enableRoiButtons(final boolean enabled) {
-      frame_.enableRoiButtons(enabled);
    }
 
    @Deprecated
