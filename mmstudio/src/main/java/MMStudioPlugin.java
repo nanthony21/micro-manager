@@ -58,7 +58,7 @@ public class MMStudioPlugin implements PlugIn, CommandListener {
          @Override
          public void run() {
             try {
-               if (studio_ == null || !studio_.isProgramRunning()) {
+               if (studio_ == null) {
                   // OS-specific stuff
                   // TODO Why here and not in MMStudio?
                   if (JavaUtils.isMac()) {

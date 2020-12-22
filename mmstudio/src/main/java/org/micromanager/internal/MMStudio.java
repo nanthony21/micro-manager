@@ -1273,7 +1273,7 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
    }
 
    public synchronized boolean closeSequence(boolean quitInitiatedByImageJ) {
-      if (!isProgramRunning()) {
+      if (!isProgramRunning_) {
          if (core_ != null) {
             core_.logMessage("MMStudio::closeSequence called while isProgramRunning_ is false");
          }
@@ -1357,9 +1357,6 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
       return true;
    }
 
-   public boolean isProgramRunning() {
-      return isProgramRunning_;
-   }
 
    private void executeStartupScript() {
       String filename = ScriptPanel.getStartupScript(this);
