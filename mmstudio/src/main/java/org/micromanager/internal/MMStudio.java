@@ -853,7 +853,6 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
    public boolean setSysConfigFile(String newFile) {
       sysConfigFile_ = newFile;
       configChanged_ = false;
-      frame_.setConfigSaveButtonStatus(configChanged_);
       
       //Load system configuration
       boolean result = true;
@@ -865,6 +864,7 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
       waitDlg.showDialog();
       if (frame_ != null) {
          frame_.setEnabled(false);
+         frame_.setConfigSaveButtonStatus(configChanged_);
       }
 
       try {
