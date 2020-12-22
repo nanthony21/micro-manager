@@ -544,12 +544,6 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
       scriptPanel_.setVisible(true);
    }
 
-   private void handleError(String message) {
-      live().setLiveModeOn(false);
-      JOptionPane.showMessageDialog(frame_, message);
-      core_.logMessage(message);
-   }
-
    /**
     * Spawn a new thread to load the acquisition engine jar, because this
     * takes significant time (TODO: Does it really, not that it is
@@ -684,12 +678,12 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
       // Dealing with multiple ROIs; this may not be supported.
       try {
          if (!(roi instanceof ShapeRoi && core_.isMultiROISupported())) {
-            handleError("ROI must be a rectangle.\nUse the ImageJ rectangle tool to draw the ROI.");
+            logs().showError("ROI must be a rectangle.Use the ImageJ rectangle tool to draw the ROI.");
             return;
          }
       }
       catch (Exception e) {
-         handleError("Unable to determine if multiple ROIs is supported");
+         logs().showError("Unable to determine if multiple ROIs is supported");
          return;
       }
       // Generate list of rectangles for the ROIs.
