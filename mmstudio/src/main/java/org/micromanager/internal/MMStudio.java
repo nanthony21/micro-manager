@@ -1272,20 +1272,6 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
       return true;
    }
 
-   private void saveSettings() {
-      // TODO All of the following should be taken care of by specific modules
-
-      if (frame_ != null) {
-         frame_.savePrefs();
-      }
-
-      // NOTE: do not save auto shutter state
-      if (afMgr_ != null && afMgr_.getAutofocusMethod() != null) {
-         profile().getSettings(MMStudio.class).putString(
-               AUTOFOCUS_DEVICE, afMgr_.getAutofocusMethod().getName());
-      }
-   }
-
    public synchronized boolean closeSequence(boolean quitInitiatedByImageJ) {
       if (!isProgramRunning()) {
          if (core_ != null) {
@@ -1314,7 +1300,15 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
 
       isProgramRunning_ = false;
 
-      saveSettings();
+      //Save Settings. NOTE: do not save auto shutter state
+      if (frame_ != null) {
+         frame_.savePrefs();
+      }
+      if (afMgr_ != null && afMgr_.getAutofocusMethod() != null) {
+         profile().getSettings(MMStudio.class).putString(
+               AUTOFOCUS_DEVICE, afMgr_.getAutofocusMethod().getName());
+      }
+      
       try {
          frame_.getConfigPad().saveSettings();
          hotKeys_.saveSettings(userProfileManager_.getProfile());
