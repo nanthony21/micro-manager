@@ -585,7 +585,7 @@ public final class MMStudio implements Studio, CompatibilityInterface {
       curImage.setRoi(xOffset, yOffset, width, height);
       Roi roi = curImage.getRoi();
       try {
-         setROI(updateROI(roi));
+         app().setROI(updateROI(roi));
       }
       catch (Exception e) {
          // Core failed to set new ROI.
@@ -608,7 +608,7 @@ public final class MMStudio implements Studio, CompatibilityInterface {
       }
       if (roi.getType() == Roi.RECTANGLE) {
          try {
-            setROI(updateROI(roi));
+            app().setROI(updateROI(roi));
          }
          catch (Exception e) {
             // Core failed to set new ROI.
@@ -811,6 +811,63 @@ public final class MMStudio implements Studio, CompatibilityInterface {
       return result;
    }
 
+   protected void updateGUI(boolean fromCache) {
+      ReportingUtils.logMessage("Updating GUI; from cache = " + fromCache);
+      try {
+         staticInfo_.refreshValues();
+         getAutofocusManager().refresh();
+
+         // camera settings
+         if (isCameraAvailable()) {
+            double exp = core().getExposure();
+            frame_.setDisplayedExposureTime(exp);
+            configureBinningCombo();
+            String binSize;
+            if (fromCache) {
+               binSize = core().getPropertyFromCache(StaticInfo.cameraLabel_, MMCoreJ.getG_Keyword_Binning());
+            } else {
+               binSize = core().getProperty(StaticInfo.cameraLabel_, MMCoreJ.getG_Keyword_Binning());
+            }
+            frame_.setBinSize(binSize);
+         }
+
+         frame_.updateAutofocusButtons(getAutofocusManager().getAutofocusMethod() != null);
+
+         ConfigGroupPad pad = frame_.getConfigPad();
+         // state devices
+         if (pad != null) {
+            pad.refreshStructure(fromCache);
+            // Needed to update read-only properties.  May slow things down...
+            if (!fromCache) {
+               core().updateSystemStateCache();
+            }
+         }
+
+         // update Channel menus in Multi-dimensional acquisition dialog
+         if (acqControlWin_ != null) {
+            acqControlWin_.updateChannelAndGroupCombo();
+         }
+
+         // update list of pixel sizes in pixel size configuration window
+         if (calibrationListDlg_ != null) {
+            calibrationListDlg_.refreshCalibrations();
+         }
+         if (propertyBrowser_ != null) {
+            propertyBrowser_.refresh(fromCache);
+         }
+
+         ReportingUtils.logMessage("Finished updating GUI");
+      } catch (Exception e) {
+         ReportingUtils.logError(e);
+      }
+      frame_.setConfigText(getSysConfigFile());
+      events().post(new GUIRefreshEvent());
+   }
+   
+   protected void refreshStaticInfo() {
+      staticInfo_.refreshValues();
+   }
+   
    protected void changeBinning() {
       String mode = frame_.getBinMode();
       live().setSuspended(true);

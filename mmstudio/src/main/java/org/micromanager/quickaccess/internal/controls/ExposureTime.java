@@ -109,7 +109,7 @@ public final class ExposureTime extends WidgetPlugin implements SciJavaPlugin {
    private void updateExposureTime(String text) {
       try {
          double time = NumberUtils.displayStringToDouble(text);
-         ((MMStudio) studio_).setExposure(time);
+         studio_.app().setExposure(time);
       }
       catch (ParseException e) {
          // Ignore it.

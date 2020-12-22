@@ -41,12 +41,12 @@ public class DefaultApplication implements Application {
 
    @Override
    public void refreshGUI() {
-      updateGUI(false);
+      ((MMStudio) studio_).updateGUI(false);
    }
    
    @Override
    public void refreshGUIFromCache() {
-      updateGUI(true);
+      ((MMStudio) studio_).updateGUI(true);
    }
    
    @Override
@@ -197,7 +197,7 @@ public class DefaultApplication implements Application {
    public void setROI(Rectangle r) throws Exception {
       studio_.live().setSuspended(true);
       studio_.core().setROI(r.x, r.y, r.width, r.height);
-      staticInfo_.refreshValues();
+      ((MMStudio) studio_).refreshStaticInfo();
       studio_.live().setSuspended(false);
    }
 
@@ -219,58 +219,5 @@ public class DefaultApplication implements Application {
    @Override
    public ApplicationSkin getApplicationSkin() {
       return skin();
-   }
-   
-   private void updateGUI(boolean fromCache) {
-      ReportingUtils.logMessage("Updating GUI; from cache = " + fromCache);
-      try {
-         staticInfo_.refreshValues();
-         studio_.getAutofocusManager().refresh();
-
-         // camera settings
-         if (isCameraAvailable()) {
-            double exp = core_.getExposure();
-            frame_.setDisplayedExposureTime(exp);
-            configureBinningCombo();
-            String binSize;
-            if (fromCache) {
-               binSize = core_.getPropertyFromCache(StaticInfo.cameraLabel_, MMCoreJ.getG_Keyword_Binning());
-            } else {
-               binSize = core_.getProperty(StaticInfo.cameraLabel_, MMCoreJ.getG_Keyword_Binning());
-            }
-            frame_.setBinSize(binSize);
-         }
-
-         frame_.updateAutofocusButtons(afMgr_.getAutofocusMethod() != null);
-
-         ConfigGroupPad pad = frame_.getConfigPad();
-         // state devices
-         if (pad != null) {
-            pad.refreshStructure(fromCache);
-            // Needed to update read-only properties.  May slow things down...
-            if (!fromCache) {
-               core_.updateSystemStateCache();
-            }
-         }
-
-         // update Channel menus in Multi-dimensional acquisition dialog
-         if (acqControlWin_ != null) {
-            acqControlWin_.updateChannelAndGroupCombo();
-         }
-
-         // update list of pixel sizes in pixel size configuration window
-         if (calibrationListDlg_ != null) {
-            calibrationListDlg_.refreshCalibrations();
-         }
-         if (propertyBrowser_ != null) {
-            propertyBrowser_.refresh(fromCache);
-         }
-
-         ReportingUtils.logMessage("Finished updating GUI");
-      } catch (Exception e) {
-         ReportingUtils.logError(e);
-      }
-      frame_.setConfigText(sysConfigFile_);
-      events().post(new GUIRefreshEvent());
    }
 }
