@@ -1172,7 +1172,9 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
          }
 
          // update Channel menus in Multi-dimensional acquisition dialog
-         updateChannelCombos();
+         if (acqControlWin_ != null) {
+            acqControlWin_.updateChannelAndGroupCombo();
+         }
 
          // update list of pixel sizes in pixel size configuration window
          if (calibrationListDlg_ != null) {
@@ -1411,12 +1413,6 @@ public final class MMStudio implements Studio, CompatibilityInterface, Applicati
          ReportingUtils.showError(exc,
                "\nAcquisition window failed to open due to invalid or corrupted settings.\n"
                + "Try resetting registry settings to factory defaults (Menu Tools|Options).");
-      }
-   }
-
-   public void updateChannelCombos() {
-      if (acqControlWin_ != null) {
-         acqControlWin_.updateChannelAndGroupCombo();
       }
    }
 

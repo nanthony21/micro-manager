@@ -93,7 +93,6 @@ public final class ConfigMenu {
                  @Override
                  public void run() {
                     mmStudio_.promptToSaveConfigPresets();
-                    mmStudio_.updateChannelCombos();
                  }
               });
 
