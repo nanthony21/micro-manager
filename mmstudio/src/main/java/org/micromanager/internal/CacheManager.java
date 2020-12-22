@@ -37,7 +37,7 @@ import org.micromanager.internal.utils.TextUtils;
  * Simple class used to cache information that doesn't change very often.
  * TODO: rename this.
  */
-class StaticInfo {
+public class CacheManager {
    static public long width_;
    static public long height_;
    static public long bytesPerPixel_;
@@ -57,7 +57,7 @@ class StaticInfo {
    static private MainFrame frame_;
 
    @SuppressWarnings("LeakingThisInConstructor")
-   public StaticInfo(Studio studio, MainFrame frame) {
+   public CacheManager(Studio studio, MainFrame frame) {
       core_ = studio.core();
       frame_ = frame;
    }

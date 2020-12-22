@@ -183,7 +183,7 @@ public final class MMStudio implements Studio {
    private Thread acquisitionEngine2010LoadingThread_ = null;
    private Class<?> acquisitionEngine2010Class_ = null;
    private IAcquisitionEngine2010 acquisitionEngine2010_ = null;
-   private StaticInfo staticInfo_;
+   private CacheManager staticInfo_;
    
    
    /**
@@ -458,7 +458,7 @@ public final class MMStudio implements Studio {
       // Now create and show the main window
       mmMenuBar_ = MMMenuBar.createMenuBar(studio_);
       frame_ = new MainFrame(this, core_);
-      staticInfo_ = new StaticInfo(studio_, frame_);
+      staticInfo_ = new CacheManager(studio_, frame_);
       events().registerForEvents(staticInfo_);
       frame_.toFront();
       frame_.setVisible(true);
@@ -572,6 +572,10 @@ public final class MMStudio implements Studio {
       return settingsManager_;
    }
 
+   public CacheManager getCache() {
+      return staticInfo_;
+   }
+   
    public void setCenterQuad() {
       ImagePlus curImage = WindowManager.getCurrentImage();
       if (curImage == null) {
@@ -815,9 +819,9 @@ public final class MMStudio implements Studio {
             configureBinningCombo();
             String binSize;
             if (fromCache) {
-               binSize = core().getPropertyFromCache(StaticInfo.cameraLabel_, MMCoreJ.getG_Keyword_Binning());
+               binSize = core().getPropertyFromCache(CacheManager.cameraLabel_, MMCoreJ.getG_Keyword_Binning());
             } else {
-               binSize = core().getProperty(StaticInfo.cameraLabel_, MMCoreJ.getG_Keyword_Binning());
+               binSize = core().getProperty(CacheManager.cameraLabel_, MMCoreJ.getG_Keyword_Binning());
             }
             frame_.setBinSize(binSize);
          }
@@ -864,13 +868,13 @@ public final class MMStudio implements Studio {
             live().setSuspended(false);
             return;
          }
-         if (core_.getProperty(StaticInfo.cameraLabel_,
+         if (core_.getProperty(CacheManager.cameraLabel_,
                  MMCoreJ.getG_Keyword_Binning()).equals(mode)) {
             // No change in binning mode.
             live().setSuspended(false);
             return;
          }
-         core_.setProperty(StaticInfo.cameraLabel_, MMCoreJ.getG_Keyword_Binning(), mode);
+         core_.setProperty(CacheManager.cameraLabel_, MMCoreJ.getG_Keyword_Binning(), mode);
          staticInfo_.refreshValues();
       } catch (Exception e) {
          ReportingUtils.showError(e);
@@ -988,7 +992,7 @@ public final class MMStudio implements Studio {
    // //////////////////////////////////////////////////////////////////////////
 
    private boolean isCameraAvailable() {
-      return StaticInfo.cameraLabel_.length() > 0;
+      return CacheManager.cameraLabel_.length() > 0;
    }
 
    /**
@@ -1008,8 +1012,8 @@ public final class MMStudio implements Studio {
    }
 
    private void configureBinningCombo() throws Exception {
-      if (StaticInfo.cameraLabel_.length() > 0) {
-         frame_.configureBinningComboForCamera(StaticInfo.cameraLabel_);
+      if (CacheManager.cameraLabel_.length() > 0) {
+         frame_.configureBinningComboForCamera(CacheManager.cameraLabel_);
       }
    }
 
@@ -1024,7 +1028,7 @@ public final class MMStudio implements Studio {
          if (staticInfo_ != null) {
             staticInfo_.refreshValues();
             if (acqEngine_ != null) {
-               acqEngine_.setZStageDevice(StaticInfo.zStageLabel_);  
+               acqEngine_.setZStageDevice(CacheManager.zStageLabel_);  
             }
          }
 
@@ -1050,7 +1054,7 @@ public final class MMStudio implements Studio {
 
    @Subscribe
    public void onExposureChanged(ExposureChangedEvent event) {
-      if (event.getCameraName().equals(StaticInfo.cameraLabel_)) {
+      if (event.getCameraName().equals(CacheManager.cameraLabel_)) {
          frame_.setDisplayedExposureTime(event.getNewExposureTime());
       }
    }
@@ -1509,35 +1513,6 @@ public final class MMStudio implements Studio {
 
    public UiMovesStageManager getUiMovesStageManager () {
       return uiMovesStageManager_;
-   }
-
-   //Cached value accessors
-   protected void refreshStaticInfo() {
-      staticInfo_.refreshValues();
-   }
-      
-   public double getCachedXPosition() {
-      return staticInfo_.getStageX();
-   }
-
-   public double getCachedYPosition() {
-      return staticInfo_.getStageY();
-   }
-
-   public double getCachedZPosition() {
-      return staticInfo_.getStageZ();
-   }
-
-   public int getCachedBitDepth() {
-      return staticInfo_.getImageBitDepth();
-   }
-
-   public double getCachedPixelSizeUm() {
-      return staticInfo_.getPixelSizeUm();
-   }
-   
-   public AffineTransform getCachedPixelSizeAffine() {
-      return staticInfo_.getPixelSizeAffine();
    }
 }
 

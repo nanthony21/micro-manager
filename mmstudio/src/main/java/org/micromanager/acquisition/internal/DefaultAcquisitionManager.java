@@ -46,6 +46,7 @@ import org.micromanager.data.Metadata;
 import org.micromanager.data.SummaryMetadata;
 import org.micromanager.data.internal.DefaultImage;
 import org.micromanager.data.internal.DefaultSummaryMetadata;
+import org.micromanager.internal.CacheManager;
 import org.micromanager.internal.MMStudio;
 import org.micromanager.internal.dialogs.AcqControlDlg;
 import org.micromanager.internal.utils.MMException;
@@ -274,15 +275,16 @@ public final class DefaultAcquisitionManager implements AcquisitionManager {
       }
 
       MMStudio mmstudio = (MMStudio) studio_;
+      CacheManager cache = mmstudio.getCache();
       Metadata.Builder result = image.getMetadata().copyBuilderWithNewUUID()
          .camera(camera)
          .receivedTime(DATE_FORMATTER.format(new Date()))
-         .pixelSizeUm(mmstudio.getCachedPixelSizeUm())
-         .pixelSizeAffine(mmstudio.getCachedPixelSizeAffine())
-         .xPositionUm(mmstudio.getCachedXPosition())
-         .yPositionUm(mmstudio.getCachedYPosition())
-         .zPositionUm(mmstudio.getCachedZPosition())
-         .bitDepth(mmstudio.getCachedBitDepth());
+         .pixelSizeUm(cache.getPixelSizeUm())
+         .pixelSizeAffine(cache.getPixelSizeAffine())
+         .xPositionUm(cache.getStageX())
+         .yPositionUm(cache.getStageY())
+         .zPositionUm(cache.getStageZ())
+         .bitDepth(cache.getImageBitDepth());
 
       try {
          String binning = studio_.core().getPropertyFromCache(
