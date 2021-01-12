@@ -474,65 +474,61 @@ int CoreCallback::OnPropertyChanged(const MM::Device* device, const char* propNa
          MMThreadGuard scg(core_->stateCacheLock_);
          core_->stateCache_.addSetting(*ps);
       }
-      core_->externalCallback_->onPropertyChanged(label, propName, value);
+      core_->externalCallback_->onPropertyChanged(label, propName, value); 
 
-      // Find all configs that contain this property and callback to indicate 
-      // that the config group changed
-      // TODO: Assess whether performance is better by maintaining a map tying
-      // property to configurations
-      std::vector<std::string> configGroups = 
-         core_->getAvailableConfigGroups ();
-      for (std::vector<std::string>::iterator it = configGroups.begin(); 
-            it != configGroups.end(); ++it) 
-      {
-         std::vector<std::string> configs = 
-            core_->getAvailableConfigs((*it).c_str());
-         bool found = false;
-         for (std::vector<std::string>::iterator itc = configs.begin();
-               itc != configs.end() && !found; itc++) 
-         {
-            Configuration config = 
-               core_->getConfigData((*it).c_str(), (*itc).c_str());
-            // only callback when there is more than 1 property in a group
-            // This is needed, since the UI treats groups with one 
-            // property differently, whereas the core does not....
-            if (config.size() > 1 && config.isPropertyIncluded(label, propName)) {
-               found = true;
-               // If we are part of this configuration, notify that it 
-               // was changed. Get the new config from cache rather 
-               // than by querying the hardware
-               std::string currentConfig = 
-                  core_->getCurrentConfigFromCache( (*it).c_str() );
-               OnConfigGroupChanged((*it).c_str(), currentConfig.c_str());
-            }
+		NotifyConfigGroupIfChanged(label, propName);
+		NotifyPixelSizeIfChanged(label, propName);
+   }
+   return DEVICE_OK;
+}
+
+void CoreCallback::NotifyConfigGroupIfChanged(const char* deviceLabel, const char* propName) {
+	// Find all configs that contain this property and callback to indicate 
+   // that the config group changed
+   // TODO: Assess whether performance is better by maintaining a map tying
+   // property to configurations
+   std::vector<std::string> configGroups = core_->getAvailableConfigGroups ();
+   for (std::vector<std::string>::iterator it = configGroups.begin(); it != configGroups.end(); ++it) {
+      std::vector<std::string> configs = core_->getAvailableConfigs((*it).c_str());
+      bool found = false;
+      for (std::vector<std::string>::iterator itc = configs.begin(); itc != configs.end() && !found; itc++) {
+         Configuration config = core_->getConfigData((*it).c_str(), (*itc).c_str());
+         // only callback when there is more than 1 property in a group
+         // This is needed, since the UI treats groups with one 
+         // property differently, whereas the core does not....
+         if (config.size() > 1 && config.isPropertyIncluded(deviceLabel, propName)) {
+            found = true;
+            // If we are part of this configuration, notify that it 
+            // was changed. Get the new config from cache rather 
+            // than by querying the hardware
+            std::string currentConfig = core_->getCurrentConfigFromCache( (*it).c_str() );
+            OnConfigGroupChanged((*it).c_str(), currentConfig.c_str());
          }
       }
-          
+	}
+}
 
-      // Check if pixel size was potentially affected.  If so, update from cache
-      std::vector<std::string> pixelSizeConfigs = core_->getAvailablePixelSizeConfigs();
-      bool found = false;
-      for (std::vector<std::string>::iterator itpsc = pixelSizeConfigs.begin();
-            itpsc != pixelSizeConfigs.end() && !found; itpsc++) 
-      {
-         Configuration pixelSizeConfig = core_->getPixelSizeConfigData( (*itpsc).c_str());
-         if (pixelSizeConfig.isPropertyIncluded(label, propName)) {
-            found = true;
-            double pixSizeUm;
-            try {
-               // update pixel size from cache
-               pixSizeUm = core_->getPixelSizeUm(true);
-               OnPixelSizeAffineChanged(core_->getPixelSizeAffine(true));
-            }
-            catch (CMMError ) {
-               pixSizeUm = 0.0;
-            }
-            OnPixelSizeChanged(pixSizeUm);
+void CoreCallback::NotifyPixelSizeIfChanged(const char* deviceLabel, const char* propName) {
+   // Check if pixel size was potentially affected by a change to the specified property.
+	// If so, update from cache.
+   std::vector<std::string> pixelSizeConfigs = core_->getAvailablePixelSizeConfigs();
+   bool found = false;
+   for (std::vector<std::string>::iterator itpsc = pixelSizeConfigs.begin(); itpsc != pixelSizeConfigs.end() && !found; itpsc++) {
+      Configuration pixelSizeConfig = core_->getPixelSizeConfigData( (*itpsc).c_str());
+      if (pixelSizeConfig.isPropertyIncluded(deviceLabel, propName)) {
+         found = true;
+         double pixSizeUm;
+         try {
+            // update pixel size from cache
+            pixSizeUm = core_->getPixelSizeUm(true);
+            OnPixelSizeAffineChanged(core_->getPixelSizeAffine(true));
          }
+         catch (CMMError ) {
+            pixSizeUm = 0.0;
+         }
+         OnPixelSizeChanged(pixSizeUm);
       }
    }
-
-   return DEVICE_OK;
 }
 
 /**
