@@ -24,24 +24,19 @@ package org.micromanager.internal;
 import com.bulenkov.iconloader.IconLoader;
 import com.google.common.eventbus.Subscribe;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.KeyboardFocusManager;
 import java.awt.dnd.DropTarget;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JButton;
@@ -52,27 +47,20 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
-import javax.swing.SwingUtilities;
 import javax.swing.border.MatteBorder;
 import mmcorej.CMMCore;
-import mmcorej.MMCoreJ;
-import mmcorej.StrVector;
 import net.miginfocom.swing.MigLayout;
-import org.micromanager.acquisition.internal.AcquisitionSelector;
 import org.micromanager.alerts.internal.AlertClearedEvent;
 import org.micromanager.alerts.internal.AlertUpdatedEvent;
 import org.micromanager.alerts.internal.DefaultAlertManager;
 import org.micromanager.alerts.internal.DefaultAlert;
 import org.micromanager.alerts.internal.NoAlertsAvailableEvent;
 import org.micromanager.events.ChannelExposureEvent;
-import org.micromanager.events.ChannelGroupChangedEvent;
 import org.micromanager.events.ConfigGroupChangedEvent;
 import org.micromanager.events.GUIRefreshEvent;
-import org.micromanager.events.StartupCompleteEvent;
 import org.micromanager.events.internal.MouseMovesStageStateChangeEvent;
 import org.micromanager.events.internal.ShutterDevicesEvent;
 import org.micromanager.internal.dialogs.OptionsDlg;
-import org.micromanager.internal.dialogs.StageControlFrame;
 import org.micromanager.internal.utils.DragDropUtil;
 import org.micromanager.internal.utils.GUIUtils;
 import org.micromanager.internal.utils.MMFrame;
@@ -96,12 +84,9 @@ public final class MainFrame extends MMFrame {
    private static final String SMALLBUTTON_SIZE = "w 30!, h 20!";
 
    // GUI components
-   private JComboBox<String> comboBinning_;
    private JComboBox<String> shutterComboBox_;
    private JTextField textFieldExp_;
-   private JComboBox<String> chanGroupSelect_;
-   // Toggles activity of chanGroupSelect_ on or off.
-   private boolean shouldChangeChannelGroup_;
+
    private JLabel labelImageDimensions_;
    private JButton liveButton_;
    private JCheckBox autoShutterCheckBox_;
@@ -231,7 +216,7 @@ public final class MainFrame extends MMFrame {
       subPanel.add(createLabel("Imaging settings", true), "gaptop 2, wrap");
 
       // Exposure time.
-      subPanel.add(createLabel("Exposure [ms]", false), "split 2");
+      subPanel.add(createLabel("Exposure [ms]", false), "split 2, gapy 0 15");
 
       textFieldExp_ = new JTextField(8);
       textFieldExp_.addFocusListener(new FocusAdapter() {
@@ -245,41 +230,6 @@ public final class MainFrame extends MMFrame {
          mmStudio_.app().setExposure(getDisplayedExposureTime());
       });
       subPanel.add(textFieldExp_, "gapleft push, wrap");
-
-      // Channel group.
-      subPanel.add(createLabel("Changroup", false), "split 2");
-
-      // HACK: limit the width of this combo box, ignoring the width of the
-      // entries inside of it.
-      chanGroupSelect_ = new JComboBox<String> () {
-         @Override
-         public Dimension getMinimumSize() {
-            return new Dimension(110, super.getSize().height);
-         }
-      };
-      chanGroupSelect_.setFont(defaultFont_);
-      chanGroupSelect_.addActionListener((ActionEvent e) -> {
-         if (!shouldChangeChannelGroup_) {
-            // We're modifying this combobox, so we don't want it making
-            // changes.
-            return;
-         }
-         String newGroup = (String) chanGroupSelect_.getSelectedItem();
-         mmStudio_.getAcquisitionEngine().setChannelGroup(newGroup);
-      });
-      subPanel.add(chanGroupSelect_, "gapleft push, wrap");
-
-      // Binning.
-      subPanel.add(createLabel("Binning", false), "split 2");
-
-      comboBinning_ = new JComboBox<>();
-      comboBinning_.setName("Binning");
-      comboBinning_.setFont(defaultFont_);
-      comboBinning_.setMaximumRowCount(4);
-      comboBinning_.addActionListener((ActionEvent e) -> {
-         mmStudio_.changeBinning(getBinMode());
-      });
-      subPanel.add(comboBinning_, "gapleft push, width 60::, wrap");
 
       // Shutter device.
       JPanel shutterPanel = new JPanel(
@@ -520,33 +470,7 @@ public final class MainFrame extends MMFrame {
 
    @Subscribe
    public void onGUIRefresh(GUIRefreshEvent event) {
-      refreshChannelGroup();
       refreshShutterGUI();
-   }
-
-   @Subscribe
-   public void onStartupComplete(StartupCompleteEvent event) {
-      refreshChannelGroup();
-   }
-
-   @Subscribe
-   public void onChannelGroupChangedEvent(ChannelGroupChangedEvent event) {
-      refreshChannelGroup();
-   }
-
-   /**
-    * Recreate the contents and current selection of the chanGroupSelect_
-    * combobox. We have to temporarily disable its action listener so it
-    * doesn't try to change the current channel group while we do this.
-    */
-   private void refreshChannelGroup() {
-      shouldChangeChannelGroup_ = false;
-      chanGroupSelect_.removeAllItems();
-      for (String group : mmStudio_.getAcquisitionEngine().getAvailableGroups()) {
-         chanGroupSelect_.addItem(group);
-      }
-      chanGroupSelect_.setSelectedItem(core_.getChannelGroup());
-      shouldChangeChannelGroup_ = true;
    }
 
    @Subscribe
@@ -593,7 +517,7 @@ public final class MainFrame extends MMFrame {
    }
 
    public void configureBinningComboForCamera(String cameraLabel) {
-      ActionListener[] listeners;
+      /*ActionListener[] listeners;
 
       try {
          StrVector binSizes = core_.getAllowedPropertyValues(
@@ -626,23 +550,11 @@ public final class MainFrame extends MMFrame {
       } catch (Exception e) {
          // getAllowedPropertyValues probably failed.
          ReportingUtils.showError(e);
-      }
+      }*/
    }
 
    public void setBinSize(String binSize) {
-      GUIUtils.setComboSelection(comboBinning_, binSize);
-   }
-
-   /**
-    * Return the current selection from the comboBinning_ menu, or null.
-    * @return bin setting in UI as a String
-    */
-   public String getBinMode() {
-      Object item = comboBinning_.getSelectedItem();
-      if (item != null) {
-         return item.toString();
-      }
-      return (String) null;
+      //GUIUtils.setComboSelection(comboBinning_, binSize);
    }
 
    public ConfigGroupPad getConfigPad() {
