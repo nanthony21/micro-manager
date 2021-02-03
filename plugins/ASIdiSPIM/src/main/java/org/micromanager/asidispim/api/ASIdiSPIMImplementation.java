@@ -272,7 +272,7 @@ public class ASIdiSPIMImplementation implements ASIdiSPIMInterface {
    @Override
    public PositionList getPositionList() throws ASIdiSPIMException, RemoteException {
       try {
-         return getGui().getPositionList();
+         return getGui().positions().getPositionList();
       } catch (Exception ex) {
          throw new ASIdiSPIMException(ex);
       }
@@ -775,7 +775,7 @@ public class ASIdiSPIMImplementation implements ASIdiSPIMInterface {
   }
    
   private CMMCore getCore() throws ASIdiSPIMException, RemoteException {
-       CMMCore core = getGui().getCore();
+       CMMCore core = getGui().getCMMCore();
        if (core == null) {
           throw new ASIdiSPIMException("Core is not open");
        }

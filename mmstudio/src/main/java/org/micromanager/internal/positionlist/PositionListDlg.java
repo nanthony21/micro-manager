@@ -54,6 +54,7 @@ import org.micromanager.PositionList;
 import org.micromanager.StagePosition;
 import org.micromanager.Studio;
 import org.micromanager.UserProfile;
+import org.micromanager.events.NewPositionListEvent;
 import org.micromanager.events.StagePositionChangedEvent;
 import org.micromanager.events.XYStagePositionChangedEvent;
 import org.micromanager.internal.MMStudio;
@@ -349,7 +350,9 @@ public class PositionListDlg extends MMFrame implements MouseListener, ChangeLis
       removeAllButton.addActionListener(new ActionListener() {
          @Override
          public void actionPerformed(ActionEvent arg0) {
-            int ret = JOptionPane.showConfirmDialog(null, "Are you sure you want to erase\nall positions from the position list?", "Clear all positions?", JOptionPane.YES_NO_OPTION);
+            int ret = JOptionPane.showConfirmDialog(PositionListDlg.this,
+                    "Are you sure you want to erase\nall positions from the position list?",
+                    "Clear all positions?", JOptionPane.YES_NO_OPTION);
             if (ret == JOptionPane.YES_OPTION) {
                clearAllPositions();
             }
@@ -515,7 +518,8 @@ public class PositionListDlg extends MMFrame implements MouseListener, ChangeLis
    }
 
    protected void updatePositionData() {
-      positionModel_.fireTableDataChanged();
+      // positionModel_.fireTableDataChanged();
+      updateMarkButtonText();
    }
    
    public void rebuildAxisList() {
@@ -751,6 +755,12 @@ public class PositionListDlg extends MMFrame implements MouseListener, ChangeLis
       });
    }
 
+   @Subscribe
+   public void onNewPositionList(NewPositionListEvent nple) {
+      positionModel_.setData(nple.getPositionList());
+      positionModel_.fireTableDataChanged();
+   }
+
    /**
     * Update display of the current stage position.
     * Go out to the hardware to get new positions
@@ -851,7 +861,6 @@ public class PositionListDlg extends MMFrame implements MouseListener, ChangeLis
 
    public PositionList getPositionList() {
       return positionModel_.getPositionList();
-
    }
 
    /**
