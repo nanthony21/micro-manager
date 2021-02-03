@@ -361,7 +361,7 @@ public final class MainFrame extends MMFrame {
       liveButton_.setFont(defaultFont_);
       subPanel.add(liveButton_, BIGBUTTON_SIZE);
 
-      JButton albumButton = createButton("Album", "camera_plus_arrow.png",
+      /*JButton albumButton = createButton("Album", "camera_plus_arrow.png",
          "Acquire single frame and add to an album", () -> {
             try {
                mmStudio_.album().addImages(mmStudio_.live().snap(false));
@@ -369,24 +369,22 @@ public final class MainFrame extends MMFrame {
                mmStudio_.logs().showError(ioEx);
             }
       });
-      subPanel.add(albumButton, BIGBUTTON_SIZE);
+      subPanel.add(albumButton, BIGBUTTON_SIZE);*/
 
-      subPanel.add(AcquisitionSelector.makeSelector(mmStudio_), BIGBUTTON_SIZE);
+     // subPanel.add(AcquisitionSelector.makeSelector(mmStudio_), BIGBUTTON_SIZE);
 
-      JButton refreshButton = createButton("Refresh", "arrow_refresh.png",
+      /*JButton refreshButton = createButton("Refresh", "arrow_refresh.png",
          "Refresh all GUI controls directly from the hardware", () -> {
             core_.updateSystemStateCache();
             mmStudio_.uiManager().updateGUI(true);
       });
-      subPanel.add(refreshButton, BIGBUTTON_SIZE);
+      subPanel.add(refreshButton, BIGBUTTON_SIZE);*/
 
-      JButton closeAllButton = (JButton) QuickAccessFactory.makeGUI(mmStudio_.plugins().getQuickAccessPlugins().get(
+      /*JButton closeAllButton = (JButton) QuickAccessFactory.makeGUI(mmStudio_.plugins().getQuickAccessPlugins().get(
                "org.micromanager.quickaccess.internal.controls.CloseAllButton"));
       closeAllButton.setFont(defaultFont_);
-      // HACK: Windows will helpfully replace "All" with "..." unless we do
-      // this.
       closeAllButton.setMargin(new Insets(0, 0, 0, 0));
-      subPanel.add(closeAllButton, BIGBUTTON_SIZE);
+      subPanel.add(closeAllButton, BIGBUTTON_SIZE); */
       return subPanel;
    }
 
