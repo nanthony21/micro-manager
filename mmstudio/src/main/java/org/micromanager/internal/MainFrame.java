@@ -24,24 +24,19 @@ package org.micromanager.internal;
 import com.bulenkov.iconloader.IconLoader;
 import com.google.common.eventbus.Subscribe;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.KeyboardFocusManager;
 import java.awt.dnd.DropTarget;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JButton;
@@ -52,27 +47,20 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
-import javax.swing.SwingUtilities;
 import javax.swing.border.MatteBorder;
 import mmcorej.CMMCore;
-import mmcorej.MMCoreJ;
-import mmcorej.StrVector;
 import net.miginfocom.swing.MigLayout;
-import org.micromanager.acquisition.internal.AcquisitionSelector;
 import org.micromanager.alerts.internal.AlertClearedEvent;
 import org.micromanager.alerts.internal.AlertUpdatedEvent;
 import org.micromanager.alerts.internal.DefaultAlertManager;
 import org.micromanager.alerts.internal.DefaultAlert;
 import org.micromanager.alerts.internal.NoAlertsAvailableEvent;
 import org.micromanager.events.ChannelExposureEvent;
-import org.micromanager.events.ChannelGroupChangedEvent;
 import org.micromanager.events.ConfigGroupChangedEvent;
 import org.micromanager.events.GUIRefreshEvent;
-import org.micromanager.events.StartupCompleteEvent;
 import org.micromanager.events.internal.MouseMovesStageStateChangeEvent;
 import org.micromanager.events.internal.ShutterDevicesEvent;
 import org.micromanager.internal.dialogs.OptionsDlg;
-import org.micromanager.internal.dialogs.StageControlFrame;
 import org.micromanager.internal.utils.DragDropUtil;
 import org.micromanager.internal.utils.GUIUtils;
 import org.micromanager.internal.utils.MMFrame;
@@ -96,14 +84,9 @@ public final class MainFrame extends MMFrame {
    private static final String SMALLBUTTON_SIZE = "w 30!, h 20!";
 
    // GUI components
-   private JLabel configFile_;
-   private JLabel profileName_;
-   private JComboBox comboBinning_;
-   private JComboBox shutterComboBox_;
+   private JComboBox<String> shutterComboBox_;
    private JTextField textFieldExp_;
-   private JComboBox chanGroupSelect_;
-   // Toggles activity of chanGroupSelect_ on or off.
-   private boolean shouldChangeChannelGroup_;
+
    private JLabel labelImageDimensions_;
    private JButton liveButton_;
    private JCheckBox autoShutterCheckBox_;
@@ -126,10 +109,6 @@ public final class MainFrame extends MMFrame {
    private final MMStudio mmStudio_;
 
    private ConfigPadButtonPanel configPadButtonPanel_;
-
-   private AbstractButton setRoiButton_;
-   private AbstractButton clearRoiButton_;
-   private AbstractButton centerQuadButton_;
 
    @SuppressWarnings("LeakingThisInConstructor")
    public MainFrame(MMStudio mmStudio, CMMCore core) {
@@ -159,9 +138,8 @@ public final class MainFrame extends MMFrame {
 
       setExitStrategy(OptionsDlg.getShouldCloseOnExit(mmStudio_));
 
-      super.setJMenuBar(mmStudio.getMMMenubar());
+      super.setJMenuBar(mmStudio.uiManager().menubar());
 
-      setConfigText("");
       // Set minimum size so we can't resize smaller and hide some of our
       // contents. Our insets are only available after the first call to
       // pack().
@@ -238,55 +216,20 @@ public final class MainFrame extends MMFrame {
       subPanel.add(createLabel("Imaging settings", true), "gaptop 2, wrap");
 
       // Exposure time.
-      subPanel.add(createLabel("Exposure [ms]", false), "split 2");
+      subPanel.add(createLabel("Exposure [ms]", false), "split 2, gapy 0 15");
 
       textFieldExp_ = new JTextField(8);
       textFieldExp_.addFocusListener(new FocusAdapter() {
          @Override
          public void focusLost(FocusEvent fe) {
-            mmStudio_.setExposure(getDisplayedExposureTime());
+            mmStudio_.app().setExposure(getDisplayedExposureTime());
          }
       });
       textFieldExp_.setFont(defaultFont_);
       textFieldExp_.addActionListener((ActionEvent e) -> {
-         mmStudio_.setExposure(getDisplayedExposureTime());
+         mmStudio_.app().setExposure(getDisplayedExposureTime());
       });
       subPanel.add(textFieldExp_, "gapleft push, wrap");
-
-      // Channel group.
-      subPanel.add(createLabel("Changroup", false), "split 2");
-
-      // HACK: limit the width of this combo box, ignoring the width of the
-      // entries inside of it.
-      chanGroupSelect_ = new JComboBox() {
-         @Override
-         public Dimension getMinimumSize() {
-            return new Dimension(110, super.getSize().height);
-         }
-      };
-      chanGroupSelect_.setFont(defaultFont_);
-      chanGroupSelect_.addActionListener((ActionEvent e) -> {
-         if (!shouldChangeChannelGroup_) {
-            // We're modifying this combobox, so we don't want it making
-            // changes.
-            return;
-         }
-         String newGroup = (String) chanGroupSelect_.getSelectedItem();
-         mmStudio_.getAcquisitionEngine().setChannelGroup(newGroup);
-      });
-      subPanel.add(chanGroupSelect_, "gapleft push, wrap");
-
-      // Binning.
-      subPanel.add(createLabel("Binning", false), "split 2");
-
-      comboBinning_ = new JComboBox();
-      comboBinning_.setName("Binning");
-      comboBinning_.setFont(defaultFont_);
-      comboBinning_.setMaximumRowCount(4);
-      comboBinning_.addActionListener((ActionEvent e) -> {
-         mmStudio_.changeBinning();
-      });
-      subPanel.add(comboBinning_, "gapleft push, width 60::, wrap");
 
       // Shutter device.
       JPanel shutterPanel = new JPanel(
@@ -294,7 +237,7 @@ public final class MainFrame extends MMFrame {
       shutterPanel.setBorder(BorderFactory.createLoweredBevelBorder());
       shutterPanel.add(createLabel("Shutter", false), "split 2");
 
-      shutterComboBox_ = new JComboBox();
+      shutterComboBox_ = new JComboBox<>();
       shutterComboBox_.setName("Shutter");
       shutterComboBox_.setFont(defaultFont_);
       shutterComboBox_.addActionListener((ActionEvent arg0) -> {
@@ -329,7 +272,7 @@ public final class MainFrame extends MMFrame {
 
       saveConfigButton_ = createButton("Save", null,
          "Save current presets to the configuration file", () -> {
-            mmStudio_.promptToSaveConfigPresets();
+            mmStudio_.uiManager().promptToSaveConfigPresets();
       });
       subPanel.add(saveConfigButton_,
             "pushy 0, gapleft push, alignx right, w 88!, h 20!");
@@ -362,34 +305,26 @@ public final class MainFrame extends MMFrame {
       liveButton_ = (JButton) QuickAccessFactory.makeGUI(mmStudio_.plugins().getQuickAccessPlugins().get(
                "org.micromanager.quickaccess.internal.controls.LiveButton"));
       liveButton_.setFont(defaultFont_);
-      subPanel.add(liveButton_, BIGBUTTON_SIZE);
+      subPanel.add(liveButton_, BIGBUTTON_SIZE + ",  gapy 0 10");  //Put a gap below 
 
-      JButton albumButton = createButton("Album", "camera_plus_arrow.png",
-         "Acquire single frame and add to an album", () -> {
-            try {
-               mmStudio_.album().addImages(mmStudio_.live().snap(false));
-            } catch (IOException ioEx) {
-               mmStudio_.logs().showError(ioEx);
-            }
+
+      // Autofocus
+      // Icon based on the public-domain icon at
+      // http://www.clker.com/clipart-267005.html
+      autofocusNowButton_ = createButton("Auto Focus", "binoculars.png",
+         "Autofocus now", () -> {
+            mmStudio_.autofocusNow();
       });
-      subPanel.add(albumButton, BIGBUTTON_SIZE);
+      subPanel.add(autofocusNowButton_, BIGBUTTON_SIZE);
 
-      subPanel.add(AcquisitionSelector.makeSelector(mmStudio_), BIGBUTTON_SIZE);
-
-      JButton refreshButton = createButton("Refresh", "arrow_refresh.png",
-         "Refresh all GUI controls directly from the hardware", () -> {
-            core_.updateSystemStateCache();
-            mmStudio_.updateGUI(true);
+      // Icon based on the public-domain icon at
+      // http://publicdomainvectors.org/en/free-clipart/Adjustable-wrench-icon-vector-image/23097.html
+      autofocusConfigureButton_ = createButton("AF Settings",
+            "wrench.png", "Set autofocus options", () -> {
+               mmStudio_.app().showAutofocusDialog();
       });
-      subPanel.add(refreshButton, BIGBUTTON_SIZE);
+      subPanel.add(autofocusConfigureButton_, BIGBUTTON_SIZE);
 
-      JButton closeAllButton = (JButton) QuickAccessFactory.makeGUI(mmStudio_.plugins().getQuickAccessPlugins().get(
-               "org.micromanager.quickaccess.internal.controls.CloseAllButton"));
-      closeAllButton.setFont(defaultFont_);
-      // HACK: Windows will helpfully replace "All" with "..." unless we do
-      // this.
-      closeAllButton.setMargin(new Insets(0, 0, 0, 0));
-      subPanel.add(closeAllButton, BIGBUTTON_SIZE);
       return subPanel;
    }
 
@@ -445,11 +380,9 @@ public final class MainFrame extends MMFrame {
 
    private JPanel createComponents() {
       JPanel overPanel = new JPanel(new MigLayout("fill, flowx, insets 1, gap 0"));
-      overPanel.add(createConfigProfileLine(), "growx, spanx, wrap");
       JPanel subPanel = new JPanel(new MigLayout("flowx, insets 1, gap 0"));
       subPanel.add(createCommonActionButtons(), "growy, aligny top");
       subPanel.add(createImagingSettingsWidgets(), "gapleft 10, growx, wrap");
-      subPanel.add(createUtilityButtons(), "span, wrap");
       subPanel.add(createAlertPanel(), "span, wrap");
       overPanel.add(subPanel, "gapbottom push, grow 0, pushx 0");
       overPanel.add(createConfigurationControls(), "grow, wrap, pushx 100");
@@ -462,117 +395,7 @@ public final class MainFrame extends MMFrame {
       return overPanel;
    }
 
-   private JPanel createConfigProfileLine() {
-      JPanel subPanel = new JPanel(
-            new MigLayout("flowx, insets 0 1 0 1, gap 0, fill"));
-      subPanel.setBorder(new MatteBorder(0, 0, 1, 0,
-               new Color(200, 200, 200)));
-      profileName_ = new JLabel();
-      profileName_.setFont(defaultFont_);
-      profileName_.setText("Profile: " + mmStudio_.profile().getProfileName());
-      subPanel.add(profileName_, "alignx left");
-      configFile_ = new JLabel();
-      configFile_.setFont(defaultFont_);
-      subPanel.add(configFile_, "alignx right, gapleft push, wrap");
-      return subPanel;
-   }
 
-   public void setUserName(String name) {
-      profileName_.setText("Profile: " + name);
-   }
-
-   private JPanel createUtilityButtons() {
-      JPanel subPanel = new JPanel(new MigLayout("flowx, insets 1, gap 0"));
-      // ROI
-      JPanel roiPanel = new JPanel(new MigLayout("flowx, insets 1, gap 0"));
-      roiPanel.add(createLabel("ROI", true),
-            "span 2, alignx center, growx, wrap");
-      setRoiButton_ = createButton(null, "shape_handles.png",
-         "Set Region Of Interest to selected rectangle", () -> {
-            mmStudio_.setROI();
-      });
-      roiPanel.add(setRoiButton_, SMALLBUTTON_SIZE);
-      centerQuadButton_ = createButton(null, "center_quad.png",
-         "Set Region Of Interest to center quad of camera", () -> {
-            mmStudio_.setCenterQuad();
-      });
-      roiPanel.add(centerQuadButton_, SMALLBUTTON_SIZE);
-
-      clearRoiButton_ = createButton(null, "arrow_out.png",
-         "Reset Region of Interest to full frame", () -> {
-            mmStudio_.clearROI();
-      });
-      roiPanel.add(clearRoiButton_, SMALLBUTTON_SIZE);
-
-      subPanel.add(roiPanel);
-
-      // Stage control
-      JPanel stagePanel = new JPanel(new MigLayout("flowx, insets 1, gap 0"));
-      stagePanel.add(createLabel("Stage", true),
-            "span 3, alignx center, growx, wrap");
-      // This icon is the public-domain icon at
-      // https://openclipart.org/detail/198011/mono-move
-      AbstractButton moveButton = createButton(null, "move.png",
-            "Control the current stage with a virtual joystick", () -> {
-               StageControlFrame.showStageControl(mmStudio_);
-      });
-      stagePanel.add(moveButton, SMALLBUTTON_SIZE);
-
-      // This icon is based on the public-domain icons at
-      // https://openclipart.org/detail/170328/eco-green-hand-icon
-      // and
-      // https://openclipart.org/detail/198011/mono-move
-      handMovesButton_ = new JToggleButton(
-            IconLoader.getIcon("/org/micromanager/icons/move_hand.png"));
-      handMovesButton_.setToolTipText(
-            "When set, you can double-click on the Snap/Live view to move the stage. Requires pixel sizes to be set (see Pixel Calibration), and that you use the hand tool.");
-      handMovesButton_.addActionListener((ActionEvent e) -> {
-         boolean isSelected = handMovesButton_.isSelected();
-         mmStudio_.updateCenterAndDragListener(isSelected);
-      });
-      setHandMovesButton(mmStudio_.getMMMenubar().getToolsMenu().getMouseMovesStage());
-      stagePanel.add(handMovesButton_, SMALLBUTTON_SIZE);
-
-      AbstractButton listButton = createButton(null, "application_view_list.png",
-            "Show the Stage Position List dialog", () -> {
-               mmStudio_.app().showPositionList();
-      });
-      stagePanel.add(listButton, SMALLBUTTON_SIZE);
-
-      subPanel.add(stagePanel, "gapleft 16");
-
-      // Autofocus
-      JPanel autoPanel = new JPanel(new MigLayout("flowx, insets 1, gap 0"));
-      autoPanel.add(createLabel("Autofocus", true),
-            "span 2, alignx center, growx, wrap");
-      // Icon based on the public-domain icon at
-      // http://www.clker.com/clipart-267005.html
-      autofocusNowButton_ = createButton(null, "binoculars.png",
-         "Autofocus now", () -> {
-            mmStudio_.autofocusNow();
-      });
-      autoPanel.add(autofocusNowButton_, SMALLBUTTON_SIZE);
-
-      // Icon based on the public-domain icon at
-      // http://publicdomainvectors.org/en/free-clipart/Adjustable-wrench-icon-vector-image/23097.html
-      autofocusConfigureButton_ = createButton(null,
-            "wrench.png", "Set autofocus options", () -> {
-               mmStudio_.showAutofocusDialog();
-      });
-      autoPanel.add(autofocusConfigureButton_, SMALLBUTTON_SIZE);
-
-      subPanel.add(autoPanel, "gapleft 16");
-      return subPanel;
-   }
-
-   public void setConfigText(String inputConfigFileName) {
-      // Recognize and specially treat empty config files.
-      String configFile = inputConfigFileName;
-      if (configFile == null || configFile.equals("")) {
-         configFile = "(none)";
-      }
-      configFile_.setText("Config File: " + configFile);
-   }
 
    public final void setExitStrategy(boolean closeOnExit) {
       if (closeOnExit) {
@@ -647,33 +470,7 @@ public final class MainFrame extends MMFrame {
 
    @Subscribe
    public void onGUIRefresh(GUIRefreshEvent event) {
-      refreshChannelGroup();
       refreshShutterGUI();
-   }
-
-   @Subscribe
-   public void onStartupComplete(StartupCompleteEvent event) {
-      refreshChannelGroup();
-   }
-
-   @Subscribe
-   public void onChannelGroupChangedEvent(ChannelGroupChangedEvent event) {
-      refreshChannelGroup();
-   }
-
-   /**
-    * Recreate the contents and current selection of the chanGroupSelect_
-    * combobox. We have to temporarily disable its action listener so it
-    * doesn't try to change the current channel group while we do this.
-    */
-   private void refreshChannelGroup() {
-      shouldChangeChannelGroup_ = false;
-      chanGroupSelect_.removeAllItems();
-      for (String group : mmStudio_.getAcquisitionEngine().getAvailableGroups()) {
-         chanGroupSelect_.addItem(group);
-      }
-      chanGroupSelect_.setSelectedItem(core_.getChannelGroup());
-      shouldChangeChannelGroup_ = true;
    }
 
    @Subscribe
@@ -720,7 +517,7 @@ public final class MainFrame extends MMFrame {
    }
 
    public void configureBinningComboForCamera(String cameraLabel) {
-      ActionListener[] listeners;
+      /*ActionListener[] listeners;
 
       try {
          StrVector binSizes = core_.getAllowedPropertyValues(
@@ -753,23 +550,11 @@ public final class MainFrame extends MMFrame {
       } catch (Exception e) {
          // getAllowedPropertyValues probably failed.
          ReportingUtils.showError(e);
-      }
+      }*/
    }
 
    public void setBinSize(String binSize) {
-      GUIUtils.setComboSelection(comboBinning_, binSize);
-   }
-
-   /**
-    * Return the current selection from the comboBinning_ menu, or null.
-    * @return bin setting in UI as a String
-    */
-   public String getBinMode() {
-      Object item = comboBinning_.getSelectedItem();
-      if (item != null) {
-         return item.toString();
-      }
-      return (String) null;
+      //GUIUtils.setComboSelection(comboBinning_, binSize);
    }
 
    public ConfigGroupPad getConfigPad() {
@@ -796,13 +581,5 @@ public final class MainFrame extends MMFrame {
          ReportingUtils.logError(e, "Couldn't convert displayed exposure time to double");
       }
       return -1;
-   }
-
-   public void enableRoiButtons(final boolean enabled) {
-       SwingUtilities.invokeLater(() -> {
-          setRoiButton_.setEnabled(enabled);
-          clearRoiButton_.setEnabled(enabled);
-          centerQuadButton_.setEnabled(enabled);
-       });
    }
 }

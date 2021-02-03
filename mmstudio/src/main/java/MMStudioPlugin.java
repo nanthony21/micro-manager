@@ -29,6 +29,7 @@ import ij.Macro;
 import ij.plugin.Duplicator;
 import ij.plugin.PlugIn;
 import java.lang.reflect.InvocationTargetException;
+import javax.swing.LookAndFeel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -79,6 +80,8 @@ public class MMStudioPlugin implements PlugIn, CommandListener {
                   if (!IJ.versionLessThan("1.46e")) {
                      Executer.addCommandListener(MMStudioPlugin.this);
                   }
+                  
+                  UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName()); // Better appearance than system IMO.
 
                   studio_ = new MMStudio(true, profileNameAutoStart);
                }

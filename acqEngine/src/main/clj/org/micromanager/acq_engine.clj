@@ -40,7 +40,6 @@
     [org.micromanager.acquisition.internal AcquisitionSleepEvent]
     [org.micromanager.acquisition.internal TaggedImageQueue]
     [org.micromanager.data Coords]
-    [org.micromanager.display.internal RememberedChannelSettings]
     [org.micromanager PositionList]
     [org.micromanager.internal MMStudio]
     [org.micromanager.internal.utils MDUtils ReportingUtils])
@@ -702,7 +701,7 @@
       (when (and (@state :init-continuous-focus)
                  (not (core isContinuousFocusEnabled)))
         (enable-continuous-focus true))
-      (when gui (.enableRoiButtons gui true)))
+      (when gui (.. gui uiManager frame (enableRoiButtons true))))
     (catch Throwable t 
            (ReportingUtils/showError t "Acquisition cleanup failed."))))
 
@@ -781,7 +780,7 @@
       (log "Starting MD Acquisition:" settings)
       (when gui
         (.. gui (live) (setLiveMode false))
-        (.enableRoiButtons gui false))
+        (.. gui uiManager frame (enableRoiButtons false)))
       (prepare-state state (when (:use-position-list settings) position-list) autofocus-device)
       (def last-state state) ; for debugging
       (let [acq-seq (generate-acq-sequence settings @attached-runnables)]
@@ -887,8 +886,8 @@
       )
       channel-names
     )
-    ; else, ask RememberedChannelSettings for color for this group/channel combination.
-    (map #(RememberedChannelSettings/getColorForChannel % channel-group (. Color WHITE)) channel-names)))
+  )
+)
 
 (defn summarize-position-list [position-list]
   (let [positions (seq (.getPositions position-list))]
@@ -954,7 +953,7 @@
       "IJType" (get-IJ-type depth)
       "KeepShutterOpenChannels" (:keep-shutter-open-channels settings)
       "KeepShutterOpenSlices" (:keep-shutter-open-slices settings)
-      "MicroManagerVersion" (if gui (.getVersion gui) "N/A")
+      "MicroManagerVersion" (if gui (.. gui compat getVersion) "N/A")
       "PixelSize_um" (core getPixelSizeUm)
       "PixelSizeAffine" (core getPixelSizeAffineAsString)
       "PixelType" (get-pixel-type)

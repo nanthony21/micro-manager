@@ -45,7 +45,7 @@ public final class ToolsMenu {
       GUIUtils.addMenuItem(toolsMenu_, "Refresh GUI",
               "Refresh all GUI controls directly from the hardware", () -> {
                  core_.updateSystemStateCache();
-                 mmStudio_.updateGUI(true);
+                 mmStudio_.uiManager().updateGUI(true);
               },
               "arrow_refresh.png");
 
@@ -53,7 +53,7 @@ public final class ToolsMenu {
 
       GUIUtils.addMenuItem(toolsMenu_, "Script Panel...",
               "Open Micro-Manager script editor window",
-              mmStudio_::showScriptPanel);
+              mmStudio_.uiManager()::showScriptPanel);
 
       populateQuickAccessMenu();
       toolsMenu_.add(quickAccessMenu_);
@@ -98,22 +98,22 @@ public final class ToolsMenu {
 
       GUIUtils.addMenuItem(toolsMenu_, "Multi-Dimensional Acquisition...",
               "Open multi-dimensional acquisition setup window",
-              mmStudio_::openAcqControlDialog,
+              mmStudio_.uiManager()::openAcqControlDialog,
               "film.png");
 
       toolsMenu_.addSeparator();
 
       GUIUtils.addMenuItem(toolsMenu_, "Options...",
               "Set a variety of Micro-Manager configuration options", () -> {
-                 final int oldBufsize = mmStudio_.getCircularBufferSize();
+                 final int oldBufsize = mmStudio_.settings().getCircularBufferSize();
 
                  OptionsDlg dlg = new OptionsDlg(core_, mmStudio_);
                  dlg.setVisible(true);
                  // adjust memory footprint if necessary
-                 if (oldBufsize != mmStudio_.getCircularBufferSize()) {
+                 if (oldBufsize != mmStudio_.settings().getCircularBufferSize()) {
                     try {
                        core_.setCircularBufferMemoryFootprint(
-                               mmStudio_.getCircularBufferSize());
+                               mmStudio_.settings().getCircularBufferSize());
                     } catch (Exception exc) {
                        ReportingUtils.showError(exc);
                     }
