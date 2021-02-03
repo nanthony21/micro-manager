@@ -255,7 +255,6 @@ public class MMUIManager {
       } catch (Exception e) {
          ReportingUtils.logError(e);
       }
-      frame_.setConfigText(studio_.getSysConfigFile());
       studio_.events().post(new GUIRefreshEvent());
    }
    

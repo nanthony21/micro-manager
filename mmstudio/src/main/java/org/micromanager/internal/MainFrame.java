@@ -96,8 +96,6 @@ public final class MainFrame extends MMFrame {
    private static final String SMALLBUTTON_SIZE = "w 30!, h 20!";
 
    // GUI components
-   private JLabel configFile_;
-   private JLabel profileName_;
    private JComboBox<String> comboBinning_;
    private JComboBox<String> shutterComboBox_;
    private JTextField textFieldExp_;
@@ -161,7 +159,6 @@ public final class MainFrame extends MMFrame {
 
       super.setJMenuBar(mmStudio.uiManager().menubar());
 
-      setConfigText("");
       // Set minimum size so we can't resize smaller and hide some of our
       // contents. Our insets are only available after the first call to
       // pack().
@@ -445,7 +442,6 @@ public final class MainFrame extends MMFrame {
 
    private JPanel createComponents() {
       JPanel overPanel = new JPanel(new MigLayout("fill, flowx, insets 1, gap 0"));
-      overPanel.add(createConfigProfileLine(), "growx, spanx, wrap");
       JPanel subPanel = new JPanel(new MigLayout("flowx, insets 1, gap 0"));
       subPanel.add(createCommonActionButtons(), "growy, aligny top");
       subPanel.add(createImagingSettingsWidgets(), "gapleft 10, growx, wrap");
@@ -460,25 +456,6 @@ public final class MainFrame extends MMFrame {
                new Color(200, 200, 200)));
       overPanel.add(labelImageDimensions_, "growx, pushy 0, span, gap 2 0 2 0");
       return overPanel;
-   }
-
-   private JPanel createConfigProfileLine() {
-      JPanel subPanel = new JPanel(
-            new MigLayout("flowx, insets 0 1 0 1, gap 0, fill"));
-      subPanel.setBorder(new MatteBorder(0, 0, 1, 0,
-               new Color(200, 200, 200)));
-      profileName_ = new JLabel();
-      profileName_.setFont(defaultFont_);
-      profileName_.setText("Profile: " + mmStudio_.profile().getProfileName());
-      subPanel.add(profileName_, "alignx left");
-      configFile_ = new JLabel();
-      configFile_.setFont(defaultFont_);
-      subPanel.add(configFile_, "alignx right, gapleft push, wrap");
-      return subPanel;
-   }
-
-   public void setUserName(String name) {
-      profileName_.setText("Profile: " + name);
    }
 
    private JPanel createUtilityButtons() {
@@ -563,15 +540,6 @@ public final class MainFrame extends MMFrame {
 
       subPanel.add(autoPanel, "gapleft 16");
       return subPanel;
-   }
-
-   public void setConfigText(String inputConfigFileName) {
-      // Recognize and specially treat empty config files.
-      String configFile = inputConfigFileName;
-      if (configFile == null || configFile.equals("")) {
-         configFile = "(none)";
-      }
-      configFile_.setText("Config File: " + configFile);
    }
 
    public final void setExitStrategy(boolean closeOnExit) {
