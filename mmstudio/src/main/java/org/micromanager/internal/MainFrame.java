@@ -455,41 +455,6 @@ public final class MainFrame extends MMFrame {
    private JPanel createUtilityButtons() {
       JPanel subPanel = new JPanel(new MigLayout("flowx, insets 1, gap 0"));
 
-      // Stage control
-      JPanel stagePanel = new JPanel(new MigLayout("flowx, insets 1, gap 0"));
-      stagePanel.add(createLabel("Stage", true),
-            "span 3, alignx center, growx, wrap");
-      // This icon is the public-domain icon at
-      // https://openclipart.org/detail/198011/mono-move
-      AbstractButton moveButton = createButton(null, "move.png",
-            "Control the current stage with a virtual joystick", () -> {
-               StageControlFrame.showStageControl(mmStudio_);
-      });
-      stagePanel.add(moveButton, SMALLBUTTON_SIZE);
-
-      // This icon is based on the public-domain icons at
-      // https://openclipart.org/detail/170328/eco-green-hand-icon
-      // and
-      // https://openclipart.org/detail/198011/mono-move
-      handMovesButton_ = new JToggleButton(
-            IconLoader.getIcon("/org/micromanager/icons/move_hand.png"));
-      handMovesButton_.setToolTipText(
-            "When set, you can double-click on the Snap/Live view to move the stage. Requires pixel sizes to be set (see Pixel Calibration), and that you use the hand tool.");
-      handMovesButton_.addActionListener((ActionEvent e) -> {
-         boolean isSelected = handMovesButton_.isSelected();
-         mmStudio_.updateCenterAndDragListener(isSelected);
-      });
-      setHandMovesButton(mmStudio_.uiManager().menubar().getToolsMenu().getMouseMovesStage());
-      stagePanel.add(handMovesButton_, SMALLBUTTON_SIZE);
-
-      AbstractButton listButton = createButton(null, "application_view_list.png",
-            "Show the Stage Position List dialog", () -> {
-               mmStudio_.app().showPositionList();
-      });
-      stagePanel.add(listButton, SMALLBUTTON_SIZE);
-
-      subPanel.add(stagePanel, "gapleft 16");
-
       // Autofocus
       JPanel autoPanel = new JPanel(new MigLayout("flowx, insets 1, gap 0"));
       autoPanel.add(createLabel("Autofocus", true),
