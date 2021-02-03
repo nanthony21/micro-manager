@@ -355,32 +355,26 @@ public final class MainFrame extends MMFrame {
       liveButton_ = (JButton) QuickAccessFactory.makeGUI(mmStudio_.plugins().getQuickAccessPlugins().get(
                "org.micromanager.quickaccess.internal.controls.LiveButton"));
       liveButton_.setFont(defaultFont_);
-      subPanel.add(liveButton_, BIGBUTTON_SIZE);
+      subPanel.add(liveButton_, BIGBUTTON_SIZE + ",  gapy 0 10");  //Put a gap below 
 
-      /*JButton albumButton = createButton("Album", "camera_plus_arrow.png",
-         "Acquire single frame and add to an album", () -> {
-            try {
-               mmStudio_.album().addImages(mmStudio_.live().snap(false));
-            } catch (IOException ioEx) {
-               mmStudio_.logs().showError(ioEx);
-            }
+
+      // Autofocus
+      // Icon based on the public-domain icon at
+      // http://www.clker.com/clipart-267005.html
+      autofocusNowButton_ = createButton("Auto Focus", "binoculars.png",
+         "Autofocus now", () -> {
+            mmStudio_.autofocusNow();
       });
-      subPanel.add(albumButton, BIGBUTTON_SIZE);*/
+      subPanel.add(autofocusNowButton_, BIGBUTTON_SIZE);
 
-     // subPanel.add(AcquisitionSelector.makeSelector(mmStudio_), BIGBUTTON_SIZE);
-
-      /*JButton refreshButton = createButton("Refresh", "arrow_refresh.png",
-         "Refresh all GUI controls directly from the hardware", () -> {
-            core_.updateSystemStateCache();
-            mmStudio_.uiManager().updateGUI(true);
+      // Icon based on the public-domain icon at
+      // http://publicdomainvectors.org/en/free-clipart/Adjustable-wrench-icon-vector-image/23097.html
+      autofocusConfigureButton_ = createButton("AF Settings",
+            "wrench.png", "Set autofocus options", () -> {
+               mmStudio_.app().showAutofocusDialog();
       });
-      subPanel.add(refreshButton, BIGBUTTON_SIZE);*/
+      subPanel.add(autofocusConfigureButton_, BIGBUTTON_SIZE);
 
-      /*JButton closeAllButton = (JButton) QuickAccessFactory.makeGUI(mmStudio_.plugins().getQuickAccessPlugins().get(
-               "org.micromanager.quickaccess.internal.controls.CloseAllButton"));
-      closeAllButton.setFont(defaultFont_);
-      closeAllButton.setMargin(new Insets(0, 0, 0, 0));
-      subPanel.add(closeAllButton, BIGBUTTON_SIZE); */
       return subPanel;
    }
 
@@ -439,7 +433,6 @@ public final class MainFrame extends MMFrame {
       JPanel subPanel = new JPanel(new MigLayout("flowx, insets 1, gap 0"));
       subPanel.add(createCommonActionButtons(), "growy, aligny top");
       subPanel.add(createImagingSettingsWidgets(), "gapleft 10, growx, wrap");
-      subPanel.add(createUtilityButtons(), "span, wrap");
       subPanel.add(createAlertPanel(), "span, wrap");
       overPanel.add(subPanel, "gapbottom push, grow 0, pushx 0");
       overPanel.add(createConfigurationControls(), "grow, wrap, pushx 100");
@@ -452,32 +445,7 @@ public final class MainFrame extends MMFrame {
       return overPanel;
    }
 
-   private JPanel createUtilityButtons() {
-      JPanel subPanel = new JPanel(new MigLayout("flowx, insets 1, gap 0"));
 
-      // Autofocus
-      JPanel autoPanel = new JPanel(new MigLayout("flowx, insets 1, gap 0"));
-      autoPanel.add(createLabel("Autofocus", true),
-            "span 2, alignx center, growx, wrap");
-      // Icon based on the public-domain icon at
-      // http://www.clker.com/clipart-267005.html
-      autofocusNowButton_ = createButton(null, "binoculars.png",
-         "Autofocus now", () -> {
-            mmStudio_.autofocusNow();
-      });
-      autoPanel.add(autofocusNowButton_, SMALLBUTTON_SIZE);
-
-      // Icon based on the public-domain icon at
-      // http://publicdomainvectors.org/en/free-clipart/Adjustable-wrench-icon-vector-image/23097.html
-      autofocusConfigureButton_ = createButton(null,
-            "wrench.png", "Set autofocus options", () -> {
-               mmStudio_.app().showAutofocusDialog();
-      });
-      autoPanel.add(autofocusConfigureButton_, SMALLBUTTON_SIZE);
-
-      subPanel.add(autoPanel, "gapleft 16");
-      return subPanel;
-   }
 
    public final void setExitStrategy(boolean closeOnExit) {
       if (closeOnExit) {
