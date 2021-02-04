@@ -147,6 +147,7 @@ private:
    int OnConfigGroupChanged(const char* groupName, const char* newConfigName);
    int OnPixelSizeChanged(double newPixelSizeUm);
    int OnPixelSizeAffineChanged(std::vector<double> newPixelSizeAffine);
+	void CacheDeviceProperties(const MM::Device* device);
 	void NotifyPixelSizeIfChanged(const char* deviceLabel, const char* propName);
 	void NotifyConfigGroupIfChanged(const char* deviceLabel, const char* propName);
 };

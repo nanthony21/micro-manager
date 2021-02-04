@@ -446,15 +446,36 @@ int CoreCallback::PrepareForAcq(const MM::Device* /*caller*/)
 /**
  * Handler for the property change event from the device.
  */
-int CoreCallback::OnPropertiesChanged(const MM::Device* /* caller */)
+int CoreCallback::OnPropertiesChanged(const MM::Device* caller)
 {
-   if (core_->externalCallback_)
-      core_->externalCallback_->onPropertiesChanged();
+   if (core_->externalCallback_) {
+		CacheDeviceProperties(caller);
+		core_->externalCallback_->onPropertiesChanged();
+	}
 
-   // TODO It is inconsistent that we do not update the system state cache in
-   // this case. However, doing so would be time-consuming (if not unsafe).
-
+   // TODO check for changes of config groups and pixel size
    return DEVICE_OK;
+}
+
+void CoreCallback::CacheDeviceProperties(const MM::Device* device) {
+	char label[MM::MaxStrLength];
+	device->GetLabel(label);
+	for (int i=0; i < device->GetNumberOfProperties(); i++) {
+		char propName[MM::MaxStrLength];
+		device->GetPropertyName(i, propName);
+		bool readOnly;
+		device->GetPropertyReadOnly(propName, readOnly);
+		char value[MM::MaxStrLength];
+		device->GetProperty(propName, value);
+		const PropertySetting* ps = new PropertySetting(label, propName, value, readOnly);
+		{
+			MMThreadGuard scg(core_->stateCacheLock_);
+			core_->stateCache_.addSetting(*ps);
+		}
+	}
+	if isHubDevice {
+		recurse
+	}
 }
 
 /**
