@@ -38,6 +38,7 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.Stroke;
 import java.awt.event.ActionEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
@@ -197,6 +198,7 @@ public class PatternOverlay extends AbstractOverlay {
          @Override
          void draw(Graphics2D g, int patternSize, float width, float height) {
             float r = 0.5f * patternSize * Math.max(width, height) / 100.0f * (float)Math.sqrt(2);
+            g.setStroke(new BasicStroke((float) 1.5));
             g.draw(new Ellipse2D.Float(0.5f * width - r, 0.5f * height - r,
                   2.0f * r, 2.0f * r));
          }
