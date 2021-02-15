@@ -36,7 +36,7 @@ MMDEVAPI_LDFLAGS="-module -avoid-version -shrext \"\$(MMSUFFIX)\""
 AC_SUBST(MMDEVAPI_LDFLAGS)
 
 # Location of third party public files
-thirdpartypublic="${micromanager_path}/../3rdpartypublic"
+thirdpartypublic="${micromanager_path}/3rdPartyDependencies"
 
 
 MM_INSTALL_DIRS

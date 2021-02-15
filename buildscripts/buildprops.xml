@@ -56,7 +56,7 @@
 	</if>
 
 	<!-- Items not in source tree but at fixed location -->
-	<property name="mm.thirdpartypublic" location="${mm.basedir}/../3rdpartypublic"/>
+	<property name="mm.thirdpartypublic" location="${mm.basedir}/3rdPartyDependencies"/>
 
 	<!-- Compiling Java -->
 	<presetdef name="mm-ant-javac">
