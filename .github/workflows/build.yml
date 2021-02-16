@@ -28,5 +28,7 @@ jobs:
           java-version: 1.8
       - name: Build Dependencies
         run: ant build-dependencies
+      - name: Fetch Dependenies
+        run: ant -f buildscripts/fetchdeps.xml
       - name: Build with Ant
         run: ant stage -Dmm.build.failonerror=false
