@@ -33,6 +33,10 @@
 	<target name="build-buildtools">
 		<ant antfile="buildscripts/AntExtensions/build.xml" useNativeBasedir="true" target="jar"/>
 	</target>
+	
+	<target name="build-dependencies">
+		<ant antfile="${mm.thirdpartypublic}/build.xml" useNativeBasedir="true" target="build"/> 
+	</target>
 
 	<target name="build-cpp" description="Build all C++ components">
 		<mm-msbuild project="micromanager.sln" target="Build" failonerror="${mm.build.failonerror}"
