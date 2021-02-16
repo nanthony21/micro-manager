@@ -11,9 +11,17 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 1.8
+      
+      - name: Cached Dependencies
+        id: cache-dependencies
+        uses: actions/cache@v2
+        with:
+          path: dependencies
+          key: ${{ runner.os }}-dependencies
       - name: Fetch Dependenies
+        if: steps.cache-dependencies.outputs.cache-hit != 'true'
         run: ant -f buildscripts/fetchdeps.xml
-      - name: Build Depencies
+      - name: Build Dependencies
         run: ant build-dependencies
       - name: Build with Ant
         run: ant stage -Dmm.build.failonerror=false
