@@ -20,7 +20,7 @@ jobs:
       - name: Fetch Dependenies
         if: steps.cache-dependencies.outputs.cache-hit != 'true'
         run: ant -f buildscripts/fetchdeps.xml
-      - run: ant build-cpp -D mm.build.failonerror=false
+      - run: ant build-cpp -Dmm.build.failonerror=false
       - name: Build Dependencies
         run: ant build-dependencies
       - name: Build with Ant
