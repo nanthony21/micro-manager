@@ -25,9 +25,10 @@ jobs:
             3rdPartyDependencies
           key: ${{ runner.os }}-${{ env.DEP_SHA }}-dependencies  # Cache is linked to the version of the 3rdparty submodule. Will rebuild if the sha has changed.
       - name: Fetch Dependenies
-        if: steps.cache-dependencies.outputs.cache-hit != 'true'
+        if: steps.cache-dependencies.outputs.cache-hit != 'true'  # We only need to do this if the previous cache wasn't found
         run: ant -f buildscripts/fetchdeps.xml
       - name: Build Dependencies
+        if: steps.cache-dependencies.outputs.cache-hit != 'true' # We only need to do this if the previous cache wasn't found
         run: ant build-dependencies
       - name: Build with Ant
       # Without the quotes around "-Dmm.build...." the powershell will ignore the option for some reason
