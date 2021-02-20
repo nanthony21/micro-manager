@@ -24,4 +24,4 @@ jobs:
       - name: Build Dependencies
         run: ant build-dependencies
       - name: Build with Ant
-        run: ant stage -Dmm.build.failonerror=false
+        run: ant stage -D mm.build.failonerror=false
