@@ -17,6 +17,8 @@ jobs:
         with:
           path: dependencies
           key: ${{ runner.os }}-dependencies
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
       - name: Fetch Dependenies
         if: steps.cache-dependencies.outputs.cache-hit != 'true'
         run: ant -f buildscripts/fetchdeps.xml
