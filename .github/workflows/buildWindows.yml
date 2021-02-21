@@ -30,6 +30,8 @@ jobs:
             dependencies
             3rdPartyDependencies
           key: ${{ runner.os }}-${{ env.DEP_SHA }}-dependencies  # Cache is linked to the version of the 3rdparty submodule. Will rebuild and save a new cache if the sha has changed.
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
       - name: Fetch Dependenies if not cached
         if: steps.cache-dependencies.outputs.cache-hit != 'true'  # We only need to do this if the previous cache wasn't found
         run: ant -f buildscripts/fetchdeps.xml
