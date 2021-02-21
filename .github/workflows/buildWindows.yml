@@ -22,15 +22,15 @@ jobs:
         with:
           path: dependencies
           key: ${{ runner.os }}-${{ hashFiles('**/ivy.xml') }}-dependencies  # Cache is linked to the ivy.xml file. Will rebuild and save a new cache if the hash has changed.
-      - name: Fetch Dependenies if not cached
+      - name: Fetch Dependenies (if not cached)
         if: steps.cache-dependencies.outputs.cache-hit != 'true'  # We only need to do this if the previous cache wasn't found
         run: ant -f buildscripts/fetchdeps.xml
-      - name: Build Dependencies if not cached
+      - name: Build 3rdPartyDependencies
         run: ant build-dependencies
       - name: Build with Ant
         run: ant stage -Dmm.build.failonerror=false
       - name: upload
         uses: actions/upload-artifact@v2
         with:
-          name: my-artifact
+          name: Micro-Manager.zip
           path: stage/Release/x64/  
