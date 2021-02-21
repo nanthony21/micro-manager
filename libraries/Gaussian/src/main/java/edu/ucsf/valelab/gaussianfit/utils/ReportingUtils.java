@@ -37,7 +37,7 @@ import javax.swing.JTextArea;
 
 /**
  * Class emulating Micro-Manager's ReportingUtils
- * Goal is to avoid dependencies on MMJ_.jar
+ * Goal is to avoid dependencies on mmstudio.jar
  * 
  * 
  * @author nico

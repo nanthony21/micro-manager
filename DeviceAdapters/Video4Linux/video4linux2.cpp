@@ -20,7 +20,7 @@ sudo cp libmmgr_dal_video4linux2.so /usr/lib/micro-manager/libmmgr_dal_video4lin
 * for debugging:
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/micro-manager
 cd /usr/share/imagej
-strace -f java -Djava.library.path=/usr/lib/micro-manager -classpath /usr/share/imagej/plugins/bsh-2.0b4.jar:/usr/share/imagej/ij.jar:/usr/share/imagej/plugins/Micro-Manager/MMJ_.jar org/micromanager/MMStudioMainFrame
+strace -f java -Djava.library.path=/usr/lib/micro-manager -classpath /usr/share/imagej/plugins/bsh-2.0b4.jar:/usr/share/imagej/ij.jar:/usr/share/imagej/plugins/Micro-Manager/mmstudio.jar org/micromanager/MMStudioMainFrame
 *
 * Modified:
 *

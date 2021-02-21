@@ -1,7 +1,7 @@
 <project name="mmstudio" basedir="." default="jar">
-	<!-- Not sure how it got the name "MMJ_", but we'd need significant
+	<!-- Not sure how it got the name "mmstudio", but we'd need significant
 		 planning to change it -->
-	<property name="product" value="MMJ_"/>
+	<property name="product" value="mmstudio"/>
 
 	<import file="../buildscripts/javabuild.xml"/>
 

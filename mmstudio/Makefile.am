@@ -1,8 +1,8 @@
-jar_DATA = MMJ_.jar
+jar_DATA = mmstudio.jar
 
-.PHONY: MMJ_.jar
+.PHONY: mmstudio.jar
 
-MMJ_.jar:
+mmstudio.jar:
 	$(ANT) -Dmm.javacflags="$(JAVACFLAGS)" $(ANTFLAGS) jar
 
 
@@ -22,7 +22,7 @@ javadoc:
 	-rm -rf doc
 	$(MKDIR_P) doc
 	javadoc -public \
-		-classpath ../MMCoreJ_wrap/MMCoreJ.jar:MMJ_.jar:../dependencies/artifacts/compile/"*":../dependencies/artifacts/imagej/"*" \
+		-classpath ../MMCoreJ_wrap/MMCoreJ.jar:mmstudio.jar:../dependencies/artifacts/compile/"*":../dependencies/artifacts/imagej/"*" \
 		-d doc \
 		-sourcepath $(srcdir)/src/main/java \
 		-subpackages org.micromanager

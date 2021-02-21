@@ -172,7 +172,7 @@ end
 
 function [] = CheckMMInstallation(pathToMM)
    expectedFiles = {'ij.jar', ...
-         fullfile('plugins', 'Micro-Manager', 'MMJ_.jar')};
+         fullfile('plugins', 'Micro-Manager', 'mmstudio.jar')};
    for k = 1:length(expectedFiles)
       expectedFile = fullfile(pathToMM, expectedFiles{k});
       if ~exist(expectedFile, 'file')

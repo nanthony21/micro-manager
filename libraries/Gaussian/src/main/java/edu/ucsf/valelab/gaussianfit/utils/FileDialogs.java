@@ -1,6 +1,6 @@
 /*
  * Direct copy of Micro-Manager FileDialog Utils
- * This is here to avoid dependencies on MMJ_.jar
+ * This is here to avoid dependencies on mmstudio.jar
  * 
 //AUTHOR:        Arthur Edelstein, arthuredelstein@gmail.com January 2011
 //COPYRIGHT:     University of California, San Francisco, 2011

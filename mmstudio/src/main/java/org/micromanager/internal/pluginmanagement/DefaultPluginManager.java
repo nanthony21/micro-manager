@@ -123,7 +123,7 @@ public final class DefaultPluginManager implements PluginManager {
       loadPlugins(PluginFinder.findPlugins(dir));
 
       ReportingUtils.logMessage("Searching for plugins in MMStudio's class loader");
-      // We need to use our normal class loader to load stuff from the MMJ_.jar
+      // We need to use our normal class loader to load stuff from the mmstudio.jar
       // file, since otherwise we won't be able to cast the new plugin to
       // MMPlugin in loadPlugins(), below.
       loadPlugins(PluginFinder.findPluginsWithLoader(
