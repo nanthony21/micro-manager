@@ -16,31 +16,19 @@ jobs:
       - uses: actions/setup-java@v1
         with:
           java-version: 1.8
-      - name: Get 3rdPartyPublic Submodule SHA
-        run: |  # Save the SHA of the 3rdParty repository as a Github environment variable. Used to determine if the cache of dependencies can be reused.
-          cd ${{ env.PUBLIC_DEP_REPO }}
-          DEP_SHA=$(git rev-parse --short HEAD)
-          echo "3rdParty submodule SHA is: ${DEP_SHA}"
-          echo "DEP_SHA=${DEP_SHA}" >> ${GITHUB_ENV}  # Set  the github environment variable.
       - name: Get Cached Dependencies
         id: cache-dependencies
         uses: actions/cache@v2
         with:
-          path: |
-            dependencies
-            3rdPartyDependencies
-          key: ${{ runner.os }}-${{ env.DEP_SHA }}-dependencies  # Cache is linked to the version of the 3rdparty submodule. Will rebuild and save a new cache if the sha has changed.
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
+          path: dependencies
+          key: ${{ runner.os }}-${{ hashFiles('**/ivy.xml') }}-dependencies  # Cache is linked to the ivy.xml file. Will rebuild and save a new cache if the hash has changed.
       - name: Fetch Dependenies if not cached
         if: steps.cache-dependencies.outputs.cache-hit != 'true'  # We only need to do this if the previous cache wasn't found
         run: ant -f buildscripts/fetchdeps.xml
       - name: Build Dependencies if not cached
-        if: steps.cache-dependencies.outputs.cache-hit != 'true' # We only need to do this if the previous cache wasn't found
         run: ant build-dependencies
       - name: Build with Ant
-      # Without the quotes around "-Dmm.build...." the powershell will ignore the option for some reason
-        run: ant stage "-Dmm.build.failonerror=false"
+        run: ant stage -Dmm.build.failonerror=false
       - name: upload
         uses: actions/upload-artifact@v2
         with:
