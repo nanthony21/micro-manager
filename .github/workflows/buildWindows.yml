@@ -18,9 +18,12 @@ jobs:
           java-version: 1.8
       - name: Get 3rdPartyPublic Submodule SHA
         run: |  # Save the SHA of the 3rdParty repository as a Github environment variable. Used to determine if the cache of dependencies can be reused.
-          SET -Name "DEP_SHA" -Value (git submodule status | Select-String -Pattern "3rdParty").Line.Split(" ")[1]
+          DEP_SHA=$(git submodule status | grep "3rdParty")  # Get the information from the 3rdparty submodule
+          IFS=" "  # Set the delimiter for the read operation
+          read -ra SPLIT <<< "$DEP_SHA"  # Split the submodule info string into an array 
+          DEP_SHA=${SPLIT[0]}  # The SHA we want is the first item of the array.
           echo "${DEP_SHA}"
-          echo "DEP_SHA=${DEP_SHA}" >> ${GITHUB_ENV}
+          echo "DEP_SHA=${DEP_SHA}" >> ${GITHUB_ENV}  # Set  the github environment variable.
           echo ${{ env.DEP_SHA }}
       - name: Cached Dependencies
         id: cache-dependencies
