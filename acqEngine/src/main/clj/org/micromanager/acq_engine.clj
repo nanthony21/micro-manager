@@ -700,8 +700,7 @@
       (set-shutter-open (@state :init-shutter-state))
       (when (and (@state :init-continuous-focus)
                  (not (core isContinuousFocusEnabled)))
-        (enable-continuous-focus true))
-      (when gui (.. gui uiManager frame (enableRoiButtons true))))
+        (enable-continuous-focus true)))
     (catch Throwable t 
            (ReportingUtils/showError t "Acquisition cleanup failed."))))
 
@@ -779,8 +778,7 @@
       (def acq-settings settings) ; for debugging
       (log "Starting MD Acquisition:" settings)
       (when gui
-        (.. gui (live) (setLiveMode false))
-        (.. gui uiManager frame (enableRoiButtons false)))
+        (.. gui (live) (setLiveMode false)))
       (prepare-state state (when (:use-position-list settings) position-list) autofocus-device)
       (def last-state state) ; for debugging
       (let [acq-seq (generate-acq-sequence settings @attached-runnables)]
