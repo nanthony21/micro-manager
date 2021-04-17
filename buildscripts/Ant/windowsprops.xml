@@ -3,15 +3,6 @@
      mm.props when building on Windows -->
 <!-- See also: unixprops.xml -->
 <project name="mm.windows.props">
-	<!-- Whether to run (C++) builds in parallel -->
-	<property name="mm.build.parallel" value="true"/>
-
-	<!-- Verbosity setting for MSBuild (VC++); e.g. minimal or normal -->
-	<property name="mm.build.msbuild.verbosity" value="minimal"/>
-
-	<!-- Logging (override with e.g. build id) -->
-	<property name="mm.build.logsuffix" value=""/>
-
 	<!-- Root of build intermediates directory -->
 	<property name="mm.intdir" location="${mm.basedir}/build/intermediates"/>
 

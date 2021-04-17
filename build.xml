@@ -1,10 +1,6 @@
 <!-- Build all components of Micro-Manager -->
 <!-- Run 'ant -p' for usage -->
-<project name="mm" basedir="." default="build">
-	<fail message="Micro-Manager Ant build files are currently designed for Windows only">
-		<condition><not><os family="winnt"/></not></condition>
-	</fail>
-
+<project name="mm" basedir="." default="build" xmlns:if="ant:if" xmlns:unless="ant:unless">
 	<include file="buildscripts/buildprops.xml"/>
 	<import file="buildscripts/version.xml"/>
 	
@@ -35,8 +31,26 @@
 	</target>
 
 	<target name="build-cpp" description="Build all C++ components">
-		<mm-msbuild project="${mm.cpp.srcdir}/micromanager.sln" target="Build" failonerror="${mm.build.failonerror}"
-			logbasename="msbuild-micromanager${mm.build.logsuffix}"/>
+		<!-- activate VS dev environment -->
+	
+		<property name="mm.meson.builddir" value="${mm.outdir}/meson"/>
+		<condition property="mm.meson.isConfigured">
+			<available file="${mm.meson.builddir}/compile_commands.json" type="file"/>
+		</condition>
+		
+		<exec executable="meson" unless:set="mm.meson.isConfigured" failonerror="true">  <!-- only do this if not already configured -->
+			<arg value="setup"/>
+			<arg value="${mm.meson.builddir}"/>
+			<arg value="${mm.cpp.srcdir}"/>
+		</exec>	
+
+		<exec executable="meson" failonerror="true">  <!-- this automatically runs meson compile if needed. -->
+			<arg value="install"/>
+			<arg value="-C"/>
+			<arg value="${mm.meson.builddir}"/>
+			<arg value="--destdir"/>
+			<arg value="${mm.outdir}/mesonStage"/>
+		</exec>	
 	</target>
 
 	<target name="build-java" depends="build-buildtools"
@@ -142,7 +156,7 @@
 		</if>
 	</target>
 
-	<target name="stage" depends="build-buildtools,set-version,build-cpp,build-java,stage-only"
+	<target name="stage" depends="build,stage-only"
 		description="Gather files to be installed (will trigger build)"/>
 
 	<target name="run" description="Run the staged application (will NOT trigger build or stage)">
@@ -196,27 +210,16 @@
 			includes="*.pdb"/>
 	</target>
 
-	<target name="clean-swig">
-		<!-- Delete SWIG-generated source
-		     Sorry for the hard-coding, but even running the Clean
-		     target using MSBuild doesn't seem to delete these. -->
-		<delete file="${mm.cpp.srcdir}/MMCoreJ_wrap/MMCoreJ_wrap.cpp"/>
-		<delete file="${mm.cpp.srcdir}/MMCoreJ_wrap/MMCoreJ_wrap.h"/>
-		<delete file="${mm.cpp.srcdir}/MMCorePy_wrap/MMCorePy_wrap.cpp"/>
-		<delete file="${mm.cpp.srcdir}/MMCorePy_wrap/MMCorePy_wrap.h"/>
-		<delete dir="${mm.basedir}/build/intermediates/Swig"/>
-	</target>
-
 	<target name="clean-java" description="Clean only the Java components">
 		<run-all-java-projects target="clean"/>
 	</target>
 
-	<target name="clean" depends="clean-swig,clean-java" description="Delete build intermediate and output files">
+	<target name="clean" depends="clean-java" description="Delete build intermediate and output files">
 		<delete dir="${mm.cpp.outdir}"/>
 		<delete dir="${mm.cpp.intdir}"/>
 	</target>
 
-	<target name="clean-all" depends="clean-swig" description="Delete build files for all configurations and architectures">
+	<target name="clean-all" description="Delete build files for all configurations and architectures">
 		<delete dir="${mm.outdir}"/>
 		<delete dir="${mm.intdir}"/>
 	</target>
