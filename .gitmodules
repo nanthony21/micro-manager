@@ -1,3 +1,7 @@
 [submodule "plugins/PWSPlugin"]
 	path = plugins/PWSPlugin
-url=https://github.com/nanthony21/mmPWSPlugin.git
+	url=https://github.com/nanthony21/mmPWSPlugin.git
+[submodule "mmCoreAndDevices"]
+	path = mmCoreAndDevices
+	url=https://github.com/micro-manager/mmCoreAndDevices.git
+	branch = main

@@ -48,7 +48,7 @@ public interface RewritableDatastore extends Datastore {
     *         their Coords objects.
     */
    @Override
-   public void putImage(Image image) throws IOException;
+   void putImage(Image image) throws IOException;
 
    /**
     * Set the SummaryMetadata. Posts a NewSummaryMetadataEvent to the event
@@ -59,7 +59,7 @@ public interface RewritableDatastore extends Datastore {
     * @throws DatastoreFrozenException if the freeze() method has been called.
     */
    @Override
-   public void setSummaryMetadata(SummaryMetadata metadata) 
+   void setSummaryMetadata(SummaryMetadata metadata)
          throws IOException;
 
    /**
@@ -67,10 +67,10 @@ public interface RewritableDatastore extends Datastore {
     * event bus. Throws an IllegalArgumentException if the provided coordinates
     * do not correspond to any image in the Datastore.
     * @param coords Coordinates of the image to remove.
-    * @throws java.io.IOException
+    * @throws java.io.IOException if an IO error occurred.
     * @throws IllegalArgumentException if the coords do not match any image.
     */
-   public void deleteImage(Coords coords) throws IOException;
+   void deleteImage(Coords coords) throws IOException;
 
    /**
     * Delete all images from the Datastore whose coordinates match the provided
@@ -84,15 +84,15 @@ public interface RewritableDatastore extends Datastore {
     * This method may potentially remove no images.
     * @param coords Potentially-underspecified coordinates of the image(s) to
     *        remove.
-    * @throws java.io.IOException
+    * @throws java.io.IOException if an IO error occurred.
     */
-   public void deleteImagesMatching(Coords coords) throws IOException;
+   void deleteImagesMatching(Coords coords) throws IOException;
 
    /**
     * Delete all images from the Datastore. An ImageDeletedEvent will be
     * published on the Datastore's event bus for each image, as will a
     * DatastoreClearedEvent.
-    * @throws java.io.IOException
+    * @throws java.io.IOException if an IO error occurred.
     */
-   public void deleteAllImages() throws IOException;
+   void deleteAllImages() throws IOException;
 }

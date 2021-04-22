@@ -50,6 +50,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.micromanager.PropertyMap;
@@ -81,7 +82,7 @@ public final class StorageSinglePlaneTiffSeries implements Storage {
    private HashMap<Integer, Writer> metadataStreams_;
    private boolean isDatasetWritable_;
    private SummaryMetadata summaryMetadata_ = (new DefaultSummaryMetadata.Builder()).build();
-   private HashMap<Coords, String> coordsToFilename_;
+   private ConcurrentHashMap<Coords, String> coordsToFilename_;
    private HashMap<Integer, String> positionIndexToName_;
    private ArrayList<String> orderedChannelNames_;
    private Coords maxIndices_;
@@ -100,7 +101,7 @@ public final class StorageSinglePlaneTiffSeries implements Storage {
       // Must be informed of events before traditional consumers, so that we
       // can provide images on request.
       store_.registerForEvents(this, 0);
-      coordsToFilename_ = new HashMap<Coords, String>();
+      coordsToFilename_ = new ConcurrentHashMap<>();
       metadataStreams_ = new HashMap<Integer, Writer>();
       positionIndexToName_ = new HashMap<Integer, String>();
       orderedChannelNames_ = new ArrayList<String>();
@@ -312,12 +313,27 @@ public final class StorageSinglePlaneTiffSeries implements Storage {
    }
 
    @Override
+   public List<Image> getImagesIgnoringAxes(Coords coords, String... ignoreTheseAxes) throws IOException {
+      ArrayList<Image> result = new ArrayList<Image>();
+      for (Coords altCoords : coordsToFilename_.keySet()) {
+         Coords strippedAltCoords = altCoords.copyRemovingAxes(ignoreTheseAxes);
+         if (coords.equals(strippedAltCoords)) {
+            result.add(getImage(altCoords));
+         }
+      }
+      return result;
+   }
+
+   @Override
    public boolean hasImage(Coords coords) {
       return coordsToFilename_.containsKey(coords);
    }
 
    @Override
    public int getMaxIndex(String axis) {
+      if (!getAxes().contains(axis)) {
+         return -1;
+      }
       return maxIndices_.getIndex(axis);
    }
 
@@ -639,12 +655,10 @@ public final class StorageSinglePlaneTiffSeries implements Storage {
                Coords coords;
                if (key.startsWith("Coords-")) {
                   // 2.0 method. SummaryMetadata is already valid.
+                  File f = new File(key);
+                  fileName = f.getName();
                   coords = DefaultCoords.fromPropertyMap(
                      NonPropertyMapJSONFormats.coords().fromGson(entry.getValue()));
-                  
-                  // TODO Filename should be read from JSON key instead of
-                  // using fixed rule!
-                  fileName = createFileName(coords);
                }
                else if (key.startsWith("FrameKey-")) {
                   // 1.4 method. SummaryMetadata must be reconstructed.

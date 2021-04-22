@@ -23,18 +23,6 @@ import ij.IJ;
 import ij.ImageJ;
 import ij.WindowManager;
 import ij.gui.Toolbar;
-import java.awt.Point;
-import java.io.File;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.InvocationTargetException;
-import java.net.URISyntaxException;
-import java.net.UnknownHostException;
-import java.util.*;
-import java.util.function.Function;
-import javax.swing.JOptionPane;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 import mmcorej.CMMCore;
 import mmcorej.MMCoreJ;
 import org.micromanager.Album;
@@ -45,6 +33,7 @@ import org.micromanager.CompatibilityInterface;
 import org.micromanager.LogManager;
 import org.micromanager.PluginManager;
 import org.micromanager.PositionListManager;
+import org.micromanager.PropertyManager;
 import org.micromanager.ScriptController;
 import org.micromanager.ShutterManager;
 import org.micromanager.Studio;
@@ -64,10 +53,11 @@ import org.micromanager.events.EventManager;
 import org.micromanager.events.ExposureChangedEvent;
 import org.micromanager.events.PropertiesChangedEvent;
 import org.micromanager.events.ShutdownCommencingEvent;
-import org.micromanager.events.StartupCompleteEvent;
-import org.micromanager.events.SystemConfigurationLoadedEvent;
 import org.micromanager.events.internal.CoreEventCallback;
 import org.micromanager.events.internal.DefaultEventManager;
+import org.micromanager.events.internal.DefaultShutdownCommencingEvent;
+import org.micromanager.events.internal.DefaultStartupCompleteEvent;
+import org.micromanager.events.internal.DefaultSystemConfigurationLoadedEvent;
 import org.micromanager.events.internal.InternalShutdownCommencingEvent;
 import org.micromanager.events.internal.MouseMovesStageStateChangeEvent;
 import org.micromanager.internal.diagnostics.EDTHangLogger;
@@ -83,9 +73,9 @@ import org.micromanager.internal.pluginmanagement.DefaultPluginManager;
 import org.micromanager.internal.script.ScriptPanel;
 import org.micromanager.internal.utils.DaytimeNighttime;
 import org.micromanager.internal.utils.DefaultAutofocusManager;
-import org.micromanager.internal.utils.HotKeys;
 import org.micromanager.internal.utils.FileDialogs;
 import org.micromanager.internal.utils.GUIUtils;
+import org.micromanager.internal.utils.HotKeys;
 import org.micromanager.internal.utils.ReportingUtils;
 import org.micromanager.internal.utils.UIMonitor;
 import org.micromanager.internal.utils.WaitDialog;
@@ -94,6 +84,24 @@ import org.micromanager.profile.internal.UserProfileAdmin;
 import org.micromanager.profile.internal.gui.HardwareConfigurationManager;
 import org.micromanager.quickaccess.QuickAccessManager;
 import org.micromanager.quickaccess.internal.DefaultQuickAccessManager;
+
+import javax.swing.JOptionPane;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+import java.awt.Point;
+import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
+import java.net.URISyntaxException;
+import java.net.UnknownHostException;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 
 /*
@@ -128,6 +136,7 @@ public final class MMStudio implements Studio {
    private UiMovesStageManager uiMovesStageManager_;
    private DefaultApplication defaultApplication_;
    private DefaultCompatibilityInterface compatibility_;
+   private PropertyManager propertyManager_;
    
    // Local Classes
    private final MMSettings settings_ = new MMSettings();
@@ -289,6 +298,8 @@ public final class MMStudio implements Studio {
       posListManager_ = new DefaultPositionListManager(this);
       acqEngine_.setPositionList(posListManager_.getPositionList());
 
+      propertyManager_ = new DefaultPropertyManager();
+
       initializeLogging(core_); // Tell Core to start logging
  
       events().registerForEvents(this); // We need to be subscribed to the global event bus for plugin loading
@@ -405,11 +416,11 @@ public final class MMStudio implements Studio {
       
       // Tell the GUI to reflect the hardware configuration. (The config was
       // loaded before creating the GUI, so we need to reissue the event.)
-      events().post(new SystemConfigurationLoadedEvent());
+      events().post(new DefaultSystemConfigurationLoadedEvent());
       executeStartupScript();
       ui_.updateGUI(true);
       
-      events().post(new StartupCompleteEvent()); // Give plugins a chance to initialize their state
+      events().post(new DefaultStartupCompleteEvent()); // Give plugins a chance to initialize their state
       
       if (settings().getShouldRunZMQServer()) { // start zmq server if so desired
          runZMQServer();
@@ -553,7 +564,13 @@ public final class MMStudio implements Studio {
             }
 
 
-            zmqServer_ = new ZMQServer(classLoaders, instanceGrabberFunction, new String[]{"org.micromanager.internal"});
+            zmqServer_ = new ZMQServer(classLoaders, instanceGrabberFunction,
+                    new String[]{"org.micromanager.internal"}, new Consumer<String>() {
+               @Override
+               public void accept(String s) {
+                  studio_.getCMMCore().logMessage(s);
+               }
+            });
             logs().logMessage("Initialized ZMQ Server on port: " + ZMQServer.DEFAULT_MASTER_PORT_NUMBER);
          } catch (URISyntaxException | UnsupportedEncodingException e) {
             studio_.logs().logError("Failed to initialize ZMQ Server");
@@ -679,7 +696,7 @@ public final class MMStudio implements Studio {
          // Shutdown cancelled by user.
          return false;
       }
-      ShutdownCommencingEvent externalEvent = new ShutdownCommencingEvent();
+      ShutdownCommencingEvent externalEvent = new DefaultShutdownCommencingEvent();
       events().post(externalEvent);
       if (externalEvent.isCanceled()) {
          // Shutdown cancelled by user.
@@ -1075,6 +1092,18 @@ public final class MMStudio implements Studio {
    public AlertManager getAlertManager() {
       return alerts();
    }
+
+   @Override
+   public PropertyManager getPropertyManager() {
+      return propertyManager_;
+   }
+
+   @Override
+   public PropertyManager properties() {
+      return propertyManager_;
+   }
+
+
 
    public UiMovesStageManager getUiMovesStageManager () {
       return uiMovesStageManager_;

@@ -28,6 +28,7 @@ import javax.swing.ToolTipManager;
 import mmcorej.MMCoreJ;
 import org.micromanager.PositionList;
 import org.micromanager.events.GUIRefreshEvent;
+import org.micromanager.events.internal.DefaultGUIRefreshEvent;
 import org.micromanager.internal.dialogs.AcqControlDlg;
 import org.micromanager.internal.dialogs.CalibrationListDlg;
 import org.micromanager.internal.menus.MMMenuBar;
@@ -255,7 +256,7 @@ public class MMUIManager {
       } catch (Exception e) {
          ReportingUtils.logError(e);
       }
-      studio_.events().post(new GUIRefreshEvent());
+      studio_.events().post(new DefaultGUIRefreshEvent());
    }
    
    public void configureBinningCombo() throws Exception {

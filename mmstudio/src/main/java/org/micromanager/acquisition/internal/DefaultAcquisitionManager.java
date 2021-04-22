@@ -38,6 +38,7 @@ import org.micromanager.PropertyMap;
 import org.micromanager.PropertyMaps;
 import org.micromanager.Studio;
 import org.micromanager.acquisition.AcquisitionManager;
+import org.micromanager.acquisition.ChannelSpec;
 import org.micromanager.acquisition.SequenceSettings;
 import org.micromanager.data.Coords;
 import org.micromanager.data.Datastore;
@@ -51,7 +52,7 @@ import org.micromanager.internal.dialogs.AcqControlDlg;
 import org.micromanager.internal.utils.MMException;
 
 /**
- * TODO: this class still depends on MMStudio for many things.
+ * TODO: this class still depends on MMStudio for access to its cache.
  */
 public final class DefaultAcquisitionManager implements AcquisitionManager {
    // NOTE: should match the format used by the acquisition engine.
@@ -66,6 +67,16 @@ public final class DefaultAcquisitionManager implements AcquisitionManager {
       studio_ = studio;
       engine_ = engine;
       mdaDialog_ = mdaDialog;
+   }
+
+   @Override
+   public SequenceSettings.Builder sequenceSettingsBuilder() {
+      return new SequenceSettings.Builder();
+   }
+
+   @Override
+   public ChannelSpec.Builder channelSpecBuilder() {
+      return new ChannelSpec.Builder();
    }
 
    @Override
@@ -172,16 +183,9 @@ public final class DefaultAcquisitionManager implements AcquisitionManager {
    @Override
    public void saveSequenceSettings(SequenceSettings settings, String path) throws IOException {
       File file = new File(path);
-      FileWriter writer = null;
-      try {
-         writer = new FileWriter(file);
+      try (FileWriter writer = new FileWriter(file)) {
          writer.write(SequenceSettings.toJSONStream(settings));
          writer.close();
-      }
-      finally {
-         if (writer != null) {
-            writer.close();
-         }
       }
    }
 
@@ -230,7 +234,7 @@ public final class DefaultAcquisitionManager implements AcquisitionManager {
          return;
       }
       engine_.setSequenceSettings(ss);
-      mdaDialog_.updateGUIContents();
+      mdaDialog_.updateGUIBlocking();
    }
 
    @Override
@@ -240,7 +244,7 @@ public final class DefaultAcquisitionManager implements AcquisitionManager {
          throw new RuntimeException("No camera configured.");
       }
       core.snapImage();
-      ArrayList<Image> result = new ArrayList<Image>();
+      ArrayList<Image> result = new ArrayList<>();
       for (int c = 0; c < core.getNumberOfCameraChannels(); ++c) {
          TaggedImage tagged = core.getTaggedImage(c);
          Image temp = new DefaultImage(tagged);
