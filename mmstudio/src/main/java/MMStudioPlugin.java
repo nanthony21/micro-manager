@@ -66,7 +66,7 @@ public class MMStudioPlugin implements PlugIn, CommandListener {
                      System.setProperty("apple.laf.useScreenMenuBar", "true");
                   }
                   try {
-                     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                     UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName()); // Better appearance than system IMO.
                   }
                   catch (ClassNotFoundException | IllegalAccessException | 
                           InstantiationException | UnsupportedLookAndFeelException e) {
@@ -81,7 +81,6 @@ public class MMStudioPlugin implements PlugIn, CommandListener {
                      Executer.addCommandListener(MMStudioPlugin.this);
                   }
                   
-                  UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName()); // Better appearance than system IMO.
 
                   studio_ = new MMStudio(true, profileNameAutoStart);
                }

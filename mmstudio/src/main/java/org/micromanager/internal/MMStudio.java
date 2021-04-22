@@ -84,7 +84,8 @@ import org.micromanager.profile.internal.UserProfileAdmin;
 import org.micromanager.profile.internal.gui.HardwareConfigurationManager;
 import org.micromanager.quickaccess.QuickAccessManager;
 import org.micromanager.quickaccess.internal.DefaultQuickAccessManager;
-
+import py4j.GatewayServer;
+import py4j.JavaServer;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -153,6 +154,7 @@ public final class MMStudio implements Studio {
    private boolean isClickToMoveEnabled_ = false;
 
    private ZMQServer zmqServer_;
+   private final GatewayServer py4jServer_ = new GatewayServer(this);
    private org.micromanager.internal.utils.HotKeys hotKeys_;
 
    // Our instance TODO: make this non-static
@@ -424,7 +426,8 @@ public final class MMStudio implements Studio {
       
       if (settings().getShouldRunZMQServer()) { // start zmq server if so desired
          runZMQServer();
-      }      
+      }
+      this.py4jServer_.start();
    }
 
    private void initializeLogging(CMMCore core) {
@@ -652,7 +655,7 @@ public final class MMStudio implements Studio {
       }
   
       ui_.cleanupOnClose();
-      
+      py4jServer_.shutdown();
       if (zmqServer_ != null) {
          zmqServer_.close();
       }
