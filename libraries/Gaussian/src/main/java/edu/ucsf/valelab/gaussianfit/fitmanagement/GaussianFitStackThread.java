@@ -45,7 +45,6 @@ import edu.ucsf.valelab.gaussianfit.utils.ReportingUtils;
 
 
 /**
- *
  * @author nico
  */
 public class GaussianFitStackThread extends GaussianInfo implements Runnable {
@@ -54,7 +53,7 @@ public class GaussianFitStackThread extends GaussianInfo implements Runnable {
    boolean stopNow_ = false;
 
    public GaussianFitStackThread(BlockingQueue<SpotData> sourceList,
-           List<SpotData> resultList, ImagePlus siPlus) {
+         List<SpotData> resultList, ImagePlus siPlus) {
       siPlus_ = siPlus;
       sourceList_ = sourceList;
       resultList_ = resultList;
@@ -75,8 +74,9 @@ public class GaussianFitStackThread extends GaussianInfo implements Runnable {
    }
 
    public void join() throws InterruptedException {
-      if (t_ != null)
+      if (t_ != null) {
          t_.join();
+      }
    }
 
    @Override
@@ -108,22 +108,23 @@ public class GaussianFitStackThread extends GaussianInfo implements Runnable {
             // Note that the copy constructor will not copy pixel data, so we loose 
             // those when spot goes out of scope
             SpotData spotData = SpotDataConverter.convert(spot, fitResult, this, zc);
-            
-            if ( fitResult.getParms().length > 1 &&
-                    (!useWidthFilter_ || 
-                    (spotData.getWidth() > widthMin_ && spotData.getWidth() < widthMax_))
-                    && (!useNrPhotonsFilter_ || 
-                    (spotData.getIntensity() > nrPhotonsMin_ && spotData.getIntensity() < nrPhotonsMax_))) {
+
+            if (fitResult.getParms().length > 1 &&
+                  (!useWidthFilter_ ||
+                        (spotData.getWidth() > widthMin_ && spotData.getWidth() < widthMax_))
+                  && (!useNrPhotonsFilter_ ||
+                  (spotData.getIntensity() > nrPhotonsMin_
+                        && spotData.getIntensity() < nrPhotonsMax_))) {
                resultList_.add(spotData);
             }
 
 
          } catch (Exception ex) {
             ReportingUtils.logError(ex);
-            ReportingUtils.logError("Thread run out of memory  " + 
-                    Thread.currentThread().getName());
+            ReportingUtils.logError("Thread run out of memory  " +
+                  Thread.currentThread().getName());
             ReportingUtils.showError("Fitter out of memory.\n" +
-                    "Out of memory error");
+                  "Out of memory error");
             return;
          }
       }

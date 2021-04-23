@@ -12,9 +12,8 @@ import java.awt.geom.Point2D;
 import java.util.List;
 
 /**
- * Simple API for Projector control
- * Created to provide access to Projector function from pycromanager
- * In java, use ProjectorActions instead, which gives static accessor functions
+ * Simple API for Projector control Created to provide access to Projector function from
+ * pycromanager In java, use ProjectorActions instead, which gives static accessor functions
  * pycromanager can not use static functions (yet), hence this class...
  */
 public class ProjectorAPI {
@@ -32,11 +31,11 @@ public class ProjectorAPI {
       projectorControlForm_ = ProjectorControlForm.getSingleton();
    }
 
-   public  ProjectionDevice getProjectionDevice() {
+   public ProjectionDevice getProjectionDevice() {
       return ProjectorActions.getProjectionDevice(studio_);
    }
 
-   public  void displayCenterSpot(ProjectionDevice dev) {
+   public void displayCenterSpot(ProjectionDevice dev) {
       ProjectorActions.displayCenterSpot(dev);
    }
 
@@ -48,24 +47,25 @@ public class ProjectorAPI {
       return ProjectorActions.roisAsPolygons(rois);
    }
 
-   public  void transformAndSetMask(Mapping mapping,
-                                          ProjectionDevice dev, byte[] inputImage, int width, int height,
-                                          Rectangle cameraROI, Integer cameraBinning) {
-      ProjectorActions.transformAndSetMask(mapping, dev, inputImage, width, height, cameraROI, cameraBinning);
+   public void transformAndSetMask(Mapping mapping,
+         ProjectionDevice dev, byte[] inputImage, int width, int height,
+         Rectangle cameraROI, Integer cameraBinning) {
+      ProjectorActions
+            .transformAndSetMask(mapping, dev, inputImage, width, height, cameraROI, cameraBinning);
    }
 
    public List<FloatPolygon> transformRoiPolygons(
-           Polygon[] roiPolygons, Mapping mapping, Rectangle cameraROI, Integer cameraBinning) {
+         Polygon[] roiPolygons, Mapping mapping, Rectangle cameraROI, Integer cameraBinning) {
       return ProjectorActions.transformRoiPolygons(roiPolygons, mapping, cameraROI, cameraBinning);
    }
 
-   public  List<FloatPolygon> transformROIs(Roi[] rois,
-                                                  Mapping mapping, Rectangle cameraROI, Integer cameraBinning) {
+   public List<FloatPolygon> transformROIs(Roi[] rois,
+         Mapping mapping, Rectangle cameraROI, Integer cameraBinning) {
       return ProjectorActions.transformROIs(rois, mapping, cameraROI, cameraBinning);
    }
 
    public Point2D.Double transformPoint(Mapping mapping, Point2D.Double pt,
-                                        Rectangle cameraROI, Integer cameraBinning) {
+         Rectangle cameraROI, Integer cameraBinning) {
       return ProjectorActions.transformPoint(mapping, pt, cameraROI, cameraBinning);
    }
 
