@@ -169,7 +169,7 @@ public final class MMStudio implements Studio {
    
    /**
     * Main procedure for stand alone operation.
-    * @param args
+    * @param args commandline arguments for the application.
     */
    public static void main(String args[]) {
       String profileNameAutoStart = null; //The name of the user profile that Micro-Manager should start up with. In the case that this is left as null then a splash screen will request that the user select a profile before startup.

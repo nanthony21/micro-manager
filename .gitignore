@@ -53,6 +53,10 @@ test-driver
 *.pyo
 __pycache__/
 
+# IntelliJ and Pycharm
+.idea
+*.iml
+
 # Build
 *.class
 *.jar
